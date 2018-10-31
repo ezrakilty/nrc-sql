@@ -325,14 +325,7 @@ Require Import Listkit.Sets.
 Require Import OutsideRange.
 
 Lemma commute_subst_with_beta_reduct:
-  forall N M n env,
-    subst_env n env (N */ M) =
-    (subst_env (S n) (map (shift 0 1) env) N */ subst_env n env M).
-Proof.
- intros.
- (* Now we only have to show that certain complex substitutions are equal.
-
-    The situation at this point can be summarized as:
+ (** Diagrammatically:
 
       (1) -----------> (2) -----------> (4)
          subst 0 {M''}      unshift 0 1
@@ -349,6 +342,11 @@ Proof.
            M'   = shift01 M
            M''  = shift01 (subst n env M)
  *)
+  forall N M n env,
+    subst_env n env (N */ M) =
+    (subst_env (S n) (map (shift 0 1) env) N */ subst_env n env M).
+Proof.
+ intros.
 
  (* Push subst_env inside unshift. *)
  rewrite subst_unshift (*if this used outside_range, how would it be different? *);
@@ -588,12 +586,7 @@ Qed.
 
 (** If [shift k 1 N] reduces, then that reduct is equal to the
     [shift k 1] of some term which is a reduct of [N]. *)
-Lemma shift_Rw_inversion:
-  forall N M k,
-    (shift k 1 N ~> M) ->
-    {N' : Term & ((M = shift k 1 N') * (N ~> N')) %type}.
-Proof.
-(*
+(** Diagrammatically:
     N - - - -> N'
     |          :
     | f        : f = shift k 1
@@ -602,6 +595,12 @@ Proof.
    f N ------> M
           R
  *)
+Lemma shift_Rw_inversion:
+  forall N M k,
+    (shift k 1 N ~> M) ->
+    {N' : Term & ((M = shift k 1 N') * (N ~> N')) %type}.
+Proof.
+(* TODO: The cases are now mostly very similar. Must be some way to automate. *)
  induction N; simpl; intros M k red.
  (* Case TmConst *)
       inversion red.
