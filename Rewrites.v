@@ -612,21 +612,21 @@ Proof.
      destruct (IHN1 m2 k) as [x [? ?]]; [auto | ]; subst.
      exists (TmPair x N2).
      simpl.
-     eauto.
+     auto.
     destruct (IHN2 n2 k) as [x [? ?]]; [auto | ]; subst.
     exists (TmPair N1 x).
     simpl.
-    seauto.
+    sauto.
 
  (* Case TmProj *)
    inversion red; subst.
      destruct (IHN m2 k) as [N' [? ?]]; [auto|]; subst.
      exists (TmProj b N').
-     eauto.
+     auto.
     descrim N (* must be pair *).
     simpl in *.
     exists N1.
-    intuition (congruence || auto).
+    intuition (congruence || auto).  (* alt: inversion H1; auto. *)
    descrim N.
    simpl in *.
    exists N2.
@@ -638,14 +638,14 @@ Proof.
   destruct (IHN n' (S k) H0) as [N' [N'_def N_red_N']]; subst.
   exists (TmAbs N').
   simpl.
-  eauto.
+  auto.
 
  (* Case TmApp *)
  (* Take cases on the reductions: *)
  inversion red.
  (* Case: Beta reduction. *)
   (* Show that N1 is an abstraction. *)
-   destruct N1; simpl in H; unfold shift_var; try discriminate.
+   descrim N1.
    (* Now the old N1 is (TmAbs N1) *)
    simpl in red.
    inversion H.
@@ -660,13 +660,13 @@ Proof.
   destruct (IHN1 m2 k) as [m2' [m2'_def m2'_red]]; [auto | ]; subst.
   exists (m2'@N2).
   simpl.
-  eauto.
+  auto.
 
  (* Case: reduction in right part of application. *)
  destruct (IHN2 n2 k) as [n2' [n2'_def n2'_red]]; [auto | ]; subst.
  exists (N1@n2').
  simpl.
- eauto.
+ auto.
 
  (* Case TmNull *)
  inversion red.
@@ -677,26 +677,26 @@ Proof.
  destruct (IHN m' k) as [? [? ?]]; auto; subst.
  exists (TmSingle x).
  simpl.
- intuition.
+ auto.
 
  (* Case: TmUnion *)
   inversion red.
   destruct (IHN1 M' k) as [x [? ?]]; [sauto | ]; subst.
   exists (TmUnion x N2).
   simpl.
-  seauto.
- destruct (IHN2 N' k) as [x [? ?]]; [auto | ]; subst.
- exists (TmUnion N1 x).
- simpl.
- seauto.
+  sauto.
+  destruct (IHN2 N' k) as [x [? ?]]; [auto | ]; subst.
+  exists (TmUnion N1 x).
+  simpl.
+  sauto.
 
  (* Case TmBind *)
  inversion red.
 
  (* Case: Null for Bind *)
- destruct N1; simpl in *; try discriminate; auto.
+ descrim N1.
  exists TmNull.
- solve [intuition].
+ auto.
 
  (* Case: Beta for Bind *)
  destruct (TmSingle_shift_inversion x _ _ H); subst.
@@ -707,26 +707,20 @@ Proof.
  apply commute_shift_beta_reduct.
 
  (* Case: Bind/Union *)
- assert (A : {xs' : Term & {ys' : Term & N1 = TmUnion xs' ys' &
-                                  ((xs = shift k 1 xs') *
-                                   (ys = shift k 1 ys'))%type}}).
- destruct N1; simpl in H0; try discriminate.
+ descrim N1.
  inversion H0.
- exists N1_1; exists N1_2;
-   intuition.
- destruct A as [xs' [ys' ? [? ?]]]; subst.
- exists (TmUnion (TmBind xs' N2) (TmBind ys' N2)).
+ exists (TmUnion (TmBind N1_1 N2) (TmBind N1_2 N2)).
  simpl.
  auto.
 
  (* Case: reduction in subject of TmBind. *)
- destruct (IHN1 m' k) as [x [e r]]; [auto | ]; subst.
+ destruct (IHN1 m' k) as [x [? ?]]; [auto | ]; subst.
  exists (TmBind x N2).
  simpl.
- eauto.
+ auto.
 
  (* Case: TmBind assoc *)
- destruct N1; simpl in H0; try discriminate; subst.
+ descrim N1.
  inversion H0; subst.
  exists (TmBind N1_1 (TmBind N1_2 (shift 1 1 N2))).
  simpl.
@@ -735,10 +729,10 @@ Proof.
  auto.
 
 (* Case: reduction in body of TmBind. *)
- destruct (IHN2 n' (S k)) as [x [e r]]; [auto | ]; subst.
+ destruct (IHN2 n' (S k)) as [x [? ?]]; [auto | ]; subst.
  exists (TmBind N1 x).
  simpl.
- eauto.
+ auto.
 Qed.
 
 (** * Compatibility of rewriting with each of the term forms. *)
