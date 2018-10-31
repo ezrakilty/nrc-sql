@@ -601,51 +601,42 @@ Lemma shift_Rw_inversion:
     {N' : Term & ((M = shift k 1 N') * (N ~> N')) %type}.
 Proof.
 (* TODO: The cases are now mostly very similar. Must be some way to automate. *)
- induction N; simpl; intros M k red.
- (* Case TmConst *)
-      inversion red.
- (* Case TmVar *)
-     inversion red.
- (* Case TmPair *)
-    inversion red.
+ induction N; simpl; intros M k red; inversion red.
+ (* Case TmPair; reduction in left *)
      destruct (IHN1 m2 k) as [x [? ?]]; [auto | ]; subst.
      exists (TmPair x N2).
      simpl.
      auto.
+
+ (* Case TmPair; reduction in right *)
     destruct (IHN2 n2 k) as [x [? ?]]; [auto | ]; subst.
     exists (TmPair N1 x).
     simpl.
     sauto.
 
- (* Case TmProj *)
-   inversion red; subst.
+ (* Case TmProj; reduction in body *)
      destruct (IHN m2 k) as [N' [? ?]]; [auto|]; subst.
      exists (TmProj b N').
      auto.
+   (* Case TmProj (left) on TmPair *)
     descrim N (* must be pair *).
     simpl in *.
     exists N1.
     intuition (congruence || auto).  (* alt: inversion H1; auto. *)
+   (* Case TmProj (right) on TmPair *)
    descrim N.
    simpl in *.
    exists N2.
    intuition (congruence || auto).
 
- (* Case TmAbs *)
-  inversion red.
-  subst.
+ (* Case TmAbs; reduction in body *)
   destruct (IHN n' (S k) H0) as [N' [N'_def N_red_N']]; subst.
   exists (TmAbs N').
   simpl.
   auto.
 
- (* Case TmApp *)
- (* Take cases on the reductions: *)
- inversion red.
  (* Case: Beta reduction. *)
-  (* Show that N1 is an abstraction. *)
    descrim N1.
-   (* Now the old N1 is (TmAbs N1) *)
    simpl in red.
    inversion H.
    subst N.
@@ -667,30 +658,23 @@ Proof.
  simpl.
  auto.
 
- (* Case TmNull *)
- inversion red.
-
  (* Case TmSingle *)
- inversion red.
-
  destruct (IHN m' k) as [? [? ?]]; auto; subst.
  exists (TmSingle x).
  simpl.
  auto.
 
- (* Case: TmUnion *)
-  inversion red.
+ (* Case: TmUnion, reduction in left *)
   destruct (IHN1 M' k) as [x [? ?]]; [sauto | ]; subst.
   exists (TmUnion x N2).
   simpl.
   sauto.
+
+ (* Case: TmUnion, reduction in right *)
   destruct (IHN2 N' k) as [x [? ?]]; [auto | ]; subst.
   exists (TmUnion N1 x).
   simpl.
   sauto.
-
- (* Case TmBind *)
- inversion red.
 
  (* Case: Null for Bind *)
  descrim N1.
@@ -727,7 +711,7 @@ Proof.
  { rewrite <- shift_shift_commute by omega; auto. }
  auto.
 
-(* Case: reduction in body of TmBind. *)
+ (* Case: reduction in body of TmBind. *)
  destruct (IHN2 n' (S k)) as [x [? ?]]; [auto | ]; subst.
  exists (TmBind N1 x).
  simpl.
