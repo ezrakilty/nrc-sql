@@ -609,42 +609,35 @@ Proof.
      inversion red.
  (* Case TmPair *)
     inversion red.
-     destruct (IHN1 m2 k) as [x [e r]]; [auto | ].
+     destruct (IHN1 m2 k) as [x [? ?]]; [auto | ]; subst.
      exists (TmPair x N2).
      simpl.
-     subst m2.
      eauto.
-    destruct (IHN2 n2 k) as [x [? ?]]; [auto | ].
+    destruct (IHN2 n2 k) as [x [? ?]]; [auto | ]; subst.
     exists (TmPair N1 x).
     simpl.
-    subst n2.
     seauto.
+
  (* Case TmProj *)
    inversion red; subst.
-     destruct (IHN m2 k) as [N' [? ?]]; [auto|].
+     destruct (IHN m2 k) as [N' [? ?]]; [auto|]; subst.
      exists (TmProj b N').
-     simpl.
-     subst m2.
      eauto.
     descrim N (* must be pair *).
     simpl in *.
     exists N1.
-    simpl.
-    intuition (congruence ||auto).
+    intuition (congruence || auto).
    descrim N.
    simpl in *.
    exists N2.
-   simpl.
    intuition (congruence || auto).
 
  (* Case TmAbs *)
   inversion red.
   subst.
-  destruct (IHN n' (S k) H0) as [N' N'_def].
+  destruct (IHN n' (S k) H0) as [N' [N'_def N_red_N']]; subst.
   exists (TmAbs N').
-  destruct N'_def as [N'_def N_red_N'].
   simpl.
-  subst.
   eauto.
 
  (* Case TmApp *)
@@ -664,17 +657,15 @@ Proof.
    apply commute_shift_beta_reduct.
 
  (* Case: reduction in left part of application. *)
-  destruct (IHN1 m2 k) as [m2' [m2'_def m2'_red]]; [auto | ].
+  destruct (IHN1 m2 k) as [m2' [m2'_def m2'_red]]; [auto | ]; subst.
   exists (m2'@N2).
   simpl.
-  subst m2.
   eauto.
 
  (* Case: reduction in right part of application. *)
- destruct (IHN2 n2 k) as [n2' [n2'_def n2'_red]]; [auto | ].
+ destruct (IHN2 n2 k) as [n2' [n2'_def n2'_red]]; [auto | ]; subst.
  exists (N1@n2').
  simpl.
- subst n2.
  eauto.
 
  (* Case TmNull *)
@@ -683,76 +674,60 @@ Proof.
  (* Case TmSingle *)
  inversion red.
 
- subst.
- destruct (IHN m' k); auto.
+ destruct (IHN m' k) as [? [? ?]]; auto; subst.
  exists (TmSingle x).
  simpl.
  intuition.
- subst.
- sauto.
 
  (* Case: TmUnion *)
   inversion red.
-  destruct (IHN1 M' k) as [x [e r]]; [sauto | ].
-  subst; simpl.
+  destruct (IHN1 M' k) as [x [? ?]]; [sauto | ]; subst.
   exists (TmUnion x N2).
   simpl.
-  subst.
   seauto.
- destruct (IHN2 N' k) as [x [? ?]]; [auto | ].
+ destruct (IHN2 N' k) as [x [? ?]]; [auto | ]; subst.
  exists (TmUnion N1 x).
  simpl.
- subst.
  seauto.
 
  (* Case TmBind *)
  inversion red.
 
  (* Case: Null for Bind *)
- subst.
- assert (N1 = TmNull).
- destruct N1; simpl in *; try discriminate.
- auto.
- subst N1.
+ destruct N1; simpl in *; try discriminate; auto.
  exists TmNull.
  solve [intuition].
 
  (* Case: Beta for Bind *)
- subst.
- destruct (TmSingle_shift_inversion x _ _ H).
- subst N1.
+ destruct (TmSingle_shift_inversion x _ _ H); subst.
  exists (N2 */ x0).
  simpl in H.
- inversion H.
- subst.
+ inversion H; subst.
  split; auto.
  apply commute_shift_beta_reduct.
 
  (* Case: Bind/Union *)
- assert (A : {xs' : Term & {ys' : Term & ((N1 = TmUnion xs' ys') * (xs = shift k 1 xs') * (ys = shift k 1 ys'))%type}}).
+ assert (A : {xs' : Term & {ys' : Term & N1 = TmUnion xs' ys' &
+                                  ((xs = shift k 1 xs') *
+                                   (ys = shift k 1 ys'))%type}}).
  destruct N1; simpl in H0; try discriminate.
- exists N1_1; exists N1_2.
  inversion H0.
- intuition.
- destruct A as [xs' [ys' [[]]]].
- subst N1.
+ exists N1_1; exists N1_2;
+   intuition.
+ destruct A as [xs' [ys' ? [? ?]]]; subst.
  exists (TmUnion (TmBind xs' N2) (TmBind ys' N2)).
  simpl.
- subst xs ys.
- split; auto.
+ auto.
 
  (* Case: reduction in subject of TmBind. *)
- destruct (IHN1 m' k) as [x [e r]]; [auto | ].
+ destruct (IHN1 m' k) as [x [e r]]; [auto | ]; subst.
  exists (TmBind x N2).
  simpl.
- subst m'.
  eauto.
 
  (* Case: TmBind assoc *)
- subst.
- destruct N1; simpl in H0; try discriminate.
- inversion H0.
- subst.
+ destruct N1; simpl in H0; try discriminate; subst.
+ inversion H0; subst.
  exists (TmBind N1_1 (TmBind N1_2 (shift 1 1 N2))).
  simpl.
  split.
@@ -760,10 +735,9 @@ Proof.
  auto.
 
 (* Case: reduction in body of TmBind. *)
- destruct (IHN2 n' (S k)) as [x [e r]]; [auto | ].
+ destruct (IHN2 n' (S k)) as [x [e r]]; [auto | ]; subst.
  exists (TmBind N1 x).
  simpl.
- subst n'.
  eauto.
 Qed.
 
