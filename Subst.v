@@ -185,12 +185,12 @@ Proof.
 
  (* Case TmAbs *)
      simpl.
-     rewrite IHM by (map_omega).
+     rewrite IHM by map_omega.
      f_equal.
      f_equal.
      rewrite map_map.
      rewrite map_map.
-     apply map_ext; intros M'.
+     apply map_ext; intros x.
      apply shift_shift_commute.
      omega.
 
@@ -304,8 +304,8 @@ Lemma subst_env_concat_TmVar:
     length (Vs ++ Ws) = length env ->
     foreach2_ty Term Ty (Vs ++ Ws) env
                 (fun (x0 : Term) (y : Ty) => Typing nil x0 y) ->
-      (subst_env k Vs (subst_env (k + length Vs) Ws (TmVar x)) =
-       subst_env k (Vs ++ Ws) (TmVar x)).
+       subst_env k Vs (subst_env (k + length Vs) Ws (TmVar x)) =
+       subst_env k (Vs ++ Ws) (TmVar x).
 Proof.
  intros ? ? ? ? ? env_closed VsWs_env_equilong env_closed'.
  unfold subst_env at 3.

@@ -801,6 +801,57 @@ Hint Resolve Rw_rt_Pair_left Rw_rt_Pair_right Rw_rt_App_left Rw_rt_App_right
 
 (** * [( */ )] and unshift. *)
 
+Check subst_unshift.
+
+(* Failed attempt to simplify beta_with_unshift_var *)
+(*Lemma zod:
+  forall n n' k env x,
+    k >= length env ->
+    n >= n' + length env ->
+    unshift n k (subst_env n' env (TmVar x)) =
+    subst_env n' (map (unshift n k) env) (unshift n k (TmVar x)).
+Proof.
+ intros.
+ destruct (le_gt_dec (n+k) x).
+  replace (subst_env n' env (TmVar x)) with (TmVar x).
+   replace (unshift n k (TmVar x)) with (TmVar (x-k)).
+    rewrite subst_var_outside_range.
+     auto.
+    rewrite map_length.
+    unfold outside_range.
+    break; (easy || (break; (easy || omega))).
+   simpl.
+   unfold unshift_var.
+   break; (easy||omega).
+  rewrite subst_var_outside_range; auto.
+  unfold outside_range; break; (easy || (break; (easy || omega))).
+  cut (unshift n k (TmVar x) =TmVar x); [intro|].
+   case_eq (outside_range n' (length env + n') x); intro.
+   rewrite subst_var_outside_range; auto.
+   rewrite H1.
+   rewrite subst_var_outside_range; auto.
+   rewrite map_length.
+   auto.
+  destruct (subst_var_inside_range n' env x H2) as [V [V_env V_def]].
+rewrite V_def.
+  destruct (subst_var_inside_range n' (map (unshift n k) env) x).
+rewrite map_length.
+sauto.
+destruct H3.
+rewrite H1.
+rewrite H4.
+subst x0.
+
+destruct (le_gt_dec (n' + length env) x).
+destruct (le_gt_dec (n' + length env) x).
+
+rewrite subst_env_nonfree.
+unfold unshift_var at 1.
+destruct (le_gt_dec (k + n) x).
+destruct (unshift_var n k x).
+Qed.
+*)
+
 Lemma beta_with_unshift_var:
   forall x M n n' k,
     n >= n' ->
@@ -808,44 +859,35 @@ Lemma beta_with_unshift_var:
     unshift n' 1
             (subst_env n' (shift 0 1 (unshift n k M) :: nil) (unshift (S n) k (TmVar x))).
 Proof.
+(* NEW *)
+(*  intros. *)
+(* rewrite unshift_unshift_commute by auto. *)
+(* f_equal. *)
+(* rewrite <- unshift_shift_commute by omega. *)
+(* Search unshift. *)
+(* replace (shift 0 1 M :: nil) with (map (shift 0 1) (M :: nil)) by auto. *)
+(* Check subst_unshift. *)
+(* rewrite <- shift_subst_commute_hi. *)
+
+(* OLD *)
  simpl.
  intros.
- destruct (nth_error_dichot _ (shift 0 1 M :: nil) (x - n')) as [[H1 H2] | [H1 H2]].
-  simpl in H1.
-  rewrite H2.
-  destruct (nth_error_dichot _
-                (shift 0 1 (unshift n k M) :: nil)
-                (unshift_var (S n) k x - n'))
-        as [[H3 H4]|[H3 H4]].
-  rewrite H4.
-   simpl.
-   break; break.
-      rewrite unshift_unshift_commute; solve [auto | omega].
-     rewrite unshift_unshift_commute; solve [auto | omega].
-    rewrite unshift_unshift_commute; solve [auto | omega].
+ nth_error_dichotomize H1 H2 V H2; simpl in *.
+  nth_error_dichotomize H3 H4 V H4; simpl in *.
+   rewrite 2 Listkit.logickit.if_irrelevant.
    rewrite unshift_unshift_commute; solve [auto | omega].
-  destruct H4 as [V H4].
-  rewrite H4.
-  simpl in *.
   exfalso.
   assert (H0 : unshift_var (S n) k x - n' = 0) by omega.
   unfold unshift_var in H0.
   destruct (le_gt_dec (k + S n) x) in H0; solve [omega].
- destruct H2 as [V H2].
- rewrite H2.
- simpl.
- destruct (nth_error_dichot _
-               (shift 0 1 (unshift n k M) :: nil)
-               (unshift_var (S n) k x - n'))
-       as [[H3 H4]|[H3 H4]].
-  rewrite H4.
-  simpl in *.
+ nth_error_dichotomize H3 H4 W H4; simpl in *.
   exfalso.
   unfold unshift_var in H3.
   destruct (le_gt_dec (k + S n) x); solve [omega].
- destruct H4 as [W H4].
- rewrite H4.
- simpl in *.
+(* rewrite unshift_unshift_commute by omega. *)
+(* rewrite unshift_shift_commute. *)
+(* f_equal. *)
+(* rewrite Listkit.logickit.if_cc with (f := unshift (S n) k). *)
  break; break.
     assert (x < S n) by omega.
     assert (unshift_var (S n) k x = x).
@@ -854,12 +896,11 @@ Proof.
     replace (unshift_var (S n) k x) with x in * by auto.
     replace (x - n') with 0 in * by omega.
     simpl in *.
-    inversion H2. inversion H4.
-    rewrite unshift_unshift_commute.
-     rewrite unshift_shift_commute.
-      auto.
-     omega.
-    omega.
+    inversion H2.
+    inversion H4.
+    rewrite unshift_unshift_commute by omega.
+    rewrite unshift_shift_commute by omega.
+    auto.
    exfalso.
    unfold unshift_var in g.
    destruct (le_gt_dec (k + S n) x); solve [omega].
@@ -934,6 +975,16 @@ Proof.
    auto.
 Qed.
 
+(* TODO: Need a better place for the below stuff, which is interactions btwn
+shift/subst and rewriting. *)
+Lemma shift_preserves_rw_rt:
+  forall L L' n, (L ~>> L') -> shift n 1 L ~>> shift n 1 L'.
+Proof.
+ intros.
+ induction H; subst; eauto.
+ auto using Rw_rt_step, shift_preserves_rw.
+Qed.
+
 Lemma unshift_preserves_rw_rt
      : forall (M M' : Term) (n k : nat),
        (M ~>> M') -> unshift n k M ~>> unshift n k M'.
@@ -941,16 +992,6 @@ Proof.
  intros.
  induction H; subst; eauto.
  auto using Rw_rt_step, unshift_preserves_rw.
-Qed.
-
-(* TODO: Need a better place for the below stuff, which is interactions btwn
-shift/subst and rewriting. *)
-Lemma Rw_rt_shift:
-  forall L L', (L ~>> L') -> shift 0 1 L ~>> shift 0 1 L'.
-Proof.
- intros.
- induction H; subst; eauto.
- auto using Rw_rt_step, shift_preserves_rw.
 Qed.
 
 Lemma subst_env_compat_rw_rt_var:
@@ -975,10 +1016,10 @@ Proof.
    try (apply subst_env_compat_rw_rt_var);
    simpl; eauto; intros.
  - eapply Rw_rt_trans; eauto.
- - eauto using Rw_rt_Abs, IHM, Rw_rt_shift.
+ - eauto using Rw_rt_Abs, IHM, shift_preserves_rw_rt.
  - eapply Rw_rt_trans; eauto.
  - eapply Rw_rt_trans; eauto.
- - eapply Rw_rt_trans; eauto using IHM2, Rw_rt_shift.
+ - eapply Rw_rt_trans; eauto using IHM2, shift_preserves_rw_rt.
 Qed.
 
 Lemma subst_env_compat_rw_rt
@@ -1027,5 +1068,5 @@ Proof.
  intros.
  apply unshift_preserves_rw_rt. (* Should be rw_compat_unshift *)
  apply subst_env_bicompat_rw_rt; auto.
- apply Rw_rt_shift; auto.
+ apply shift_preserves_rw_rt; auto.
 Qed.
