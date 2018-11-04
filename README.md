@@ -1,5 +1,5 @@
 
-# Header
+# This Proof
 
 This is a Coq proof development that strives to show that Nested
 Relational Calculus expressions with flat input and output types can
