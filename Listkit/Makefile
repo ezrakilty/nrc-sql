@@ -19,7 +19,7 @@ Listkit/Subseteq.vo: eztactics.v Listkit/Sets.vo
 Listkit/Map.vo: Listkit/Sets.vo
 
 Listkit/listkit.vo: Listkit/logickit.vo Listkit/NthError.vo \
-                    Listkit/Concat.vo Listkit/Foreach.vo Listkit/Max.vo \
+                    Listkit/Foreach.vo Listkit/Max.vo \
                     Listkit/TakeDrop.vo Listkit/RangeSet.vo \
                     Listkit/All.vo Listkit/AllType.vo Listkit/Map.vo \
                     Listkit/Sets.vo Listkit/Subseteq.vo
