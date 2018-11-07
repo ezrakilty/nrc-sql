@@ -181,7 +181,8 @@ Hint Resolve Rw_trans_preserves_SN.
 Lemma SN_embedding f:
   (forall M M', (M ~> M') -> (f M ~> f M')) ->
   forall Q, SN Q ->
-    forall M, (Q ~>> f M) -> SN M.
+      forall M, (Q ~>> f M) ->
+          SN M.
 (* TODO: I can't believe how hard this was!
    TODO: Wrap this up in something that instantiates Q as f M, which is how we use it. *)
 Proof.

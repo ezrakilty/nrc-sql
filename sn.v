@@ -42,9 +42,6 @@ Definition set_remove := Listkit.Sets.set_remove.
 
 Hint Resolve subst_env_compat_rw_rt.
 
-(* TODO: Could get this from Coq.Sets.Image. *)
-Definition injective A B (f : A -> B) := forall x y, f x = f y -> x = y.
-
 (**
 * Embeddings
 
@@ -161,8 +158,7 @@ Lemma Rw_rt_preserves_Reducible :
  forall T M M', (M ~>> M') -> Reducible M T -> Reducible M' T.
 Proof.
  intros T M M' red R.
- induction red; subst; auto.
- eapply Rw_preserves_Reducible; eauto.
+ induction red; subst; eauto using Rw_preserves_Reducible.
 Qed.
 
 Hint Resolve Rw_rt_preserves_Reducible.
@@ -173,10 +169,7 @@ Lemma Krw_preserves_ReducibleK :
 Proof.
  unfold ReducibleK.
  intros.
- specialize (X M X0).
- inversion X.
- specialize (H0 (plug K' (TmSingle M))).
- apply H0.
+ destruct (X M X0).
  auto.
 Qed.
 
@@ -198,7 +191,7 @@ Proof.
  unfold ReducibleK.
  intros.
  destruct X0.
- apply SN_context_Krw_norm with (X := plug K (TmSingle x)) (X' := plug K (TmSingle x)); eauto.
+ eauto using SN_context_Krw_norm.
 Qed.
 
 (************************** Reducibility Properties **************************)
@@ -230,7 +223,7 @@ Proof.
       simpl; seauto.
     (* Reducible -> SN *)
      simpl.
-     solve [tauto].
+     tauto.
     (* Neutral terms withdraw *)
     unfold Reducible in *.
     intuition (apply reducts_SN).
@@ -278,7 +271,7 @@ Proof.
      (* Because (TmProj _ _) is Neutral, it's sufficient to show that all its
         reducts are reducible. *)
      apply Neutral_Reducible_T2; [seauto | | ].
-      (* TODO: why does the TProj1 case go with seauto but this needs me
+     (* TODO: why does the TProj1 case go with seauto but this needs me
          to tell is what lemma to use? *)
       apply TProj2 with T1; seauto.
      intros Z H.
@@ -480,8 +473,8 @@ Lemma Reducible_inhabited:
   {tm : Term & Reducible tm T}.
 Proof.
  intros T.
-  destruct (Reducible_properties T) as [[H _] _].
-  auto.
+ destruct (Reducible_properties T) as [[H _] _].
+ auto.
 Qed.
 
 (** Reducible continuations are themselves normalizing. *)
@@ -490,9 +483,7 @@ Lemma ReducibleK_Krw_norm:
               Krw_norm K.
 Proof.
  intros.
- eapply ReducibleK_Krw_norm_helper.
- apply X.
- apply Reducible_inhabited.
+ eauto using ReducibleK_Krw_norm_helper, Reducible_inhabited.
 Qed.
 
 (** Extract a reducibility witness from a list of them, by index. *)
@@ -510,13 +501,12 @@ Proof.
    destruct x; simpl in *; easy.
  - destruct Ts.
    { simpl in X; contradiction. }
+   destruct X.
    destruct x; simpl in *.
-   * destruct X.
-     inversion H0.
+   * inversion H0.
      inversion H.
      auto.
-   * destruct X.
-     eapply IHVs; eauto.
+   * eauto.
 Qed.
 
 (** * Reducibility of specific term types. *)
@@ -669,9 +659,8 @@ Lemma ReducibleK_Empty :
 Proof.
  unfold ReducibleK.
  simpl.
- intros; auto.
- apply SN_TmSingle.
- eauto using Reducible_SN.
+ intros.
+ eauto using SN_TmSingle.
 Qed.
 
 (* Hint Resolve ReducibleK_Empty. *)
@@ -688,12 +677,11 @@ Proof.
   apply Krw_rt_refl; sauto.
  revert H.
  pattern K at 2 3.
- apply Ksize_induction with (K:=K); intros; auto.
-  destruct K0; simpl in *.
-   apply reducts_SN.
-   intros m' H'.
-   inversion H'.
-  inversion H.
+ apply Ksize_induction with (K := K); intros; auto.
+  destruct K0; simpl in *; try (inversion H).
+  apply reducts_SN.
+  intros m' H'.
+  inversion H'.
  destruct K'.
   inversion H0.
 
@@ -732,11 +720,9 @@ Lemma SN_less_substituent:
     SN N.
 Proof.
  intros.
- apply SN_embedding with (f := fun x => x */ L) (Q := N */ L).
+ apply SN_embedding with (f := fun x => x */ L) (Q := N */ L); auto.
  intros.
-   apply unshift_substitution_preserves_rw; sauto.
-  sauto.
- sauto.
+ apply unshift_substitution_preserves_rw; sauto.
 Qed.
 
 Lemma beta_reduct_under_K_rw_rt:
@@ -794,44 +780,42 @@ Proof.
   rename H into IHK.
   intros L N H H0.
   assert (SN N).
-  apply SN_push_under_k in H0.
-  eauto using SN_less_substituent.
+   apply SN_push_under_k in H0.
+   eauto using SN_less_substituent.
   apply triple_induction_scoped with (K0:=K) (M0:=N) (N0:=L);
     eauto using SN_context_Krw_norm.  (* XXX rename to triple_induction_SN *)
   intros K0 N0 L0 ? ? ? IHK0 IHM0 IHL0.
   apply reducts_SN.
   intros Z redn.
-  ezcopy redn.
   apply three_ways_to_reduce_at_interface in redn
     as [[[[M' redn_a redn_b] | [K'' redn_a redn_b]] | ?] | ?].
-  * inversion redn_b; subst.
+  * (* Inside body. *)
+    inversion redn_b; subst.
     -- eauto using beta_reduct_under_K_rw_rt, Rw_trans_preserves_SN.
-    -- inversion H9.
-       subst.
-       apply IHL0; sauto.
+    -- inversion H8; sauto.
     -- seauto.
-  * subst.
-    apply IHK0; auto.
-  * refute.
+  * (* Inside continuation. *)
+    subst.
+    auto.
+  * (* At the interface, and body is not a Bind term. *)
+    refute.
     destruct p as [A [K' [M' H6 [N' H7 H8]]]].
     apply NotBind_TmBind in H8; auto.
-  * destruct s as [L1 [L1' H8 [K'' [N1 H9 H10]]]].
+  * (* The the interface, and body is a Bind term. *)
+    destruct s as [L1 [L1' H8 [K'' [N1 H9 H10]]]].
     inversion H8.
     subst Z L1 L1' K0.
     apply IHK.
-    apply Krw_rt_conserves_Ksize in H2.
-    simpl in H2.
-    omega.
-    eauto.
+    { apply Krw_rt_conserves_Ksize in H2.
+      simpl in H2.
+      omega. }
+    { eauto. }
     assert (SN (plug (Iterate N1 K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)))).
-    assert (plug K (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N))
-               ~>> plug (Iterate N1 K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0))).
-    apply beta_reduct_under_K_rw_rt; sauto.
-    apply Rw_trans_preserves_SN in H6.
-    auto.
-    auto.
-    simpl in H6.
-    simpl.
+     assert (plug K (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N))
+                ~>> plug (Iterate N1 K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0))).
+      apply beta_reduct_under_K_rw_rt; sauto.
+     apply Rw_trans_preserves_SN in H5; sauto.
+    simpl in H5 |- *.
 
     replace (unshift 1 1 (subst_env 1 (shift 0 1 (shift 0 1 L0) :: nil)
                                     (shift 1 1 N1)))
