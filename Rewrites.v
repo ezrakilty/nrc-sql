@@ -452,83 +452,18 @@ Proof.
                   | L M N
                   | M N
                   | M];
-   intros n env.
+   intros n env; simpl; eauto.
 
  - (* Case BetaRed *)
-   (* Write out the beta reduction: *)
-   simpl.
    apply Rw_beta.
    subst V.
    apply commute_subst_with_beta_reduct.
 
- - (* Case Reduction in lhs of apply *)
-   simpl.
-   apply Rw_App_left.
-   apply IHRewritesTo.
-
- - (* Case Reduction in rhs of apply *)
-   simpl.
-   apply Rw_App_right.
-   apply IHRewritesTo.
-
- - (* Case Reduction in Abs body. *)
-   simpl.
-   apply Rw_Abs_body.  (* TODO: Can we somehow set up a congruence to obviate this step? *)
-   apply IHRewritesTo.
-
- - (* Case: Reduction in left side of pair *)
-   simpl.
-   apply Rw_Pair_left.
-   eauto.
-
- - (* Case: Reduction in right side of pair *)
-   simpl.
-   apply Rw_Pair_right.
-   eauto.
-
- - (* Case: Reduction under a TmProj *)
-   simpl.
-   apply Rw_Proj.    (* eauto works fine! *)
-   eauto.
-
- - (* Case: Beta reduction of TmProj false *)
-   simpl.
-   apply Rw_Proj_beta1.
-
- - (* Case: Beta reduction of TmProj false *)
-   simpl.
-   apply Rw_Proj_beta2.
-
- - (* Case: Union left *)
-   simpl.
-   apply Rw_Union_left.
-   apply IHRewritesTo.
-
- - (* Case: Union right *)
-   simpl.
-   apply Rw_Union_right.
-   apply IHRewritesTo.
-
- - (* Case: Bind with subject null *)
-   simpl.
-   solve [apply Rw_Bind_null].
-
  - (* Case: Beta reduction of TmBind *)
-   simpl.
    apply Rw_Bind_beta; subst.
    apply commute_subst_with_beta_reduct.
 
- - (* Case: Union/Bind commuting-conversion *)
-   simpl.
-   apply Rw_Bind_union.
-
- - (* Case: Subject reduction of TmBind *)
-   simpl.
-   apply Rw_Bind_subject.
-   eauto.
-
  - (* Case: TmBind Associativity *)
-   simpl.
    replace (subst_env (S (S n)) (map (shift 0 1) (map (shift 0 1) env)) (shift 1 1 N))
       with (shift 1 1 (subst_env (S n) (map (shift 0 1) env) N)).
    { auto. }
@@ -542,16 +477,6 @@ Proof.
    rewrite shift_shift' by omega.
    simpl.
    auto.
-
- - (* Case: Body reduction of TmBind *)
-   simpl.
-   apply Rw_Bind_body.
-   eauto.
-
- - (* Case: Singleton list contents *)
-   simpl.
-   apply Rw_Single.
-   eauto.
 Qed.
 
 Lemma TmSingle_shift_inversion:
@@ -1041,8 +966,8 @@ Lemma subst_env_bicompat_rw_rt
 Proof.
  intros.
  apply Rw_rt_trans with (subst_env n (L :: nil) M').
- apply subst_env_compat_rw_rt; auto.
- apply rw_rt_in_substituend; auto.
+ - apply subst_env_compat_rw_rt; auto.
+ - apply rw_rt_in_substituend; auto.
 Qed.
 
 (** * Rewrites Inside Structures That Look Like A Beta-Reduct. *)
