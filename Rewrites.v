@@ -523,122 +523,95 @@ Qed.
 Lemma shift_Rw_inversion:
   forall N M k,
     (shift k 1 N ~> M) ->
-    {N' : Term & ((M = shift k 1 N') * (N ~> N')) %type}.
+    {N' : Term &  M = shift k 1 N'  &  N ~> N'}.
 Proof.
 (* TODO: The cases are now mostly very similar. Must be some way to automate. *)
  induction N; simpl; intros M k red; inversion red.
  - (* Case TmPair; reduction in left *)
-   destruct (IHN1 m2 k) as [x [? ?]]; [auto | ]; subst.
-   exists (TmPair x N2).
-   simpl.
-   auto.
+   edestruct (IHN1 _ _ H2); subst.
+   econstructor; eauto; simpl; auto.
 
  - (* Case TmPair; reduction in right *)
-   destruct (IHN2 n2 k) as [x [? ?]]; [auto | ]; subst.
-   exists (TmPair N1 x).
-   simpl.
-   sauto.
+   edestruct (IHN2 _ _ H2); subst.
+   econstructor; eauto; simpl; auto.
 
  - (* Case TmProj; reduction in body *)
-   destruct (IHN m2 k) as [N' [? ?]]; [auto|]; subst.
-   exists (TmProj b N').
-   auto.
+   edestruct (IHN _ _ H2); subst.
+   econstructor; eauto; simpl; eauto.
 
  - (* Case TmProj (left) on TmPair *)
    descrim N (* must be pair *).
    simpl in *.
-   exists N1.
-   intuition (congruence || auto).  (* alt: inversion H1; auto. *)
+   exists N1;
+     intuition (congruence || auto).  (* alt: inversion H1; auto. *)
 
  - (* Case TmProj (right) on TmPair *)
    descrim N.
    simpl in *.
-   exists N2.
+   exists N2;
    intuition (congruence || auto).
 
  - (* Case TmAbs; reduction in body *)
-   destruct (IHN n' (S k) H0) as [N' [N'_def N_red_N']]; subst.
-   exists (TmAbs N').
-   simpl.
-   auto.
+   edestruct (IHN _ _ H0); subst.
+   econstructor; eauto; simpl; eauto.
 
  - (* Case: Beta reduction. *)
    descrim N1.
    simpl in red.
    inversion H; subst.
-   exists (N1 */ N2).
-   auto using commute_shift_beta_reduct.
+   exists (N1 */ N2);auto using commute_shift_beta_reduct.
 
  - (* Case: reduction in left part of application. *)
-   destruct (IHN1 m2 k) as [m2' [m2'_def m2'_red]]; [auto | ]; subst.
-   exists (m2'@N2).
-   simpl.
-   auto.
+   edestruct (IHN1 _ _ H2); subst.
+   econstructor; eauto; simpl; eauto.
 
  - (* Case: reduction in right part of application. *)
-   destruct (IHN2 n2 k) as [n2' [n2'_def n2'_red]]; [auto | ]; subst.
-   exists (N1@n2').
-   simpl.
-   auto.
+   edestruct (IHN2 _ _ H2); subst.
+   econstructor; eauto; simpl; eauto.
 
  - (* Case TmSingle *)
-   destruct (IHN m' k) as [? [? ?]]; auto; subst.
-   exists (TmSingle x).
-   simpl.
-   auto.
+   edestruct (IHN _ _ H0); subst.
+   econstructor; eauto; simpl; eauto.
 
  - (* Case: TmUnion, reduction in left *)
-   destruct (IHN1 M' k) as [x [? ?]]; [sauto | ]; subst.
-   exists (TmUnion x N2).
-   simpl.
-   sauto.
+   destruct (IHN1 _ _ H2); subst.
+   econstructor; eauto; simpl; auto.
 
  - (* Case: TmUnion, reduction in right *)
-   destruct (IHN2 N' k) as [x [? ?]]; [auto | ]; subst.
-   exists (TmUnion N1 x).
-   simpl.
-   sauto.
+   destruct (IHN2 _ _ H2); subst.
+   econstructor; eauto; simpl; auto.
 
  - (* Case: Null for Bind *)
    descrim N1.
-   exists TmNull.
-   auto.
+   exists TmNull; auto.
 
  - (* Case: Beta for Bind *)
    destruct (TmSingle_shift_inversion x _ _ H); subst.
-   exists (N2 */ x0).
+   exists (N2 */ x0); auto.
    simpl in H.
    inversion H; subst.
-   split; auto.
    apply commute_shift_beta_reduct.
 
  - (* Case: Bind/Union *)
    descrim N1.
    inversion H0.
-   exists (TmUnion (TmBind N1_1 N2) (TmBind N1_2 N2)).
-   simpl.
-   auto.
+   exists (TmUnion (TmBind N1_1 N2) (TmBind N1_2 N2)); auto.
 
  - (* Case: reduction in subject of TmBind. *)
-   destruct (IHN1 m' k) as [x [? ?]]; [auto | ]; subst.
-   exists (TmBind x N2).
-   simpl.
-   auto.
+   destruct (IHN1 _ _ H2); subst.
+   econstructor; eauto; simpl; auto.
 
  - (* Case: TmBind assoc *)
    descrim N1.
    inversion H0; subst.
    exists (TmBind N1_1 (TmBind N1_2 (shift 1 1 N2))).
    simpl.
-   split.
    { rewrite <- shift_shift_commute by omega; auto. }
    auto.
 
  - (* Case: reduction in body of TmBind. *)
-   destruct (IHN2 n' (S k)) as [x [? ?]]; [auto | ]; subst.
-   exists (TmBind N1 x).
-   simpl.
-   auto.
+   destruct (IHN2 _ _ H2); subst.
+   econstructor; eauto; simpl; auto.
 Qed.
 
 (** * Compatibility of rewriting with each of the term forms. *)
@@ -725,8 +698,6 @@ Hint Resolve Rw_rt_Pair_left Rw_rt_Pair_right Rw_rt_App_left Rw_rt_App_right
      Rw_rt_Bind_left Rw_rt_Bind_right.
 
 (** * [( */ )] and unshift. *)
-
-Check subst_unshift.
 
 (* Failed attempt to simplify beta_with_unshift_var *)
 (*Lemma zod:

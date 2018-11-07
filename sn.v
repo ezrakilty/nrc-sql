@@ -363,7 +363,7 @@ Proof.
     (* Reduction of the function position. *)
       inversion redn_Z.
       subst Z.
-      destruct (shift_Rw_inversion _ _ _ H2) as [N'' [N''_def N'0_rew_N'']].
+      destruct (shift_Rw_inversion _ _ _ H2) as [N'' N''_def N'0_rew_N''].
       subst n'.
       apply IHN; seauto.
     (* Reduction of the argument position. *)
