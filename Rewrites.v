@@ -89,33 +89,24 @@ Lemma beta_reduct_typing_general:
 	     T.
 Proof.
  induction N; intros T M env k k_def M_tp N_tp; simpl; inversion N_tp; eauto.
-(* TmConst--handled by eauto *)
 (* TmVar *)
-   eapply beta_reduct_typing_general_var; seauto.
-
-(* TmPair *)
- (* handled by eauto *)
-
-(* TmProj *)
- (* handled by eauto *)
+ - eapply beta_reduct_typing_general_var; seauto.
 
 (* TmAbs *)
- apply TAbs.
- replace (s::env++env') with ((s::env)++env') by auto.
- replace (shift 0 1 (shift 0 (k+1) M)) with (shift 0 (Datatypes.S k+1) M)
-   by (rewrite shift_shift; auto).
- apply IHN; simpl; auto.
+ - apply TAbs.
+   replace (s :: env ++ env') with ((s :: env) ++ env') by auto.
+   rewrite shift_shift.
+   replace (1 + (k + 1)) with (Datatypes.S k + 1) by auto.
+   apply IHN; simpl; auto.
 
-(* TmApp *)
-  (* handled by [eauto] at the top. *)
 (* TmBind *)
- apply TBind with s.
-  apply IHN1; sauto.
- (* copy and paste of TmAbs case :-( *)
- replace (s::env++env') with ((s::env)++env') by auto.
- replace (shift 0 1 (shift 0 (k+1) M)) with (shift 0 (Datatypes.S k+1) M)
-   by (rewrite shift_shift; auto).
- apply IHN2; simpl; auto.
+ - apply TBind with s.
+   apply IHN1; sauto.
+   (* copy and paste of TmAbs case :-( *)
+   replace (s :: env ++ env') with ((s :: env) ++ env') by auto.
+   rewrite shift_shift.
+   replace (1 + (k + 1)) with (Datatypes.S k + 1) by auto.
+   apply IHN2; simpl; auto.
 Qed.
 
 (** Let's make [N */ L] a notation for the result of a beta-reduction
@@ -281,31 +272,30 @@ Proof.
         [| | | ? ? S T' TmAbs_N_tp | | ? ? ? H | ? ? ? H | ? ? H | | | ? ? ? ? H H0];
     eauto.
  (* Case Beta_reduction -> *)
-     inversion TmAbs_N_tp.
-     subst.
-     eapply beta_reduct_typing; eauto.
+ - inversion TmAbs_N_tp.
+   subst.
+   eapply beta_reduct_typing; eauto.
  (* Case Beta reduction TPair (1) *)
-     subst T.
-     inversion H; sauto.
+ - subst.
+   inversion H; sauto.
  (* Case Beta reduction TPair (2) *)
-    subst T.
-    inversion H; sauto.
+ - subst.
+   inversion H; sauto.
  (* Case Beta reduction [] *)
-   subst T n0 m.
-   inversion H.
+ - inversion H.
    subst.
    eauto using beta_reduct_typing.
  (* Case TmUnion/TmBind *)
-  inversion H.
-  subst.
-  apply TUnion; eapply TBind; eauto.
+ - inversion H.
+   subst.
+   eauto.
  (* Case TmBind_assoc *)
- inversion H.
- subst.
- eapply TBind; eauto.
- eapply TBind with (s := s); eauto.
- replace (s :: s0 :: env) with ((s::nil) ++ (s0::nil) ++ env) by auto.
- eapply shift_preserves_typing; eauto.
+ - inversion H.
+   subst.
+   eapply TBind; eauto.
+   eapply TBind; eauto.
+   replace (s :: s0 :: env) with ((s::nil) ++ (s0::nil) ++ env) by auto.
+   eapply shift_preserves_typing; eauto.
 Qed.
 
 (** The reflexive-transitive rewrite relation preserves the [Typing] judgment. *)
@@ -496,11 +486,11 @@ Lemma commute_shift_beta_reduct :
     (shift (S k) 1 N1 */ shift k 1 N2) = shift k 1 (N1 */ N2).
 Proof.
  intros.
- rewrite shift_unshift_commute; [ | | solve[omega]].
+ rewrite shift_unshift_commute; [ | | omega].
  { rewrite shift_subst_commute_hi by (simpl; omega).
    simpl.
    rewrite shift_shift_commute by omega.
-   easy. }
+   trivial. }
  rewrite subst_Freevars by auto.
  intro H0.
  apply set_union_elim in H0.
@@ -540,26 +530,28 @@ Proof.
    econstructor; eauto; simpl; eauto.
 
  - (* Case TmProj (left) on TmPair *)
+   subst.
    descrim N (* must be pair *).
-   simpl in *.
-   exists N1;
-     intuition (congruence || auto).  (* alt: inversion H1; auto. *)
+   simpl in red.
+   eexists; inversion H1; auto.
 
  - (* Case TmProj (right) on TmPair *)
+   subst.
    descrim N.
-   simpl in *.
-   exists N2;
-   intuition (congruence || auto).
+   simpl in red.
+   eexists; inversion H1; auto.
 
  - (* Case TmAbs; reduction in body *)
    edestruct (IHN _ _ H0); subst.
    econstructor; eauto; simpl; eauto.
 
  - (* Case: Beta reduction. *)
+   subst.
    descrim N1.
    simpl in red.
-   inversion H; subst.
-   exists (N1 */ N2);auto using commute_shift_beta_reduct.
+   inversion H.
+   exists (N1 */ N2);
+     auto using commute_shift_beta_reduct.
 
  - (* Case: reduction in left part of application. *)
    edestruct (IHN1 _ _ H2); subst.
@@ -583,7 +575,7 @@ Proof.
 
  - (* Case: Null for Bind *)
    descrim N1.
-   exists TmNull; auto.
+   econstructor; eauto.
 
  - (* Case: Beta for Bind *)
    destruct (TmSingle_shift_inversion x _ _ H); subst.
@@ -593,15 +585,18 @@ Proof.
    apply commute_shift_beta_reduct.
 
  - (* Case: Bind/Union *)
+   subst.
    descrim N1.
-   inversion H0.
-   exists (TmUnion (TmBind N1_1 N2) (TmBind N1_2 N2)); auto.
+   inversion H0; subst.
+   simpl in red.
+   econstructor; eauto; simpl; auto.
 
  - (* Case: reduction in subject of TmBind. *)
    destruct (IHN1 _ _ H2); subst.
    econstructor; eauto; simpl; auto.
 
  - (* Case: TmBind assoc *)
+   subst.
    descrim N1.
    inversion H0; subst.
    exists (TmBind N1_1 (TmBind N1_2 (shift 1 1 N2))).
@@ -825,7 +820,7 @@ Proof.
  - rewrite IHN; auto.
  (* TmAbs *)
  - rewrite IHN by omega.
-   rewrite unshift_shift_commute; solve [omega | auto].
+   rewrite unshift_shift_commute; easy.
  (* TmApp *)
  - rewrite IHN1, IHN2; auto.
  (* TmNull *)
@@ -836,7 +831,7 @@ Proof.
  - rewrite IHN1, IHN2; auto.
  (* TmBind *)
  - rewrite IHN1, IHN2 by omega.
-   rewrite unshift_shift_commute; solve [omega | auto].
+   rewrite unshift_shift_commute; easy.
 Qed.
 
 Lemma unshift_preserves_rw:
