@@ -220,7 +220,7 @@ Qed.
 Lemma Rw_rt_destruct:
   forall a z,
     forall redn: a ~>> z,
-       sum (Is_empty_Rw_rt a z redn) ({x : Term & ((a ~> x) * (x ~>> z))%type}).
+       (Is_empty_Rw_rt a z redn) + {x : Term & (a ~> x) & (x ~>> z)}.
 (* TODO: A bit ugly! *)
 Proof.
  intros.
@@ -230,15 +230,15 @@ Proof.
    auto.
  - right.
    eauto.
- - destruct IHredn1;
-   destruct IHredn2.
+ - destruct IHredn1 as [lm_empty | s];
+   destruct IHredn2 as [mn_empty | s0].
    * left; simpl; auto.
-   * apply empty_Rw_rt_elim in i.
+   * apply empty_Rw_rt_elim in lm_empty.
      subst. right; auto.
-   * apply empty_Rw_rt_elim in i.
+   * apply empty_Rw_rt_elim in mn_empty.
      subst. right; auto.
-   * destruct s as [x [l_x x__m]].
-     destruct s0 as [y [m_y y__n]].
+   * destruct s as [x l_x x__m].
+     destruct s0 as [y m_y y__n].
      right; eauto.
 Qed.
 
@@ -246,7 +246,11 @@ Qed.
     which we can construct. *)
 Lemma last_step_first_step_lemma:
   forall a y,
-  (a ~>> y) -> forall z, (y ~> z) -> {x : Term & ((a ~> x) * (x ~>> z))%type}.
+(*
+  Would be cute with notation
+  (a ~>> y ~> z) -> {x : Term & (a ~> x ~>> z)}.
+*)
+  (a ~>> y) -> forall z, (y ~> z) -> {x : Term & (a ~> x) & (x ~>> z)}.
 Proof.
  intros a y H_a_downto_y.
  intros.
@@ -445,8 +449,7 @@ Proof.
    intros n env; simpl; eauto.
 
  - (* Case BetaRed *)
-   apply Rw_beta.
-   subst V.
+   apply Rw_beta; subst.
    apply commute_subst_with_beta_reduct.
 
  - (* Case: Beta reduction of TmBind *)
@@ -501,7 +504,7 @@ Qed.
 
 (** If [shift k 1 N] reduces, then that reduct is equal to the
     [shift k 1] of some term which is a reduct of [N]. *)
-(** Diagrammatically:
+(** Diagrammatically: [[
     N - - - -> N'
     |          :
     | f        : f = shift k 1
@@ -509,6 +512,7 @@ Qed.
     V          V
    f N ------> M
           R
+]]
  *)
 Lemma shift_Rw_inversion:
   forall N M k,

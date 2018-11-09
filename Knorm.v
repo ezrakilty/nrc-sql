@@ -96,7 +96,7 @@ Proof.
  induction H.
  constructor; fold Krw_norm.
  intros.
- eapply last_step_first_step_lemma in H0 as [x0 [r r0]]; eauto.
+ eapply last_step_first_step_lemma in H0 as [x0 r r0]; eauto.
 Qed.
 
 (** (Lemma 26) *)

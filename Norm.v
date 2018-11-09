@@ -202,9 +202,8 @@ Proof.
   apply Rw_trans_preserves_SN with (M := q); auto.
  inversion H2.
  intros m' H4.
- assert (H5 : {x:Term & ((q ~> x) * (x ~>> f m'))%type}).
-  apply last_step_first_step_lemma with (f M); auto.
- destruct H5 as [x [q_x x_f_m']].
+ lapply (last_step_first_step_lemma _ _ H1 (f m')); [| auto].
+ intros [x q_x x_f_m'].
  apply H0 with x; auto.
 Qed.
 
@@ -243,14 +242,12 @@ Proof.
  intros m' H4.
  copy (g M ~> m').
  apply H in H4; try auto.
- destruct H4 as [[M' [m'_form f_M_f_M']] | bailout].
-  assert (H5 : {x:Term & ((q ~> x) * (x ~>> f M'))%type}).
-   apply last_step_first_step_lemma with (f M); auto.
-  destruct H5 as [x [q_x x_f_m']].
-  subst m'.
-  apply X with (x' := x); auto.
-  eauto.
- auto.
+ destruct H4 as [[M' [m'_form f_M_f_M']] | bailout]; auto.
+ fold SN.
+ lapply (last_step_first_step_lemma _ _ Q_def (f M')); eauto.
+ intros [x q_x x_f_m'].
+ subst m'.
+ eauto.
 Qed.
 
 Lemma SN_embedding2' A f g:

@@ -75,14 +75,13 @@ Proof.
   eauto.
  inversion H3.
  pose (H6 := Hz _ _ _ _ H1).
- inversion H6 as [[K' [M' [N' def_m']]] | SN_m'].
-  subst.
-  pose (H0 _ _ _ _ _ _ H1).
-  assert (H10 : {x : Term & ((q ~> x) * (x ~>> f K' M' N'))%type}).
-   apply last_step_first_step_lemma with (f K M N); auto.
-  destruct H10 as [x [q_to_x x_to_f_K'_M'_N']].
-  apply H with x; solve [auto].
- auto.
+ inversion H6 as [[K' [M' [N' def_m']]] | SN_m']; auto.
+
+ subst.
+ pose (H0 _ _ _ _ _ _ H1).
+ lapply (last_step_first_step_lemma _ _ H2 (f K' M' N')); auto.
+ intros [x q_to_x x_to_f_K'_M'_N'].
+ apply H with x; solve [auto].
 Qed.
 
 (******************************** REDUCIBILITY ********************************)
