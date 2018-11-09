@@ -9,6 +9,8 @@ Ltac easy := solve [discriminate | contradiction | auto | f_equal; auto |
 
 Ltac copy p := assert p; [solve [trivial] | idtac].
 
+Ltac clone H := let T := type of H in copy T.
+
 Ltac careful_case t :=
   generalize (refl_equal t); pattern t at -1; case t; intros.
 

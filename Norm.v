@@ -310,15 +310,17 @@ Qed.
 Lemma rw_rt_f_induction:
   forall A f x R M N,
     (forall x, R x x) ->
+    (forall x y z, R x y -> R y z -> R x z) ->
     (injective _ _ f) ->
+
     (forall x M, (f x ~>> M) -> {x' : A & M = f x'}) ->
     (forall x y, (f x ~> f y) -> R x y) ->
-    (forall x y z, R x y -> R y z -> R x z) ->
+
     (f x ~>> M) ->
     (M ~>> N) ->
     {y : A & M = f y & {z : A & N = f z & R y z}}.
 Proof.
- intros A f x R M N refl_P inj_f X0 X1 trans_R H H0.
+ intros A f x R M N refl_P trans_R inj_f X0 X1 H H0.
  induction H0.
  - subst.
    apply X0 in H.
@@ -336,9 +338,6 @@ Proof.
    exists x1; auto.
  - assert (f x ~>> m) by (eapply Rw_rt_trans; eauto).
    assert (f x ~>> n) by (eapply Rw_rt_trans; eauto).
-   Ltac clone H :=
-     let T := type of H in
-     copy T.
    clone H; clone H0; clone H1.
    apply X0 in H.
    apply X0 in H0.

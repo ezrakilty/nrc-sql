@@ -143,33 +143,7 @@ Proof.
  eapply SN_embedding with (f := fun x => TmBind x t) (Q := TmBind M t); sauto.
 Qed.
 
-Ltac ezcopy H := let T := type of H in copy T.
-
 Hint Constructors Neutral.
-
-(* Lemma omg_this_is_awful: *)
-(*   forall K L M N Z, *)
-(*     (plug K (TmBind (TmBind L M) N) ~> plug K Z) *)
-(*     -> *)
-(*     (Z = TmBind L (TmBind M (shift 1 1 N))) + *)
-(*     {LM' : Term & Z = TmBind LM' N & TmBind L M ~> LM'} + *)
-(*     {N' : Term & Z = TmBind (TmBind L M) N' & N ~> N'}. *)
-(* Proof. *)
-(*  induction K; simpl; intros. *)
-(*  inversion H; subst. *)
-(*  left; right; eauto. *)
-(*  left; left; eauto. *)
-(*  right; eauto. *)
-(*  apply IHK in H. *)
-(*  destruct H as [[? | ?] | ?]. *)
-(*    inversion e. *)
-(*    absurd (t = TmBind N (shift 1 1 t)); admit. *)
-(*   destruct s. *)
-(*   left; right. *)
-(*   inversion e. *)
-(*   subst. *)
-(* Qed. *)
-
 
 Fixpoint appendK K1 K2 :=
   match K1 with
@@ -218,7 +192,7 @@ Proof.
   induction K; simpl; intros.
   - left; left; left.
     eauto.
-  - ezcopy H.
+  - clone H.
     rename H0 into H_rw.
     apply IHK in H; clear IHK.
     destruct H as [[[[M' H0 H1] | [K' H0 H1]] | [H' [K' [M' H0 H1]]]] | [L [L' H0 [K' [N H1 H2]]]]].
@@ -253,7 +227,7 @@ Lemma Neutral_Lists:
     {K' : Continuation & Z = plug K' M & Krw K K'}.
 Proof.
  intros.
- let X := type of H0 in copy X.
+ clone H0.
  rename H1 into H00.
  apply three_ways_to_reduce_at_interface in H0.
  destruct H0 as [[[[M' H0 H1] | [K' H0 H1]] | [H' [K' [L H0 H1]]]] | ?].
@@ -284,7 +258,7 @@ Lemma K_TmNull_rw:
 Proof.
  destruct K; simpl; intros Z H.
  * inversion H.
- * ezcopy H.
+ * clone H.
    rename H0 into H_rw.
    apply three_ways_to_reduce_at_interface in H.
    destruct H as [[[[M' Ha Hb] | [K' Ha Hb]] |  [H' [K' [M' H0 [N H1 H2]]]]] | ?].
@@ -568,7 +542,7 @@ Lemma Rw_null_Krw:
     Krw K' K.
 Proof.
  intros.
- let T := type of H0 in copy T.
+ clone H0.
  apply K_TmNull_rw in H0.
  destruct H0 as [[K0 [N Ha Hb]] | [K0 Ha Hb]].
   subst.
@@ -901,12 +875,12 @@ Proof.
    subst.
    auto.
  - eauto.
+ - intros; omega.
  - unfold injective.
    apply unique_plug_null.
  - intros.
    eauto using rw_rt_preserves_plug_TmNull.
  - apply Rw_conserves_Ksize; auto.
- - intros; omega.
  - auto.
 Qed.
 

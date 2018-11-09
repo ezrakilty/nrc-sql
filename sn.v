@@ -434,7 +434,7 @@ Proof.
  induction H1.
  constructor.
  intros m' H3.
- let T := type of H3 in copy T.
+ clone H3.
  apply Neutral_Lists in H3 as [[M' s1 s2] | [K1 s1 s2]]; [ | | auto ].
   subst.
   apply X; auto.

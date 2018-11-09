@@ -115,7 +115,7 @@ Proof.
      (Q' := plug K TmNull); try auto.
  intros K0 Z H2 H3.
 
- let T := type of H3 in copy T.
+ clone H3.
  apply K_TmNull_rw in H3 as [[K_shorter [N H1a H1b]] | [K' H1a H1b]].
  (* Case [plug K0 TmNull] drops a frame. *)
   right.
