@@ -5,7 +5,7 @@ Require Import Omega.
 
 (* Add LoadPath "../Listkit" as Listkit. *)
 
-Require Import logickit.
+Require Import Listkit.logickit.
 
 Lemma nth_error_ok A :
   forall n (xs : list A), length xs > n ->
@@ -86,7 +86,7 @@ Lemma nth_error_ext_length:
     n < length a ->
     nth_error a n = nth_error (a++b) n.
  induction a; simpl; intros b n H.
-  by_omega.
+  omega.
  (* rewrite <- app_comm_cons.*)
  destruct n; simpl.
   auto.

@@ -20,9 +20,6 @@ Ltac careful_case_names t names :=
 Ltac absurd_omega stmt :=
   absurd stmt; [solve [omega] | trivial].
 
-Ltac by_omega :=
-  solve [refute; omega | omega].
-
 Ltac eabsurd stmt lemma :=
   (absurd stmt; auto);
   (eapply lemma; eauto).
