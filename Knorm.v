@@ -8,11 +8,13 @@ Require Import Norm.
 Require Import Term.
 
 (** * More Induction Principles on Reduction Sequences *)
+
 (** These require knowledge of Continuation.v, so can't be placed in Norm.v *)
+
 (** Continuations have their own "strong normalization" on their own reduction
     rule. *)
-Inductive Krw_norm K :=
-  reducts_Krw_norm : (forall K', Krw K K' -> Krw_norm K') -> Krw_norm K.
+
+Definition Krw_norm := StrongNorm _ Krw.
 
 Inductive Triple_SN K M N :=
   | triple_sn :
@@ -20,21 +22,6 @@ Inductive Triple_SN K M N :=
     -> (forall M', (M ~> M') -> Triple_SN K M' N)
     -> (forall N', (N ~> N') -> Triple_SN K M N')
     -> Triple_SN K M N.
-
-Lemma triple_induction_via_TripleSN P:
-  (forall K M N,
-        (forall K',  (Krw K K') -> P K' M N)
-     -> (forall M',  (M ~> M') ->  P K M' N)
-     -> ((forall N', (N ~> N') ->  P K M N'))
-     -> P K M N)
-  ->
-  forall K M N,
-    Triple_SN K M N -> P K M N.
-Proof.
- intros IH K M N SN_K_M_N.
- induction SN_K_M_N.
- auto.
-Qed.
 
 Lemma triple_induction_via_TripleSN_scoped P:
   forall K0 M0 N0,
@@ -86,60 +73,30 @@ Proof.
  apply Triple_SN_intro; auto.
 Qed.
 
-(** A continuation that is part of, and downstream of, a SN term, is normalizing. *)
-Lemma SN_context_Krw_norm:
-  forall X X',
-    SN X ->
-    (X ~>> X') ->
-    forall K,
-    {M : Term & X' = plug K M} ->
-    Krw_norm K.
-Proof.
- intros X X' SN_X X_red_X'.
- assert (SN_X' : SN X').
-  eauto.
- induction SN_X'.
- intros K ex_M.
- constructor.
- intros K' K_K'.
- destruct ex_M as [M H1].
- assert (plug K M ~> plug K' M) by auto.
- subst.
- apply H with (m':=plug K' M); eauto.
-Qed.
-
-Lemma SN_via_Krw_rt :
+Lemma Krw_rt_preserves_SN :
   forall K K' M,
     Krw_rt K K' -> SN (plug K M) -> SN (plug K' M).
 Proof.
  intros.
- assert (plug K M ~>> plug K' M).
-  auto using Krw_rt_Rw_rt.
- eauto using Rw_trans_preserves_SN.
+ eauto using Rw_trans_preserves_SN, Krw_rt_Rw_rt.
 Qed.
 
-Lemma SN_via_Krw :
+Lemma Krw_preserves_SN :
   forall K K' M,
     Krw K K' -> SN (plug K M) -> SN (plug K' M).
 Proof.
  intros.
- assert (plug K M ~> plug K' M).
-  auto.
  eauto using Rw_trans_preserves_SN.
 Qed.
 
 Lemma Krw_norm_from_SN:
-  forall Q, SN Q -> forall K M, (Q ~>> plug K M) -> Krw_norm K.
+  forall M, SN M -> forall K X, (M ~>> plug K X) -> Krw_norm K.
 Proof.
  intros Q H.
  induction H.
- constructor.
+ constructor; fold Krw_norm.
  intros.
- eapply last_step_first_step_lemma in H0.
-  destruct H0.
-  destruct p.
-  eapply H; eauto.
- eauto.
+ eapply last_step_first_step_lemma in H0 as [x0 [r r0]]; eauto.
 Qed.
 
 (** (Lemma 26) *)
@@ -187,6 +144,8 @@ Proof.
  firstorder.
 Qed.
 
+Hint Unfold SN.
+
 (** (Lemma 30) *)
 Lemma SN_K_Union:
   forall K,
@@ -209,6 +168,7 @@ Proof.
 
  destruct K0.
  - simpl in *.
+   unfold SN in *.
    inversion H_rw; subst; auto.
 
  - simpl in H_rw.
@@ -226,11 +186,12 @@ Proof.
        apply H; auto.
        ** eapply plug_SN_rw_rt with (TmBind M t); auto.
           change (SN (plug (Iterate t K0) M)).
-          eauto using SN_via_Krw_rt.
+          eauto using Krw_rt_preserves_SN.
        ** eapply plug_SN_rw_rt with (TmBind N t); auto.
           change (SN (plug (Iterate t K0) N)).
-          eauto using SN_via_Krw_rt.
+          eauto using Krw_rt_preserves_SN.
      -- (* Case: rw is within TmUnion _ _ *)
+       unfold SN in *.
        inversion H14; subst; seauto.
 
      -- (* Case: rw is within t of TmBind (TmUnion M N) t *)
@@ -262,14 +223,14 @@ Proof.
         apply Krw_rt_conserves_Ksize in H5.
         simpl in *.
         omega.
-     -- apply SN_via_Krw with (Iterate L' (Iterate N' K')).
+     -- apply Krw_preserves_SN with (Iterate L' (Iterate N' K')).
         { apply assoc_in_K. }
-        apply SN_via_Krw_rt with K; auto.
+        apply Krw_rt_preserves_SN with K; auto.
         apply Rw_trans_preserves_SN with (plug K M); auto.
         apply Rw_rt_under_K; auto.
-     -- apply SN_via_Krw with (Iterate L' (Iterate N' K')).
+     -- apply Krw_preserves_SN with (Iterate L' (Iterate N' K')).
         { apply assoc_in_K. }
-        apply SN_via_Krw_rt with K.
+        apply Krw_rt_preserves_SN with K.
         auto.
         apply Rw_trans_preserves_SN with (plug K N).
         { auto. }

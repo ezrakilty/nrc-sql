@@ -894,7 +894,7 @@ Proof.
    with (A := Continuation)
         (f := fun k => plug k TmNull)
         (x := K)
-        (P := fun k k' => Ksize k >= Ksize k') in H.
+        (R := fun k k' => Ksize k >= Ksize k') in H.
  - destruct H as [x e [x0 e0 g]].
    apply unique_plug_null in e.
    apply unique_plug_null in e0.

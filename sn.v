@@ -67,7 +67,7 @@ Lemma SN_embedding3 (f g : Continuation -> Term -> Term -> Term):
 Proof.
  intros Hz H0 Q H1.
  induction H1.
- rename m into q.
+ rename x into q.
  intros K M N H2.
  apply reducts_SN.
  intros.
@@ -191,7 +191,7 @@ Proof.
  unfold ReducibleK.
  intros.
  destruct X0.
- eauto using SN_context_Krw_norm.
+ eauto using Krw_norm_from_SN.
 Qed.
 
 (************************** Reducibility Properties **************************)
@@ -441,6 +441,7 @@ Proof.
 
  subst.
  apply X1; auto.
+ rename x into K.
  apply Krw_preserves_ReducibleK with K; auto.
 Qed.
 
@@ -750,11 +751,11 @@ Proof.
   apply SN_push_under_k in H0.
   eauto using SN_less_substituent. (* Was not needed here in thesis. *)
  assert (Krw_norm K).
-  eauto using SN_context_Krw_norm.
+  eauto using Krw_norm_from_SN.
  apply triple_induction_scoped with (K0:=K) (M0:=N) (N0:=L); auto.
  intros.
  rename M into N0, N0 into L0.
- apply reducts_SN.
+ apply reducts_SN; fold SN.
  intros.
  apply Neutral_Lists in H9 as [[M' H7a H7b] | [K' H7a H7b]]; [| | auto]; subst.
  - inversion H7b; subst.
@@ -783,9 +784,9 @@ Proof.
    apply SN_push_under_k in H0.
    eauto using SN_less_substituent.
   apply triple_induction_scoped with (K0:=K) (M0:=N) (N0:=L);
-    eauto using SN_context_Krw_norm.  (* XXX rename to triple_induction_SN *)
+    eauto using Krw_norm_from_SN.
   intros K0 N0 L0 ? ? ? IHK0 IHM0 IHL0.
-  apply reducts_SN.
+  apply reducts_SN; fold SN.
   intros Z redn.
   apply three_ways_to_reduce_at_interface in redn
     as [[[[M' redn_a redn_b] | [K'' redn_a redn_b]] | ?] | ?].

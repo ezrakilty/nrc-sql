@@ -7,16 +7,23 @@ Require Import Coq.Sets.Image.
 Require Import Term.
 Require Import Rewrites.
 
+Inductive StrongNorm A R (x:A) :=
+  reducts_SN : (forall x', R x x' -> StrongNorm _ R x') -> StrongNorm _ R x.
+
+Hint Constructors StrongNorm.
+
 (** Strong normalization: a term is strongly normalizing if all its
     reducts are strongly normalizing.
 
     The well-foundedness of inductive objects in Coq means that the
     reduction trees are well-founded or strongly-normalizing.
 *)
-Inductive SN m :=
-  reducts_SN : (forall m', (m ~> m') -> SN m') -> SN m.
 
-Hint Constructors SN.
+Definition SN := StrongNorm _ RewritesTo.
+
+Hint Unfold SN.
+
+(* Hint Constructors SN. *)
 Hint Resolve reducts_SN.
 
 Lemma SN_Const : SN TmConst.
@@ -82,8 +89,8 @@ Proof.
  induction SN_M.
  intros N SN_N.
  induction SN_N.
- rename m into N.
- apply both_reducts_sn; solve [auto].
+ rename x into M, x0 into N.
+ apply both_reducts_sn; auto.
 Qed.
 
 Lemma double_sn_elim :
@@ -188,13 +195,13 @@ Lemma SN_embedding f:
 Proof.
  intros H Q H0.
  induction H0.
- rename m into q.
+ rename x into q.
  intros.
  apply reducts_SN.
  assert (H2 : SN (f M)).
   apply Rw_trans_preserves_SN with (M := q); auto.
  inversion H2.
- intros.
+ intros m' H4.
  assert (H5 : {x:Term & ((q ~> x) * (x ~>> f m'))%type}).
   apply last_step_first_step_lemma with (f M); auto.
  destruct H5 as [x [q_x x_f_m']].
@@ -228,7 +235,7 @@ Lemma SN_embedding2 A f g:
 Proof.
  intros Q' H Q H0.
  induction H0.
- rename m into q.
+ rename x into q.
  intros M Q_def Q'_def.
  apply reducts_SN.
  assert (H2 : SN (f M)) by eauto.
@@ -241,7 +248,7 @@ Proof.
    apply last_step_first_step_lemma with (f M); auto.
   destruct H5 as [x [q_x x_f_m']].
   subst m'.
-  apply X with (m' := x); auto.
+  apply X with (x' := x); auto.
   eauto.
  auto.
 Qed.
@@ -284,8 +291,8 @@ Lemma SN_TmSingle:
   forall M,
     SN M -> SN (TmSingle M).
 Proof.
-  intros.
-  redseq_induction M.
+ intros.
+ redseq_induction M.
  apply reducts_SN.
  intros.
  inversion H1.
@@ -293,23 +300,25 @@ Proof.
  apply IHM; eauto.
 Qed.
 
-(** When [P] is reflexive, and transitive, and [P x y] follows from [f x ~> f y],
+(** When [R] is reflexive, and transitive, and [R x y] follows from [f x ~> f y],
     and [f] is injective, and any [f x] has all descendants of the form [f x'],
     Then two descendents [M] and [N] with [f x ~>> M ~>> N] are of the form
-    [M = f y], [N = f z] with [P y z]. That seems pretty dumb.
+    [M = f y], [N = f z] with [R y z]. That seems pretty dumb.
+    Also I think the assertion on the form of M and N can probably be proven
+    independent of the fact that their retracts y and z are related by R.
  *)
 Lemma rw_rt_f_induction:
-  forall A f x P M N,
-    (forall x, P x x) ->
+  forall A f x R M N,
+    (forall x, R x x) ->
     (injective _ _ f) ->
     (forall x M, (f x ~>> M) -> {x' : A & M = f x'}) ->
-    (forall x y, (f x ~> f y) -> P x y) ->
-    (forall x y z, P x y -> P y z -> P x z) ->
+    (forall x y, (f x ~> f y) -> R x y) ->
+    (forall x y z, R x y -> R y z -> R x z) ->
     (f x ~>> M) ->
     (M ~>> N) ->
-    {y : A & M = f y & {z : A & N = f z & P y z}}.
+    {y : A & M = f y & {z : A & N = f z & R y z}}.
 Proof.
- intros A f x P M N X inj_f X0 X1 trans_P H H0.
+ intros A f x R M N refl_P inj_f X0 X1 trans_R H H0.
  induction H0.
  - subst.
    apply X0 in H.
@@ -350,5 +359,5 @@ Proof.
    apply inj_f in Hb'.
    subst.
    subst.
-   eapply trans_P; eauto.
+   eapply trans_R; eauto.
 Qed.
