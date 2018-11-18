@@ -92,6 +92,7 @@ Proof.
  auto.
 Qed.
 
+(* To do: unused *)
 Lemma Krw_rt_SNK K K' : SNK K -> Krw_rt K K' -> SNK K'.
 Proof.
  intros.

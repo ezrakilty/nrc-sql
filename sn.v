@@ -154,17 +154,17 @@ Qed.
 (** The reflexive-transitive Rewrites relation preserves reducibility,
     and likewise for continuations and their reduction and reducibility predicates. *)
 Lemma Rw_rt_preserves_Reducible :
- forall T M M', (M ~>> M') -> Reducible M T -> Reducible M' T.
+ forall T M, Reducible M T -> forall M', (M ~>> M') -> Reducible M' T.
 Proof.
- intros T M M' red R.
+ intros T M R M' red.
  induction red; subst; eauto using Rw_preserves_Reducible.
 Qed.
 
 Hint Resolve Rw_rt_preserves_Reducible.
 
 Lemma Krw_preserves_ReducibleK :
-  forall T K K',
-  Krw K K' -> ReducibleK Reducible K T -> ReducibleK Reducible K' T.
+  forall T K, ReducibleK Reducible K T -> forall K',
+      Krw K K' -> ReducibleK Reducible K' T.
 Proof.
  unfold ReducibleK.
  intros.
@@ -173,10 +173,10 @@ Proof.
 Qed.
 
 Lemma Krw_rt_preserves_ReducibleK :
-  forall T K K',
-  Krw_rt K K' -> ReducibleK Reducible K T -> ReducibleK Reducible K' T.
+  forall T K, ReducibleK Reducible K T -> forall K',
+      Krw_rt K K' -> ReducibleK Reducible K' T.
 Proof.
- intros T K K' H.
+ intros T K ? K' H.
  induction H; subst; eauto using Krw_preserves_ReducibleK.
 Qed.
 
