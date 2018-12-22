@@ -188,7 +188,7 @@ Lemma ReducibleK_Krw_norm_helper:
               Krw_norm K.
 Proof.
  unfold ReducibleK.
- intros.
+ intros T K X X0.
  destruct X0.
  eauto using Krw_norm_from_SN.
 Qed.
