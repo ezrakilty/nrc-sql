@@ -40,6 +40,7 @@ Fixpoint subst_env k vs tm {struct tm} :=
   | TmSingle m => TmSingle (subst_env k vs m)
   | TmUnion m n => TmUnion (subst_env k vs m) (subst_env k vs n)
   | TmBind m K => TmBind (subst_env k vs m) (subst_env (S k) (map (shift 0 1) vs) K)
+  | TmIf b m n => TmIf (subst_env k vs b) (subst_env k vs m) (subst_env k vs n)
   end.
 
 Lemma subst_env_nonfree_noop:
@@ -205,6 +206,7 @@ Proof.
 
  (* Case TmUnion *)
  simpl; f_equal; seauto.
+
  (* Case TmBind *)
  simpl.
  rewrite IHM2.
@@ -218,6 +220,9 @@ Proof.
   omega.
  rewrite map_length.
  omega.
+
+ (* Case TmIf *)
+ simpl; f_equal; seauto.
 Qed.
 
 Lemma shift_subst_commute_lo:
@@ -292,6 +297,9 @@ Proof.
  apply map_ext; intros M'.
  apply shift_shift_commute.
  omega.
+
+ (* Case TmIf *)
+ f_equal; auto.
 Qed.
 
 Lemma subst_env_concat_TmVar:
@@ -526,10 +534,13 @@ Proof.
  rewrite (IHM2 _ _ _ _) by (auto || omega).
  trivial.
 
+ (* Case TmNull *)
  auto.
 
+ (* Case TmSingle *)
  rewrite IHM; auto.
 
+ (* Case TmUnion *)
  apply all_Type_union_rev in fvs_dichot.
  destruct fvs_dichot.
  rewrite (IHM1 _ _ _ _) by (auto || omega).
@@ -572,6 +583,13 @@ Proof.
   right; omega.
  apply set_remove_intro.
  intuition.
+
+ (* Case TmIf *)
+ apply all_Type_union_rev in fvs_dichot as [a a0].
+ apply all_Type_union_rev in a0 as [a0 a1].
+ rewrite (IHM1 _ _ _ _) by (auto || omega).
+ rewrite (IHM2 _ _ _ _); auto.
+ rewrite (IHM3 _ _ _ _); auto.
 Qed.
 
 Import Setoid.
@@ -743,6 +761,13 @@ Proof.
            with (freevars (shift 0 1 x)).
   rewrite pred_freevars_shift; sauto.
  solve[apply remove_0_shift_0_1].
+
+ (* Case TmIf *)
+ simpl.
+ rewrite IHM1, IHM2, IHM3 by auto.
+ rewrite set_filter_union.
+ rewrite set_filter_union.
+ solve_set_union_inclusion.
 Qed.
 
 Require Import Listkit.listkit.
@@ -796,8 +821,11 @@ Proof.
  rewrite all_union in H.
  rewrite IHM1, IHM2 by tauto; trivial.
 
+ (* Case TmNull *)
  auto.
+ (* Case TmSingle *)
  rewrite IHM by auto; trivial.
+ (* Case TmUnion *)
  rewrite all_union in H.
  rewrite IHM1, IHM2 by tauto; trivial.
 
@@ -820,6 +848,11 @@ Proof.
   omega.
  apply set_remove_intro.
  auto.
+
+ (* Case TmIf *)
+ rewrite all_union in H.
+ rewrite all_union in H.
+ rewrite IHM1, IHM2, IHM3 by tauto; trivial.
 Qed.
 
 Require Import Listkit.Map.
@@ -1041,6 +1074,8 @@ Proof.
  intro.
  rewrite shift_subst_commute_lo; [auto|].
  solve [omega]...
+ (* Case TmUnion. *)
+ rewrite IHN1, IHN2, IHN3; auto.
 Qed.
 
 (* Some notations might be nice, but I'm not sure I've got the right ones yet.

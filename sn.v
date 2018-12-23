@@ -345,7 +345,7 @@ Proof.
      apply TApp with T1; seauto.
     intros M'' red.
     (* Take cases on the reductions. *)
-    inversion red as [ | ? Z ? redn_Z | | | | | | | | | | | | | | | | ] ; subst.
+    inversion red as [ | ? Z ? redn_Z | | | | | | | | | | | | | | | | | | |] ; subst.
     (* beta reduction *)
        (* BUG: should be able to put these all as args to congruence. *)
        pose subst_dummyvar; pose subst_nil; pose unshift_shift.
@@ -567,7 +567,7 @@ Proof.
  apply Neutral_Reducible_withdraw; [sauto | seauto |].
  intros M' redn.
 
- inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | ].
+ inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | | | | ].
 
  (* Case: beta reduction. *)
    subst V M0 N0.
@@ -625,7 +625,7 @@ Proof.
  (* All reducts are reducible. *)
  - intros M' H3.
    (* Take cases on the reduction. *)
-   inversion H3 as [ | | | | | | m n1 n2 H7 | m n | m n | | | | | | | | | ]; subst.
+   inversion H3 as [ | | | | | | m n1 n2 H7 | m n | m n | | | | | | | | | | | |]; subst.
    (* Case: reduction under the operation. *)
    * inversion H7; subst; eauto.
    (* Case: beta-reduction on the left *)

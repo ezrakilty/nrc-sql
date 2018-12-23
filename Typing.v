@@ -1,6 +1,8 @@
 Require Import Term.
 Require Import List.
 
+Add Rec LoadPath "Listkit" as Listkit.
+
 Require Import Listkit.NthError.
 
 Hint Rewrite app_comm_cons : list.

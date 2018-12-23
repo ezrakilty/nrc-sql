@@ -26,6 +26,7 @@ Fixpoint shift k n tm {struct tm} :=
 | TmSingle x => TmSingle (shift k n x)
 | TmUnion L R => TmUnion (shift k n L) (shift k n R)
 | TmBind M N => TmBind (shift k n M) (shift (S k) n N)
+| TmIf b M N => TmIf (shift k n b) (shift k n M) (shift k n N)
   end.
 
 Definition unshift_var k n :=
@@ -43,6 +44,7 @@ Fixpoint unshift k n tm {struct tm} :=
 | TmSingle x => TmSingle (unshift k n x)
 | TmUnion l r => TmUnion (unshift k n l) (unshift k n r)
 | TmBind M N => TmBind (unshift k n M) (unshift (S k) n N)
+| TmIf b M N => TmIf (unshift k n b) (unshift k n M) (unshift k n N)
 end.
 
 Hint Unfold unshift_var shift_var.
@@ -61,19 +63,11 @@ Lemma unshift_shift :
   forall N k n,
     unshift k n (shift k n N) = N.
 Proof.
- induction N; intros k n; simpl.
-          trivial.
-         f_equal.
-         apply unshift_var_shift_var.
-        f_equal; sauto.
-       f_equal; sauto.
-      f_equal; sauto.
-     f_equal; sauto.
-    f_equal; sauto.
-   f_equal; sauto.
-  f_equal; sauto.
- f_equal; sauto.
+ induction N; intros k n; simpl; f_equal; auto.
+ apply unshift_var_shift_var.
 Qed.
+
+Print unshift_shift.
 
 Lemma unshift_shift_alt : (* Alternate proof of unshift_shift *)
   forall N k n,
@@ -82,7 +76,6 @@ Proof.
  induction N; intros k n; simpl; f_equal; try sauto.
  apply unshift_var_shift_var.
 Qed.
-
 
 (** (Un)Shifting at De Bruijn index k when k is above the greatest free
     index is a no-op. *)
@@ -391,6 +384,10 @@ Qed.
 
 Hint Resolve S_monomorphism.
 
+Lemma not_in_union_elim: forall x A B, ~ (x ∈ A ∪ B) -> ~ (x ∈ A) /\ ~ (x ∈ B).
+Proof. intros. split; contrapose H; apply set_union_intro; auto.
+Qed.
+
 Lemma shift_unshift_commute :
   forall M k k',
     ~ set_In k' (freevars M) ->
@@ -468,6 +465,14 @@ Proof.
  intros.
  apply set_remove_elim in H.
  omega.
+
+ (* Case TmIf *)
+ simpl in *.
+ apply not_in_union_elim in k'_not_free.
+ destruct k'_not_free.
+ apply not_in_union_elim in H0.
+ destruct H0.
+ rewrite IHM1; auto; rewrite IHM2; auto; rewrite IHM3; auto.
 Qed.
 
 Lemma freevars_shift :
@@ -546,6 +551,14 @@ Proof.
  intros x y.
  unfold shift_var.
  break; break; omega.
+
+ (* Case TmIf *)
+ rewrite IHM1.
+ rewrite IHM2.
+ rewrite IHM3.
+ rewrite map_union.
+ rewrite map_union.
+ trivial.
 Qed.
 
 Lemma pred_shift :
@@ -637,17 +650,18 @@ Lemma unshift_unshift_commute:
     unshift k' 1 (unshift (S k) n M).
 Proof.
  induction M; simpl; intros.
-          auto.
-         rewrite unshift_var_unshift_var_commute; sauto.
-        rewrite IHM1, IHM2; sauto.
-       rewrite IHM; sauto.
-      rewrite IHM; auto.
-      omega.
-     rewrite IHM1, IHM2; sauto.
-    auto.
-   rewrite IHM; sauto.
-  rewrite IHM1, IHM2; sauto.
- rewrite IHM1, IHM2; solve [auto|omega].
+           auto.
+          rewrite unshift_var_unshift_var_commute; sauto.
+         rewrite IHM1, IHM2; sauto.
+        rewrite IHM; sauto.
+       rewrite IHM; auto.
+       omega.
+      rewrite IHM1, IHM2; sauto.
+     auto.
+    rewrite IHM; sauto.
+   rewrite IHM1, IHM2; sauto.
+  rewrite IHM1, IHM2; solve [auto|omega].
+ rewrite IHM1, IHM2, IHM3; sauto.
 Qed.
 
 Lemma shift_var_unshift_var_commute:
@@ -668,16 +682,17 @@ Lemma unshift_shift_commute:
     shift k' 1 (unshift k n M).
 Proof.
  induction M; simpl; intros.
-          auto.
-         rewrite shift_var_unshift_var_commute; sauto.
-        rewrite IHM1, IHM2; sauto.
-       rewrite IHM; sauto.
-      rewrite IHM; solve [auto|omega].
-     rewrite IHM1, IHM2; sauto.
-    auto.
-   rewrite IHM; sauto.
-  rewrite IHM1, IHM2; sauto.
- rewrite IHM1, IHM2; solve [auto|omega].
+           auto.
+          rewrite shift_var_unshift_var_commute; sauto.
+         rewrite IHM1, IHM2; sauto.
+        rewrite IHM; sauto.
+       rewrite IHM; solve [auto|omega].
+      rewrite IHM1, IHM2; sauto.
+     auto.
+    rewrite IHM; sauto.
+   rewrite IHM1, IHM2; sauto.
+  rewrite IHM1, IHM2; solve [auto|omega].
+ rewrite IHM1, IHM2, IHM3; sauto.
 Qed.
 
 Lemma shift_closed_noop_map:

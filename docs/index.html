@@ -47,7 +47,7 @@
 <td><a href="index.html#global_Z">Z</a></td>
 <td>_</td>
 <td><a href="index.html#global_*">other</a></td>
-<td>(476 entries)</td>
+<td>(484 entries)</td>
 </tr>
 <tr>
 <td>Notation Index</td>
@@ -143,7 +143,7 @@
 <td><a href="index.html#lemma_Z">Z</a></td>
 <td>_</td>
 <td>other</td>
-<td>(316 entries)</td>
+<td>(320 entries)</td>
 </tr>
 <tr>
 <td>Constructor Index</td>
@@ -175,7 +175,7 @@
 <td>Z</td>
 <td>_</td>
 <td>other</td>
-<td>(64 entries)</td>
+<td>(68 entries)</td>
 </tr>
 <tr>
 <td>Inductive Index</td>
@@ -443,6 +443,7 @@
 <a href="sn.html#normalization">normalization</a> [lemma, in <a href="sn.html">sn</a>]<br/>
 <a href="Continuation.html#NotBind">NotBind</a> [definition, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#NotBind_TmBind">NotBind_TmBind</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
+<a href="Shift.html#not_in_union_elim">not_in_union_elim</a> [lemma, in <a href="Shift.html">Shift</a>]<br/>
 <a href="NthError.html">NthError</a> [library]<br/>
 <a href="Listkit.NthError.html#nth_error_rewrite_app_left">nth_error_rewrite_app_left</a> [lemma, in <a href="Listkit.NthError.html">Listkit.NthError</a>]<br/>
 <a href="Listkit.NthError.html#nth_error_rewrite_app_right">nth_error_rewrite_app_right</a> [lemma, in <a href="Listkit.NthError.html">Listkit.NthError</a>]<br/>
@@ -520,6 +521,9 @@
 <a href="Norm.html#rw_rt_f_induction">rw_rt_f_induction</a> [lemma, in <a href="Norm.html">Norm</a>]<br/>
 <a href="Norm.html#Rw_trans_preserves_SN">Rw_trans_preserves_SN</a> [lemma, in <a href="Norm.html">Norm</a>]<br/>
 <a href="Rewrites.html#rw_rt_in_substituend">rw_rt_in_substituend</a> [lemma, in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_rt_If_right">Rw_rt_If_right</a> [lemma, in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_rt_If_left">Rw_rt_If_left</a> [lemma, in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_rt_If_cond">Rw_rt_If_cond</a> [lemma, in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_rt_Bind_right">Rw_rt_Bind_right</a> [lemma, in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_rt_Bind_left">Rw_rt_Bind_left</a> [lemma, in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_rt_Union_right">Rw_rt_Union_right</a> [lemma, in <a href="Rewrites.html">Rewrites</a>]<br/>
@@ -537,6 +541,9 @@
 <a href="Rewrites.html#Rw_rt_trans">Rw_rt_trans</a> [constructor, in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_rt_step">Rw_rt_step</a> [constructor, in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_rt_refl">Rw_rt_refl</a> [constructor, in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_If_right">Rw_If_right</a> [constructor, in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_If_left">Rw_If_left</a> [constructor, in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_If_cond">Rw_If_cond</a> [constructor, in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_Single">Rw_Single</a> [constructor, in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_Bind_body">Rw_Bind_body</a> [constructor, in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_Bind_assoc">Rw_Bind_assoc</a> [constructor, in <a href="Rewrites.html">Rewrites</a>]<br/>
@@ -670,6 +677,7 @@
 <a href="Term.html#TmApp">TmApp</a> [constructor, in <a href="Term.html">Term</a>]<br/>
 <a href="Term.html#TmBind">TmBind</a> [constructor, in <a href="Term.html">Term</a>]<br/>
 <a href="Term.html#TmConst">TmConst</a> [constructor, in <a href="Term.html">Term</a>]<br/>
+<a href="Term.html#TmIf">TmIf</a> [constructor, in <a href="Term.html">Term</a>]<br/>
 <a href="Term.html#TmNull">TmNull</a> [constructor, in <a href="Term.html">Term</a>]<br/>
 <a href="Term.html#TmPair">TmPair</a> [constructor, in <a href="Term.html">Term</a>]<br/>
 <a href="Term.html#TmProj">TmProj</a> [constructor, in <a href="Term.html">Term</a>]<br/>
@@ -935,6 +943,7 @@
 <a href="sn.html#Neutral_Reducible_withdraw">Neutral_Reducible_withdraw</a> [in <a href="sn.html">sn</a>]<br/>
 <a href="sn.html#normalization">normalization</a> [in <a href="sn.html">sn</a>]<br/>
 <a href="Continuation.html#NotBind_TmBind">NotBind_TmBind</a> [in <a href="Continuation.html">Continuation</a>]<br/>
+<a href="Shift.html#not_in_union_elim">not_in_union_elim</a> [in <a href="Shift.html">Shift</a>]<br/>
 <a href="Listkit.NthError.html#nth_error_rewrite_app_left">nth_error_rewrite_app_left</a> [in <a href="Listkit.NthError.html">Listkit.NthError</a>]<br/>
 <a href="Listkit.NthError.html#nth_error_rewrite_app_right">nth_error_rewrite_app_right</a> [in <a href="Listkit.NthError.html">Listkit.NthError</a>]<br/>
 <a href="Listkit.NthError.html#nth_error_dichot">nth_error_dichot</a> [in <a href="Listkit.NthError.html">Listkit.NthError</a>]<br/>
@@ -994,6 +1003,9 @@
 <a href="Norm.html#rw_rt_f_induction">rw_rt_f_induction</a> [in <a href="Norm.html">Norm</a>]<br/>
 <a href="Norm.html#Rw_trans_preserves_SN">Rw_trans_preserves_SN</a> [in <a href="Norm.html">Norm</a>]<br/>
 <a href="Rewrites.html#rw_rt_in_substituend">rw_rt_in_substituend</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_rt_If_right">Rw_rt_If_right</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_rt_If_left">Rw_rt_If_left</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_rt_If_cond">Rw_rt_If_cond</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_rt_Bind_right">Rw_rt_Bind_right</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_rt_Bind_left">Rw_rt_Bind_left</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_rt_Union_right">Rw_rt_Union_right</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
@@ -1151,6 +1163,9 @@
 <a href="Rewrites.html#Rw_rt_trans">Rw_rt_trans</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_rt_step">Rw_rt_step</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_rt_refl">Rw_rt_refl</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_If_right">Rw_If_right</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_If_left">Rw_If_left</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
+<a href="Rewrites.html#Rw_If_cond">Rw_If_cond</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_Single">Rw_Single</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_Bind_body">Rw_Bind_body</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
 <a href="Rewrites.html#Rw_Bind_assoc">Rw_Bind_assoc</a> [in <a href="Rewrites.html">Rewrites</a>]<br/>
@@ -1181,6 +1196,7 @@
 <a href="Term.html#TmApp">TmApp</a> [in <a href="Term.html">Term</a>]<br/>
 <a href="Term.html#TmBind">TmBind</a> [in <a href="Term.html">Term</a>]<br/>
 <a href="Term.html#TmConst">TmConst</a> [in <a href="Term.html">Term</a>]<br/>
+<a href="Term.html#TmIf">TmIf</a> [in <a href="Term.html">Term</a>]<br/>
 <a href="Term.html#TmNull">TmNull</a> [in <a href="Term.html">Term</a>]<br/>
 <a href="Term.html#TmPair">TmPair</a> [in <a href="Term.html">Term</a>]<br/>
 <a href="Term.html#TmProj">TmProj</a> [in <a href="Term.html">Term</a>]<br/>
@@ -1326,7 +1342,7 @@
 <td><a href="index.html#global_Z">Z</a></td>
 <td>_</td>
 <td><a href="index.html#global_*">other</a></td>
-<td>(476 entries)</td>
+<td>(484 entries)</td>
 </tr>
 <tr>
 <td>Notation Index</td>
@@ -1422,7 +1438,7 @@
 <td><a href="index.html#lemma_Z">Z</a></td>
 <td>_</td>
 <td>other</td>
-<td>(316 entries)</td>
+<td>(320 entries)</td>
 </tr>
 <tr>
 <td>Constructor Index</td>
@@ -1454,7 +1470,7 @@
 <td>Z</td>
 <td>_</td>
 <td>other</td>
-<td>(64 entries)</td>
+<td>(68 entries)</td>
 </tr>
 <tr>
 <td>Inductive Index</td>

@@ -174,6 +174,12 @@ Inductive RewritesTo : Term -> Term -> Type :=
                    RewritesTo n n' -> RewritesTo (TmBind m n) (TmBind m n')
 | Rw_Single : forall m m',
                 RewritesTo m m' -> RewritesTo (TmSingle m) (TmSingle m')
+| Rw_If_cond: forall b1 b2 m n,
+    RewritesTo b1 b2 -> RewritesTo (TmIf b1 m n) (TmIf b2 m n)
+| Rw_If_left: forall b m1 m2 n,
+    RewritesTo m1 m2 -> RewritesTo (TmIf b m1 n) (TmIf b m2 n)
+| Rw_If_right: forall b m n1 n2,
+    RewritesTo n1 n2 -> RewritesTo (TmIf b m n1) (TmIf b m n2)
 .
 
 Hint Constructors RewritesTo.
@@ -445,7 +451,11 @@ Proof.
                   | M N
                   | L M N
                   | M N
-                  | M];
+                  | M
+                  | b1 b2 M N
+                  | b M1 M2 N
+                  | b M N1 N2
+                ];
    intros n env; simpl; eauto.
 
  - (* Case BetaRed *)
@@ -611,6 +621,13 @@ Proof.
  - (* Case: reduction in body of TmBind. *)
    destruct (IHN2 _ _ H2); subst.
    econstructor; eauto; simpl; auto.
+
+ - destruct (IHN1 _ _ H3); subst.
+   econstructor; eauto; simpl; auto.
+ - destruct (IHN2 _ _ H3); subst.
+   econstructor; eauto; simpl; auto.
+ - destruct (IHN3 _ _ H3); subst.
+   econstructor; eauto; simpl; auto.
 Qed.
 
 (** * Compatibility of rewriting with each of the term forms. *)
@@ -692,9 +709,30 @@ Proof.
  induction H; subst; eauto.
 Qed.
 
+Lemma Rw_rt_If_cond:
+  forall b1 b2 m n : Term, (b1 ~>> b2) -> (TmIf b1 m n) ~>> (TmIf b2 m n).
+Proof.
+ intros.
+ induction H; subst; eauto.
+Qed.
+
+Lemma Rw_rt_If_left:
+  forall b m1 m2 n : Term, (m1 ~>> m2) -> (TmIf b m1 n) ~>> (TmIf b m2 n).
+Proof.
+ intros.
+ induction H; subst; eauto.
+Qed.
+
+Lemma Rw_rt_If_right:
+  forall b m n1 n2 : Term, (n1 ~>> n2) -> (TmIf b m n1) ~>> (TmIf b m n2).
+Proof.
+ intros.
+ induction H; subst; eauto.
+Qed.
+
 Hint Resolve Rw_rt_Pair_left Rw_rt_Pair_right Rw_rt_App_left Rw_rt_App_right
      Rw_rt_Proj Rw_rt_Abs Rw_rt_Single Rw_rt_Union_left Rw_rt_Union_right
-     Rw_rt_Bind_left Rw_rt_Bind_right.
+     Rw_rt_Bind_left Rw_rt_Bind_right Rw_rt_If_cond Rw_rt_If_left Rw_rt_If_right.
 
 (** * [( */ )] and unshift. *)
 
@@ -836,6 +874,8 @@ Proof.
  (* TmBind *)
  - rewrite IHN1, IHN2 by omega.
    rewrite unshift_shift_commute; easy.
+ (* TmUnion *)
+ - rewrite IHN1, IHN2, IHN3; auto.
 Qed.
 
 Lemma unshift_preserves_rw:
@@ -915,6 +955,22 @@ Proof.
  - eapply Rw_rt_trans; eauto.
  - eapply Rw_rt_trans; eauto.
  - eapply Rw_rt_trans; eauto using IHM2, shift_preserves_rw_rt.
+ - evar (X : Term).
+   evar (Y : Term).
+   eapply Rw_rt_trans with X; [ | eapply Rw_rt_trans with Y].
+   instantiate (X :=
+                  (TmIf (subst_env n (L' :: nil) M1)
+                        (subst_env n (L :: nil) M2)
+                        (subst_env n (L :: nil) M3))).
+   subst X.
+   auto.
+   instantiate (Y :=
+                  (TmIf (subst_env n (L' :: nil) M1)
+                        (subst_env n (L' :: nil) M2)
+                        (subst_env n (L :: nil) M3))).
+   subst X Y.
+   eauto.
+   subst Y. eauto.
 Qed.
 
 Lemma subst_env_compat_rw_rt

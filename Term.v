@@ -25,7 +25,8 @@ Inductive Term : Set :=
 | TmNull : Term
 | TmSingle : Term -> Term
 | TmUnion : Term -> Term -> Term
-| TmBind : Term -> Term -> Term.
+| TmBind : Term -> Term -> Term
+| TmIf : Term -> Term -> Term -> Term.
 
 Notation "L @ M" := (TmApp L M) (at level 500).
 Notation "〈 L , M 〉" := (TmPair L M) (at level 400).
@@ -190,6 +191,8 @@ Fixpoint freevars (M:Term) : set nat :=
   | TmBind M N => set_union eq_nat_dec (freevars M)
                             (set_map eq_nat_dec pred
                                      (set_remove _ eq_nat_dec 0 (freevars N)))
+  | TmIf b M N => set_union eq_nat_dec (freevars b)
+                            (set_union eq_nat_dec (freevars M) (freevars N))
   end.
 
 Definition free_in x M := set_In x (freevars M).
