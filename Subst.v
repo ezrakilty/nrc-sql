@@ -41,6 +41,7 @@ Fixpoint subst_env k vs tm {struct tm} :=
   | TmUnion m n => TmUnion (subst_env k vs m) (subst_env k vs n)
   | TmBind m K => TmBind (subst_env k vs m) (subst_env (S k) (map (shift 0 1) vs) K)
   | TmIf b m n => TmIf (subst_env k vs b) (subst_env k vs m) (subst_env k vs n)
+  | TmTable ty => tm
   end.
 
 Lemma subst_env_nonfree_noop:
@@ -223,6 +224,9 @@ Proof.
 
  (* Case TmIf *)
  simpl; f_equal; seauto.
+
+ (* Case TmTable *)
+ sauto.
 Qed.
 
 Lemma shift_subst_commute_lo:
@@ -300,6 +304,9 @@ Proof.
 
  (* Case TmIf *)
  f_equal; auto.
+
+ (* Case TmTable *)
+ sauto.
 Qed.
 
 Lemma subst_env_concat_TmVar:
@@ -398,13 +405,13 @@ Lemma subst_dummyvar :
   forall N h t k,
     subst_env k (h::t) (shift k 1 N) = subst_env (S k) t (shift k 1 N).
 Proof.
- induction N; intros h t k; try (solve[simpl; f_equal; eauto]).
+ induction N; intros h t1 k; try (solve[simpl; f_equal; eauto]).
  (* TmVar *)
  unfold shift, shift_var.
  destruct (le_gt_dec k x).
   unfold subst_env.
   replace (x + 1 - k) with (S (x - k)) by omega.
-  replace (nth_error (h::t) (S (x - k))) with (nth_error t (x - k)) by auto.
+  replace (nth_error (h::t1) (S (x - k))) with (nth_error t1 (x - k)) by auto.
   replace (x + 1 - (S k)) with (x - k) by omega.
   break; break; finish.
  unfold subst_env.
@@ -590,6 +597,9 @@ Proof.
  rewrite (IHM1 _ _ _ _) by (auto || omega).
  rewrite (IHM2 _ _ _ _); auto.
  rewrite (IHM3 _ _ _ _); auto.
+
+ (* Case TmTable *)
+ sauto.
 Qed.
 
 Import Setoid.
@@ -768,6 +778,10 @@ Proof.
  rewrite set_filter_union.
  rewrite set_filter_union.
  solve_set_union_inclusion.
+
+ (* Case TmTable *)
+ simpl.
+ sauto.
 Qed.
 
 Require Import Listkit.listkit.
@@ -853,6 +867,9 @@ Proof.
  rewrite all_union in H.
  rewrite all_union in H.
  rewrite IHM1, IHM2, IHM3 by tauto; trivial.
+
+ (* Case TmTable *)
+ sauto.
 Qed.
 
 Require Import Listkit.Map.
@@ -1076,6 +1093,9 @@ Proof.
  solve [omega]...
  (* Case TmUnion. *)
  rewrite IHN1, IHN2, IHN3; auto.
+
+ (* Case TmTable *)
+ sauto.
 Qed.
 
 (* Some notations might be nice, but I'm not sure I've got the right ones yet.

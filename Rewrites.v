@@ -180,6 +180,12 @@ Inductive RewritesTo : Term -> Term -> Type :=
     RewritesTo m1 m2 -> RewritesTo (TmIf b m1 n) (TmIf b m2 n)
 | Rw_If_right: forall b m n1 n2,
     RewritesTo n1 n2 -> RewritesTo (TmIf b m n1) (TmIf b m n2)
+| Rw_If_split: forall b m n,
+    (* Not quite right; the b should be negated. *)
+    RewritesTo (TmIf b m n) (TmUnion (TmIf b m TmNull) (TmIf b n TmNull))
+| Rw_If_Bind: forall b m n,
+    RewritesTo (TmIf b (TmBind m n) TmNull)
+               (TmBind m (TmIf (shift 0 1 b) n TmNull))
 .
 
 Hint Constructors RewritesTo.
@@ -279,7 +285,7 @@ Proof.
  induction red;
     intros env T T_tp;
     inversion T_tp as
-        [| | | ? ? S T' TmAbs_N_tp | | ? ? ? H | ? ? ? H | ? ? H | | | ? ? ? ? H H0];
+        [| | | ? ? S T' TmAbs_N_tp | | ? ? ? H | ? ? ? H | ? ? H | | | ? ? ? ? H H0 |];
     eauto.
  (* Case Beta_reduction -> *)
  - inversion TmAbs_N_tp.
@@ -455,6 +461,8 @@ Proof.
                   | b1 b2 M N
                   | b M1 M2 N
                   | b M N1 N2
+                  | b M N
+                  | b M N
                 ];
    intros n env; simpl; eauto.
 
@@ -479,6 +487,10 @@ Proof.
    rewrite shift_shift' by omega.
    rewrite shift_shift' by omega.
    simpl.
+   auto.
+ - (* Case: TmBind/TmIf commutation. *)
+   replace (S n) with (n + 1) by omega.
+   rewrite <- shift_subst_commute_lo by omega.
    auto.
 Qed.
 
@@ -623,11 +635,25 @@ Proof.
    econstructor; eauto; simpl; auto.
 
  - destruct (IHN1 _ _ H3); subst.
-   econstructor; eauto; simpl; auto.
+   exists (TmIf x N2 N3); auto.
  - destruct (IHN2 _ _ H3); subst.
-   econstructor; eauto; simpl; auto.
+   exists (TmIf N1 x N3); auto.
  - destruct (IHN3 _ _ H3); subst.
-   econstructor; eauto; simpl; auto.
+   exists (TmIf N1 N2 x); auto.
+ - exists (TmUnion (TmIf N1 N2 TmNull) (TmIf N1 N3 TmNull)).
+   simpl. auto.
+   auto.
+ - descrim N2.
+   simpl in H1.
+   inversion H1.
+   exists (TmBind N2_1 (TmIf (shift 0 1 N1) N2_2 TmNull)).
+   simpl.
+   rewrite shift_shift_commute.
+   auto.
+   omega.
+   auto.
+   descrim N3.
+   auto.
 Qed.
 
 (** * Compatibility of rewriting with each of the term forms. *)
@@ -876,6 +902,8 @@ Proof.
    rewrite unshift_shift_commute; easy.
  (* TmUnion *)
  - rewrite IHN1, IHN2, IHN3; auto.
+ (* TmTable *)
+ - auto.
 Qed.
 
 Lemma unshift_preserves_rw:
@@ -894,6 +922,8 @@ Proof.
    omega.
  - rewrite unshift_shift_commute by omega.
    apply Rw_Bind_assoc.
+ - rewrite unshift_shift_commute by omega.
+   apply Rw_If_Bind.
 Qed.
 
 Lemma shift_preserves_rw:
@@ -906,6 +936,8 @@ Proof.
    rewrite commute_shift_beta_reduct; auto.
  - apply Rw_Bind_beta.
    rewrite commute_shift_beta_reduct; auto.
+ - rewrite shift_shift_commute by omega.
+   auto.
  - rewrite shift_shift_commute by omega.
    auto.
 Qed.

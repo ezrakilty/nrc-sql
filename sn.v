@@ -345,7 +345,7 @@ Proof.
      apply TApp with T1; seauto.
     intros M'' red.
     (* Take cases on the reductions. *)
-    inversion red as [ | ? Z ? redn_Z | | | | | | | | | | | | | | | | | | |] ; subst.
+    inversion red as [ | ? Z ? redn_Z | | | | | | | | | | | | | | | | | | | | |] ; subst.
     (* beta reduction *)
        (* BUG: should be able to put these all as args to congruence. *)
        pose subst_dummyvar; pose subst_nil; pose unshift_shift.
@@ -567,7 +567,7 @@ Proof.
  apply Neutral_Reducible_withdraw; [sauto | seauto |].
  intros M' redn.
 
- inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | | | | ].
+ inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | | | | | |].
 
  (* Case: beta reduction. *)
    subst V M0 N0.
@@ -625,7 +625,7 @@ Proof.
  (* All reducts are reducible. *)
  - intros M' H3.
    (* Take cases on the reduction. *)
-   inversion H3 as [ | | | | | | m n1 n2 H7 | m n | m n | | | | | | | | | | | |]; subst.
+   inversion H3 as [ | | | | | | m n1 n2 H7 | m n | m n | | | | | | | | | | | | | |]; subst.
    (* Case: reduction under the operation. *)
    * inversion H7; subst; eauto.
    (* Case: beta-reduction on the left *)
@@ -885,6 +885,38 @@ Proof.
  eapply Bind_Reducible_core; eauto.
 Qed.
 
+Lemma TmTable_rw:
+  forall K t x,
+    (plug K (TmTable t) ~> x) -> {K':Continuation & (x = plug K' (TmTable t)) & Krw K K'}.
+Proof.
+  (* induction K; simpl; intros. *)
+  (* inversion H. *)
+  simpl; intros.
+  apply three_ways_to_reduce_at_interface in H.
+  destruct H as [[[[M' H H1] | H] | H] | H].
+  - inversion H1.
+  - eauto.
+  - destruct H.
+    lapply n.
+    tauto.
+    auto.
+  - firstorder.
+    discriminate.
+Qed.
+
+Lemma SN_K_TmTable:
+  forall t x K,
+    SN (plug K x) -> SN (plug K (TmTable t)).
+Proof.
+  intros.
+  apply SN_embedding2' with (f:=fun k => plug k x)
+                            (g:=fun k => plug k (TmTable t));
+    auto.
+  intros K' Z H0.
+  apply TmTable_rw in H0.
+  firstorder.
+Qed.
+
 (** Every well-typed term, with a [Reducible] environment that makes it a closed
     term, is [Reducible] at its given type. *)
 Theorem reducibility:
@@ -1001,6 +1033,12 @@ Proof.
         simpl.
         sauto.
      ** apply env_typing_cons; sauto.
+ * simpl.
+   split.
+   { eauto. }
+   intros.
+   destruct (Reducible_inhabited t).
+   eapply SN_K_TmTable; eauto.
 Qed.
 
 (** Every well-typed term is strongly normalizing. *)

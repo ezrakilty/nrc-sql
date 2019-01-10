@@ -27,6 +27,7 @@ Fixpoint shift k n tm {struct tm} :=
 | TmUnion L R => TmUnion (shift k n L) (shift k n R)
 | TmBind M N => TmBind (shift k n M) (shift (S k) n N)
 | TmIf b M N => TmIf (shift k n b) (shift k n M) (shift k n N)
+| TmTable ty => TmTable ty
   end.
 
 Definition unshift_var k n :=
@@ -45,6 +46,7 @@ Fixpoint unshift k n tm {struct tm} :=
 | TmUnion l r => TmUnion (unshift k n l) (unshift k n r)
 | TmBind M N => TmBind (unshift k n M) (unshift (S k) n N)
 | TmIf b M N => TmIf (unshift k n b) (unshift k n M) (unshift k n N)
+| TmTable ty => TmTable ty
 end.
 
 Hint Unfold unshift_var shift_var.
@@ -67,8 +69,6 @@ Proof.
  apply unshift_var_shift_var.
 Qed.
 
-Print unshift_shift.
-
 Lemma unshift_shift_alt : (* Alternate proof of unshift_shift *)
   forall N k n,
     unshift k n (shift k n N) = N.
@@ -85,7 +85,7 @@ Lemma shift_nonfree_noop :
     Typing env M T -> shift k n M = M.
 Proof.
  induction M; simpl; intros k env T k_big M_tp; intuition;
-   inversion M_tp as [| ? ? T_is_env_x | | | | | | | | |];
+   inversion M_tp as [| ? ? T_is_env_x | | | | | | | | | |];
      try (f_equal; eauto).
  (* Case TmVar *)
    unfold shift_var.
@@ -104,7 +104,7 @@ Lemma unshift_nonfree_noop :
     Typing env M T -> unshift k n M = M.
 Proof.
  induction M; simpl; intros k env T k_big M_tp; intuition;
-   inversion M_tp as [| ? ? T_is_env_x | | | | | | | | |];
+   inversion M_tp as [| ? ? T_is_env_x | | | | | | | | | |];
      try (f_equal; eauto).
    unfold unshift_var.
    break; trivial.
@@ -166,38 +166,41 @@ Lemma shift_preserves_typing:
     Typing env M T -> Typing (env1 ++ env' ++ env2) (shift k n M) T.
 Proof.
  induction M; intros k n env1 env2 env env' T env_split k_def n_def M_tp;
-   inversion M_tp as [| ? ? T_is_env_x| | | | | | | | |]; simpl.
+   inversion M_tp as [| ? ? T_is_env_x| | | | | | | | | |]; simpl.
  (* TmConst *)
-           auto.
+            auto.
  (* TmVar *)
-          subst x0 ty env n k.
-          apply TVar.
-          apply shift_var_nth_error; auto.
+           subst x0 ty env n k.
+           apply TVar.
+           apply shift_var_nth_error; auto.
  (* TmPair *)
-         apply TPair; eauto.
+          apply TPair; eauto.
  (* TmProj *)
-        eapply TProj1; eauto.
-       eapply TProj2; eauto.
+         eapply TProj1; eauto.
+        eapply TProj2; eauto.
  (* TmAbs *)
-      subst n0 T env k.
-      apply TAbs.
-      replace (s :: env1 ++ env' ++ env2)
-         with ((s::env1) ++ env' ++ env2) by auto.
-      eauto using IHM.
+       subst n0 T env k.
+       apply TAbs.
+       replace (s :: env1 ++ env' ++ env2)
+          with ((s::env1) ++ env' ++ env2) by auto.
+       eauto using IHM.
  (* TmApp *)
-      eauto.
-     auto.
-   apply TSingle; eauto.
-  apply TUnion; eauto.
+       eauto.
+      auto.
+    apply TSingle; eauto.
+   apply TUnion; eauto.
  (* TmBind *)
- eapply TBind.
-  eapply IHM1; seauto.
- subst env.
- replace (s :: env1 ++ env' ++ env2)
-   with ((s::env1) ++ env' ++ env2) by auto.
- eapply IHM2 with (s::env1 ++ env2); auto.
- simpl.
- sauto.
+  eapply TBind.
+   eapply IHM1; seauto.
+  subst env.
+  replace (s :: env1 ++ env' ++ env2)
+    with ((s::env1) ++ env' ++ env2) by auto.
+  eapply IHM2 with (s::env1 ++ env2); auto.
+  simpl.
+  sauto.
+
+ (* TmTable *)
+ auto.
 Qed.
 
 (** Shifting a term by just one preserves typing. *)
@@ -473,6 +476,9 @@ Proof.
  apply not_in_union_elim in H0.
  destruct H0.
  rewrite IHM1; auto; rewrite IHM2; auto; rewrite IHM3; auto.
+
+ (* Case TmTable *)
+ sauto.
 Qed.
 
 Lemma freevars_shift :
@@ -559,6 +565,9 @@ Proof.
  rewrite map_union.
  rewrite map_union.
  trivial.
+
+ (* Case TmTable *)
+ sauto.
 Qed.
 
 Lemma pred_shift :
@@ -650,18 +659,19 @@ Lemma unshift_unshift_commute:
     unshift k' 1 (unshift (S k) n M).
 Proof.
  induction M; simpl; intros.
-           auto.
-          rewrite unshift_var_unshift_var_commute; sauto.
-         rewrite IHM1, IHM2; sauto.
-        rewrite IHM; sauto.
-       rewrite IHM; auto.
-       omega.
-      rewrite IHM1, IHM2; sauto.
-     auto.
-    rewrite IHM; sauto.
-   rewrite IHM1, IHM2; sauto.
-  rewrite IHM1, IHM2; solve [auto|omega].
- rewrite IHM1, IHM2, IHM3; sauto.
+            auto.
+           rewrite unshift_var_unshift_var_commute; sauto.
+          rewrite IHM1, IHM2; sauto.
+         rewrite IHM; sauto.
+        rewrite IHM; auto.
+        omega.
+       rewrite IHM1, IHM2; sauto.
+      auto.
+     rewrite IHM; sauto.
+    rewrite IHM1, IHM2; sauto.
+   rewrite IHM1, IHM2; solve [auto|omega].
+  rewrite IHM1, IHM2, IHM3; sauto.
+ auto.
 Qed.
 
 Lemma shift_var_unshift_var_commute:
@@ -682,17 +692,18 @@ Lemma unshift_shift_commute:
     shift k' 1 (unshift k n M).
 Proof.
  induction M; simpl; intros.
-           auto.
-          rewrite shift_var_unshift_var_commute; sauto.
-         rewrite IHM1, IHM2; sauto.
-        rewrite IHM; sauto.
-       rewrite IHM; solve [auto|omega].
-      rewrite IHM1, IHM2; sauto.
-     auto.
-    rewrite IHM; sauto.
-   rewrite IHM1, IHM2; sauto.
-  rewrite IHM1, IHM2; solve [auto|omega].
- rewrite IHM1, IHM2, IHM3; sauto.
+            auto.
+           rewrite shift_var_unshift_var_commute; sauto.
+          rewrite IHM1, IHM2; sauto.
+         rewrite IHM; sauto.
+        rewrite IHM; solve [auto|omega].
+       rewrite IHM1, IHM2; sauto.
+      auto.
+     rewrite IHM; sauto.
+    rewrite IHM1, IHM2; sauto.
+   rewrite IHM1, IHM2; solve [auto|omega].
+  rewrite IHM1, IHM2, IHM3; sauto.
+ auto.
 Qed.
 
 Lemma shift_closed_noop_map:

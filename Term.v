@@ -26,7 +26,8 @@ Inductive Term : Set :=
 | TmSingle : Term -> Term
 | TmUnion : Term -> Term -> Term
 | TmBind : Term -> Term -> Term
-| TmIf : Term -> Term -> Term -> Term.
+| TmIf : Term -> Term -> Term -> Term
+| TmTable : Ty -> Term.
 
 Notation "L @ M" := (TmApp L M) (at level 500).
 Notation "〈 L , M 〉" := (TmPair L M) (at level 400).
@@ -64,6 +65,7 @@ Inductive Typing env : Term -> Ty -> Set :=
     Typing env m (TyList s) ->
     Typing (s::env) n (TyList t) ->
     Typing env (TmBind m n) (TyList t)
+| TTable : forall r, Typing env (TmTable r) (TyList r)
 .
 
 Hint Constructors Typing.
@@ -193,6 +195,7 @@ Fixpoint freevars (M:Term) : set nat :=
                                      (set_remove _ eq_nat_dec 0 (freevars N)))
   | TmIf b M N => set_union eq_nat_dec (freevars b)
                             (set_union eq_nat_dec (freevars M) (freevars N))
+  | TmTable _ => empty_set nat
   end.
 
 Definition free_in x M := set_In x (freevars M).
@@ -225,7 +228,8 @@ Qed.
  *)
 Inductive Neutral : Term -> Type :=
   | Neutral_App : forall L M, Neutral (TmApp L M)
-  | Neutral_Proj : forall b M, Neutral (TmProj b M).
+  | Neutral_Proj : forall b M, Neutral (TmProj b M)
+  | Neutral_Table : forall t, Neutral (TmTable t).
 
 Hint Constructors Neutral.
 
