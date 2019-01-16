@@ -161,7 +161,9 @@ Inductive RewritesTo : Term -> Term -> Type :=
     RewritesTo N N' ->
     RewritesTo (TmUnion M N) (TmUnion M N')
 | Rw_Bind_null : forall n,
-    RewritesTo (TmBind (TmNull) n) TmNull
+    RewritesTo (TmBind TmNull n) TmNull
+| Rw_Bind_null_body : forall m,
+    RewritesTo (TmBind m TmNull) TmNull
 | Rw_Bind_beta : forall n x V,
     V = (n */ x) -> RewritesTo (TmBind (TmSingle x) n) V
 | Rw_Bind_union : forall n xs ys,
@@ -452,6 +454,7 @@ Proof.
                   |
                   |
                   | N
+                  | M 
                   | M N
                   | M N
                   | M N
@@ -602,6 +605,11 @@ Proof.
  - (* Case: Null for Bind *)
    descrim N1.
    econstructor; eauto.
+
+ - (* Case: Null for Bind in the body *)
+   descrim N2.
+   econstructor; eauto.
+   auto.
 
  - (* Case: Beta for Bind *)
    destruct (TmSingle_shift_inversion x _ _ H); subst.
