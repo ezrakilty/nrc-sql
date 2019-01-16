@@ -155,10 +155,14 @@ Proof.
   eauto using nth_error_In.
 Qed.
 
+Definition is_row_type_env env :=
+  forall T n,
+  value T = nth_error env n -> is_row_type T.
+
 Lemma row_env_Normal_forms:
   forall M T env,
     Normal M ->
-    (forall s, In s env -> is_row_type s) ->
+    is_row_type_env env ->
     Typing env M T ->
     (match T return Type with
      | TyBase => {b : bool & {x : nat & M = TmProj b (TmVar x)}} + (M = TmConst)
@@ -336,7 +340,7 @@ Hint Constructors is_in_sql_like_sublangi is_joined_relationi is_filtered_relati
 Lemma SQL_Normal_forms:
   forall M T env,
     Normal M ->
-    (forall s, In s env -> is_row_type s) ->
+    is_row_type_env env ->
     Typing env M T ->
     (is_basic_type T -> is_basic_formi M) *
     (is_row_type T -> is_row_formi M) *
@@ -348,13 +352,11 @@ Proof.
 
   - repeat split; intro Z; inversion Z; eauto.
 
-  - repeat split; intro Z.
-
-    apply row_type_in_row_env in H1; auto.
-    destruct ty; inversion H1; inversion Z.
-    auto.
-    apply row_type_in_row_env in H1; auto.
-    destruct ty; inversion H1; inversion Z.
+  - apply env_typs in H1.
+    repeat split; intro Z.
+    * destruct ty; inversion H1; inversion Z.
+    * auto.
+    * destruct ty; inversion H1; inversion Z.
 
   - repeat split; intro Z; inversion Z; eauto.
 
@@ -440,11 +442,18 @@ Proof.
     apply is_joined_relationi_1.
     assert (is_row_type s).
     admit (* Need to limit the type of each TmTable somehow! *).
-    assert (H8 : forall r : Ty, In r (s :: env) -> is_row_type r).
+    assert (H8 : is_row_type_env (s :: env)).
     { intros.
-      apply in_inv in H1.
-      assert (H3 : {s = r} + {In r env}) by admit. (* case analysis on Prop over Set :-( *)
-      destruct H3; subst; auto. }
+      unfold is_row_type_env.
+      intros.
+      destruct n.
+      simpl in H1.
+      inversion H1.
+      auto.
+      assert (value T0 = nth_error env n).
+      auto.
+      apply env_typs in H3.
+      auto. }
     specialize (IHM2 (TyList t) (s :: env) H7 H8 H4).
     destruct IHM2 as [[IHM2 IHM2'] IHM2''].
     lapply IHM2''.
@@ -465,7 +474,6 @@ exact 0.
 exact 0.
 Admitted.
 
-
 Lemma SQL_Normal_form:
   forall M T,
     Normal M ->
@@ -477,6 +485,8 @@ Proof.
   intros H2.
   specialize (H2 H0).
   apply H2; auto.
-  simpl.
-  intuition.
+  unfold is_row_type_env.
+  intros.
+  rewrite NthError.nth_error_nil in H2.
+  easy.
 Qed.
