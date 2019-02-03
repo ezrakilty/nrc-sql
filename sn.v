@@ -1264,7 +1264,7 @@ Lemma deepest_K_NotBind:
   forall K M K' M',
     NotBind M -> NotBind M' ->
     (K', M') = deepest_K (plug K M) ->
-    (K', M') = (K, M)
+    (K', M') = (K, M).
 Proof.
 Admitted.
 
