@@ -183,7 +183,7 @@ Inductive RewritesTo : Term -> Term -> Type :=
 | Rw_If_right: forall b m n1 n2,
     RewritesTo n1 n2 -> RewritesTo (TmIf b m n1) (TmIf b m n2)
 | Rw_If_split: forall b m n,
-    (* Not quite right; the b should be negated. *)
+    (* Not quite right; the b should be negated. And this is only at list type. *)
     RewritesTo (TmIf b m n) (TmUnion (TmIf b m TmNull) (TmIf b n TmNull))
 | Rw_If_Bind: forall b m n,
     RewritesTo (TmIf b (TmBind m n) TmNull)
