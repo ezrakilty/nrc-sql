@@ -116,27 +116,27 @@ Proof.
  intros K0 Z H2 H3.
 
  clone H3.
- apply K_TmNull_rw in H3 as [[K_shorter [N H1a H1b]] | [K' H1a H1b]].
+ apply K_TmNull_rw in H3 as [[K_shorter H1a [K' Ksize_K' H1b]] | [K' H1a H1b]].
  (* Case [plug K0 TmNull] drops a frame. *)
   right.
   subst.
 
   (* XXX this is terribly ugly. must be a simpler way *)
   assert (relK_rt K K_shorter).
-   assert (relK_rt K (Iterate N K_shorter)).
+   assert (relK_rt K (appendK K' K_shorter)).
     apply K_TmNull_relK_rt.
     auto.
-   apply trans with (K' := Iterate N K_shorter).
+   apply trans with (K' := appendK K' K_shorter).
     auto.
-   apply step.
-   eapply strip; eauto.
+   apply relK_rt_appendK.
   apply magic with (M:=M) in H1; auto.
 
   destruct H1 as [M' SN_M'].
 
   apply IHK with (M:=M'); auto.
   apply Rw_rt_conserves_Ksize in H2.
-  simpl in *; sauto.
+  rewrite Ksize_appendK in H2.
+  omega.
 
  (* Case K0 ~> K' *)
  left.
@@ -145,6 +145,18 @@ Proof.
 Qed.
 
 Hint Unfold SN.
+
+Lemma Krw_rt_relK_rt:
+  forall K K', Krw_rt K K' -> relK_rt K K'.
+Proof.
+  intros.
+  induction H.
+  subst.
+  apply refl.
+  apply step.
+  apply rw; auto.
+  eapply trans; eauto.
+Qed.
 
 (** (Lemma 30) *)
 Lemma SN_K_Union:
@@ -174,10 +186,22 @@ Proof.
  - simpl in H_rw.
 
    apply three_ways_to_reduce_at_interface in H_rw as
-       [[[[M' Z_def rw] | [K' Z_def rw]] | [H' [K' [M' ? [? ? H_bogus]]]]] | ?].
+       [[[[[M' Z_def rw] | [K' Z_def rw]] | [H' [K' [M' ? [? ? H_bogus]]]]] | ?] | ?].
    * (* Case: rw is within TmBind (TmUnion M N) t *)
      subst.
      inversion rw; subst.
+     -- (* Case: body of (TmBind (TmUnion _ _ )) is TmNull; collapses *)
+       assert (plug K M ~>> plug (Iterate TmNull K0) M).
+       { apply Krw_rt_Rw_rt; auto. }
+       (* To do: Krw_rt_Rw_rt and plug_rw_rt are very similar, but with very different names. *)
+       assert (plug (Iterate TmNull K0) M ~> plug K0 TmNull).
+       simpl.
+       auto.
+       assert (plug K M ~>> plug K0 TmNull).
+       eauto.
+       eapply Rw_trans_preserves_SN.
+       exact H0.
+       auto.
      -- (* Case: rw is zippering TmUnion thru TmBind _ _ *)
        assert (Ksize K0 < Ksize K).
        { assert (Ksize (Iterate t K0) <= Ksize K).
@@ -213,6 +237,27 @@ Proof.
      refute.
      unfold not in *; eauto using H_bogus.
      apply NotBind_TmBind in H_bogus; auto.
+
+   * destruct s as [K' Zeq [K'' K0eq]].
+     subst.
+     assert (relK_rt K K').
+     -- assert (relK_rt K (Iterate t (appendK K'' (Iterate TmNull K')))).
+        ** apply Krw_rt_relK_rt; auto.
+        ** assert (relK_rt (Iterate t (appendK K'' (Iterate TmNull K'))) K').
+           --- eapply trans.
+               *** apply step.
+                   apply strip with t.
+                   eauto.
+               *** assert (relK_rt (Iterate TmNull K') K').
+                   apply step; eapply strip; eauto.
+                   assert (relK_rt (appendK K'' (Iterate TmNull K')) (Iterate TmNull K')).
+                   eapply relK_rt_appendK.
+                   eauto.
+           --- eauto.
+     -- destruct (magic _ _ H11 M H0).
+        apply SN_K_M_SN_K_Null with x.
+        auto.
+
    * (* Case: M is a TmBind and we assoc with the context. *)
      destruct s as [L [L' ? [K' [N' Ha Hb]]]].
      inversion e.
@@ -235,4 +280,55 @@ Proof.
         apply Rw_trans_preserves_SN with (plug K N).
         { auto. }
         { apply Rw_rt_under_K; auto. }
+Qed.
+
+Lemma prefix_Krw_norm:
+  forall K' K,
+    prefix K' K -> Krw_norm K -> Krw_norm K'.
+Proof.
+  intros.
+  revert K' H.
+  induction H0; intros K' H1.
+  constructor; intros KZ H2.
+  destruct (prefix_breakdown _ _ H1) as [K1 K0eq].
+  subst.
+  assert (H3: Krw (appendK K1 K') (appendK K1 KZ)).
+  apply Krw_appendK; auto.
+  pose (H _ H3).
+  apply k.
+  apply prefix_appendK.
+  auto.
+Qed.
+
+Lemma Krw_norm_SN:
+  forall K,
+    Krw_norm K -> SN (plug K TmNull).
+Proof.
+  induction K using Ksize_induction_strong.
+  - intros.
+    clone H0.
+    induction H0.
+    constructor.
+    intros.
+    apply K_TmNull_rw in H2.
+    firstorder; subst.
+    * apply H.
+      rewrite Ksize_appendK.
+      omega.
+      apply prefix_Krw_norm with (appendK x1 x0).
+      apply prefix_appendK.
+      auto.
+      auto.
+    * apply H0; auto.
+      (* seems silly *)
+      assert (Ksize x0 <= Ksize x).
+      apply Krw_rt_conserves_Ksize.
+      eauto.
+      intros.
+      apply H.
+      omega.
+      auto.
+      inversion H1.
+      apply H2.
+      auto.
 Qed.

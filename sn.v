@@ -345,7 +345,7 @@ Proof.
      apply TApp with T1; seauto.
     intros M'' red.
     (* Take cases on the reductions. *)
-    inversion red as [ | ? Z ? redn_Z | | | | | | | | | | | | | | | | | | | | |] ; subst.
+    inversion red as [ | ? Z ? redn_Z | | | | | | | | | | | | | | | | | | | | | |] ; subst.
     (* beta reduction *)
        (* BUG: should be able to put these all as args to congruence. *)
        pose subst_dummyvar; pose subst_nil; pose unshift_shift.
@@ -434,14 +434,26 @@ Proof.
  constructor.
  intros m' H3.
  clone H3.
- apply Neutral_Lists in H3 as [[M' s1 s2] | [K1 s1 s2]]; [ | | auto ].
-  subst.
-  apply X; auto.
+ apply Neutral_Lists in H3 as [[[M' s1 s2] | [K1 s1 s2]] | [K' eq [K'' xeq]]]; [ | | | auto].
+ - subst.
+   apply X; auto.
 
- subst.
- apply X1; auto.
- rename x into K.
- apply Krw_preserves_ReducibleK with K; auto.
+ - subst.
+   apply X1; auto.
+   rename x into K.
+   apply Krw_preserves_ReducibleK with K; auto.
+
+ - subst.
+   assert (Krw_norm K').
+   eapply prefix_Krw_norm.
+   assert (prefix K' (appendK K'' K')).
+   apply prefix_appendK; auto.
+   apply H2.
+   unfold Krw_norm.
+   constructor.
+   auto.
+   apply Krw_norm_SN.
+   auto.
 Qed.
 
 (** Now we extract the three lemmas in their separate, useful form. *)
@@ -567,7 +579,7 @@ Proof.
  apply Neutral_Reducible_withdraw; [sauto | seauto |].
  intros M' redn.
 
- inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | | | | | |].
+ inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | | | | | | |].
 
  (* Case: beta reduction. *)
    subst V M0 N0.
@@ -625,7 +637,7 @@ Proof.
  (* All reducts are reducible. *)
  - intros M' H3.
    (* Take cases on the reduction. *)
-   inversion H3 as [ | | | | | | m n1 n2 H7 | m n | m n | | | | | | | | | | | | | |]; subst.
+   inversion H3 as [ | | | | | | m n1 n2 H7 | m n | m n | | | | | | | | | | | | | | |]; subst.
    (* Case: reduction under the operation. *)
    * inversion H7; subst; eauto.
    (* Case: beta-reduction on the left *)
@@ -738,6 +750,13 @@ Proof.
  apply plug_rw_rt; auto.
 Qed.
 
+Lemma truncate_K_TmNull_rw_rt :
+  forall K' K,
+    plug (appendK K' K) TmNull ~>> plug K TmNull.
+Proof.
+  induction K'; simpl; eauto.
+Qed.
+
 (* TODO: Undoubtedly this is somehow redundant with what's proved for lambda_reducibility. *)
 Lemma SN_beta_withdraw_under_k:
   forall K L N,
@@ -756,16 +775,309 @@ Proof.
  rename M into N0, N0 into L0.
  apply reducts_SN; fold SN.
  intros.
- apply Neutral_Lists in H9 as [[M' H7a H7b] | [K' H7a H7b]]; [| | auto]; subst.
+ apply Neutral_Lists in H9 as [[[M' H7a H7b] | [K' H7a H7b]] | ?]; [| | | auto]; subst.
  - inversion H7b; subst.
    * eauto using beta_reduct_under_K_rw_rt, Rw_trans_preserves_SN.
    * inversion H12; subst.
      apply H7; sauto.
    * apply H8; sauto.
  - auto using H6.
+ - destruct s as [K' x'eq [K'' K0eq]].
+   subst.
+   assert (plug (appendK K'' K') TmNull ~>> plug K' TmNull).
+   apply truncate_K_TmNull_rw_rt.
+   assert (plug K TmNull ~>> plug (appendK K'' K') TmNull).
+   apply plug_rw_rt; auto.
+   cut (SN (plug K TmNull)).
+   intros.
+   eapply Rw_trans_preserves_SN.
+   apply H11.
+   eauto.
+   eauto using SN_K_M_SN_K_Null.
 Qed.
 
 (** * Bind reducibility. (Lemma 33) *)
+
+Lemma K_TmTable_rw:
+  forall K t M,
+    (plug K (TmTable t) ~> M) ->
+    {K' : Continuation & M = plug K' (TmTable t) & Krw K K'} +
+    {K' : Continuation
+          & (K', TmNull) = deepest_K M
+          & {K'' : Continuation & K = appendK K'' (Iterate TmNull K')}}.
+Proof.
+  induction K using Ksize_induction_strong.
+  intros.
+  apply three_ways_to_reduce_at_interface in H0.
+  destruct H0 as [[[[[K'' Zeq rw]| [K'' Zeq rw]]| p] | [K'' Zeq  [K0 K''eq]]]| ?].
+  - inversion rw.
+  - left; eauto.
+  - destruct p.
+    lapply n; easy.
+  - subst.
+    right.
+    exists K''.
+    * rewrite deepest_K_TmNull; auto.
+    * exists K0.
+      auto.
+  - destruct s as [L' [M' eq]].
+    inversion eq.
+Qed.
+
+Lemma Rw_over_TmTable_generalizes:
+  forall t x K K',
+    (plug K (TmTable t) ~> plug K' (TmTable t)) ->
+    (plug K x ~> plug K' x).
+Proof.
+ intros.
+ apply K_TmTable_rw in H.
+ destruct H as [? | ?].
+ - destruct s as [? H H0].
+   unfold Krw in H0.
+   assert (deepest_K (TmTable t) = (Empty, TmTable t)).
+   auto.
+   pose (deepest_K_TmTable K' t).
+   pose (deepest_K_TmTable x0 t).
+   assert (x0 = K').
+   congruence.
+   subst x0.
+   auto.
+ - destruct s as [? H H0].
+   assert (deepest_K (plug K' (TmTable t)) = (K', TmTable t)).
+   replace K' with (appendK Empty K') at 2.
+   apply deepest_K_plug.
+   trivial.
+   auto.
+   rewrite H1 in H.
+   inversion H.
+Qed.
+
+Lemma discriminate_K_TmTable_K_TmNull:
+  forall K t K', ~(plug K (TmTable t) = plug K' TmNull).
+Proof.
+  intros.
+  intro.
+  assert (deepest_K (plug K (TmTable t)) = deepest_K (plug K' TmNull)).
+  {f_equal. auto. }
+  rewrite deepest_K_TmNull in H0.
+  rewrite deepest_K_TmTable in H0.
+  discriminate.
+Qed.
+
+(* To do: Generalize this lemma:
+
+  deepest_K_NotBind:
+    forall (K : Continuation) (M : Term) (K' : Continuation) (M' : Term),
+    (K', M') = deepest_K (plug K M) -> NotBind M -> M = M'
+
+  the next lemma and a couple others would fall out.
+*)
+Lemma plug_TmTable_unique: forall K K' t,
+    plug K (TmTable t) = plug K' (TmTable t)
+    -> K = K'.
+Proof.
+  intros.
+  assert (deepest_K (plug K (TmTable t)) = deepest_K (plug K' (TmTable t))).
+  f_equal; auto.
+  rewrite deepest_K_TmTable in H0.
+  rewrite deepest_K_TmTable in H0.
+  congruence.
+Qed.
+
+Lemma Rw_intermediate_TmTable_subject:
+  forall t K K' m,
+    (plug K (TmTable t) ~> m) ->
+    (m ~> plug K' (TmTable t)) ->
+    {K'' & m = plug K'' (TmTable t)}.
+Proof.
+  intros.
+  apply K_TmTable_rw in H.
+  destruct H as [[K0 H H'] | [K0 H H']].
+  eauto.
+  assert (m = plug K0 TmNull).
+  symmetry; apply deepest_K_spec; auto.
+  subst.
+  apply K_TmNull_rw in H0.
+  destruct H0 as [[K1 H0 H0'] | [? ? H0']].
+  - apply discriminate_K_TmTable_K_TmNull in H0.
+    easy.
+  - apply discriminate_K_TmTable_K_TmNull in H0'.
+    easy.
+Qed.
+
+(** This is kind of gross, but it's a means to an end. One lemma seemed
+    particularly hard to prove by induction on the RewritesTo_rt type, because
+    of the _trans case. It was much easier using this equivalent data
+    structure, which is a right-linear linked-list of reduction steps. Perhaps
+    I should have done all reduction sequences this way from the beginning? *)
+
+Inductive RewritesTo_rt_right_linear : Term -> Term -> Type :=
+  Rw_rt_rl_null : forall m n, m = n -> RewritesTo_rt_right_linear m n
+| Rw_rt_rl_cons : forall l m n, (l ~> m) ->
+                  RewritesTo_rt_right_linear m n ->
+                  RewritesTo_rt_right_linear l n.
+
+Hint Constructors RewritesTo_rt_right_linear.
+
+Lemma concat_redseq:
+  forall l m n
+         (r0 : RewritesTo_rt_right_linear l m)
+         (r1 : RewritesTo_rt_right_linear m n),
+    RewritesTo_rt_right_linear l n.
+Proof.
+  intros l m n r0. induction r0; intros; subst.
+  auto.
+  eapply Rw_rt_rl_cons; eauto.
+Qed.
+
+Lemma normal_redseq:
+  forall l m (r:l ~>> m), RewritesTo_rt_right_linear l m.
+Proof.
+ intros.
+ induction r; intros; subst.
+ - auto.
+ - eauto.
+ - eauto using concat_redseq.
+Qed.
+
+Lemma return_redseq:
+  forall l m, (RewritesTo_rt_right_linear l m) -> (l ~>> m).
+Proof.
+  intros l m H.
+  induction H; eauto.
+Qed.
+
+Lemma once_TmNull_subject_always:
+  forall A Z,
+    (A ~>> Z) -> {K & A = plug K TmNull}
+    -> {K' & deepest_K Z = (K', TmNull)}.
+Proof.
+  intros.
+  induction H; intros; destruct H0 as [K H0]; subst.
+  - exists K.
+    apply deepest_K_TmNull.
+  - apply K_TmNull_rw in r.
+    destruct r as [[K' neq [K'' size Keq]] | ].
+    exists K'.
+    subst.
+    apply deepest_K_TmNull.
+    destruct s.
+    exists x.
+    subst.
+    apply deepest_K_TmNull.
+  - firstorder.
+    specialize (H2 K).
+    firstorder.
+    specialize (H0 x).
+    simpl in H0.
+    apply deepest_K_spec in p.
+    symmetry in p.
+    auto.
+Qed.
+
+Lemma Rw_rt1_intermediate_TmTable_subject':
+  forall t Z m,
+    (RewritesTo_rt_right_linear m Z) -> {K' & Z = plug K' (TmTable t)} ->
+    forall A,
+    (A ~> m) -> {K & A = plug K (TmTable t)} ->
+    {K'' & m = plug K'' (TmTable t)}.
+Proof.
+  intros t Z m H.
+  induction H; intros; subst.
+  - eauto.
+  - firstorder.
+    subst.
+    apply K_TmTable_rw in H1.
+    destruct H1 as [[K' leq] | [K' leq [K'' xeq]]].
+    * exists K'; auto.
+    * assert (l = plug K' TmNull ).
+      { symmetry.
+        apply deepest_K_spec.
+        auto. }
+      assert (H5: l ~>> plug x0 (TmTable t)).
+      { pose (return_redseq _ _ H).
+        eauto. }
+      lapply (once_TmNull_subject_always l (plug x0 (TmTable t)) H5).
+      { intro H6.
+        destruct H6.
+        rewrite deepest_K_TmTable in e.
+        easy. }
+      eauto.
+Qed.
+
+Lemma Rw_rt1_intermediate_TmTable_subject:
+  forall t Z m,
+    (m ~>> Z) -> {K' & Z = plug K' (TmTable t)} ->
+    forall A,
+    (A ~> m) -> {K & A = plug K (TmTable t)} ->
+    {K'' & m = plug K'' (TmTable t)}.
+Proof.
+ intros.
+ pose (normal_redseq _ _ H).
+ eapply Rw_rt1_intermediate_TmTable_subject'; eauto.
+Qed.
+
+Lemma Rw_rt_intermediate_TmTable_subject:
+  forall t A Z m,
+    (A ~>> m) -> {K & A = plug K (TmTable t)} ->
+    (m ~>> Z) -> {K' & Z = plug K' (TmTable t)} ->
+    {K'' & m = plug K'' (TmTable t)}.
+Proof.
+  intros.
+  induction H; intros; subst.
+  - eauto.
+  - destruct H0; destruct H2.
+    subst.
+    eauto using Rw_rt1_intermediate_TmTable_subject.
+  - firstorder.
+    subst.
+    assert (cmon: plug x0 (TmTable t) = plug x0 (TmTable t)) by reflexivity.
+    assert (m ~>> plug x (TmTable t)).
+    eauto.
+    destruct (H2 x0 cmon H4).
+    apply H0 with x1; auto.
+Qed.
+
+Lemma Rw_rt_over_TmTable_generalizes:
+  forall t x K K',
+    (plug K (TmTable t) ~>> plug K' (TmTable t))
+    -> (plug K x ~>> plug K' x).
+Proof.
+  intros t x K K' H.
+  remember (plug K (TmTable t)) as A.
+  remember (plug K' (TmTable t)) as Z.
+  revert K HeqA K' HeqZ.
+  induction H; intros; subst.
+  - assert (K = K') by (eauto using plug_TmTable_unique).
+    subst; auto.
+
+  - eauto using Rw_over_TmTable_generalizes.
+
+  - assert (H1 : {K'' & m = plug K'' (TmTable t)}).
+    { eauto using Rw_rt_intermediate_TmTable_subject. }
+    destruct H1.
+
+    eapply Rw_rt_trans.
+    * apply IHRewritesTo_rt1; eauto.
+    * apply IHRewritesTo_rt2; auto.
+Qed.
+
+Lemma Rw_curtailment_generalizes: forall K t K',
+    (plug K (TmTable t) ~> plug K' TmNull) ->
+    forall x, plug K x ~> plug K' TmNull.
+Proof.
+  intros.
+  apply K_TmTable_rw in H.
+  destruct H as [[K0 H H0] | [K0 H H0]].
+  - symmetry in H; apply discriminate_K_TmTable_K_TmNull in H.
+    easy.
+  - destruct H0.
+    assert (K' = K0).
+    rewrite deepest_K_TmNull in H.
+    congruence.
+    subst.
+    apply curtailment.
+Qed.
 
 (* TODO: Seems like this is overly long.
    I wonder if the induction on K is needed?
@@ -788,12 +1100,17 @@ Proof.
   apply reducts_SN; fold SN.
   intros Z redn.
   apply three_ways_to_reduce_at_interface in redn
-    as [[[[M' redn_a redn_b] | [K'' redn_a redn_b]] | ?] | ?].
+    as [[[[[M' redn_a redn_b] | [K'' redn_a redn_b]] | ?] | ?] | ?].
   * (* Inside body. *)
     inversion redn_b; subst.
-    -- eauto using beta_reduct_under_K_rw_rt, Rw_trans_preserves_SN.
-    -- inversion H8; sauto.
-    -- seauto.
+    -- (* Bind_Null_body *) eauto using beta_reduct_under_K_rw_rt, Rw_trans_preserves_SN.
+    -- (* beta *)
+       assert (SN (plug K0 (N */ L))).
+       apply Krw_rt_preserves_SN with K; auto.
+       apply plug_SN_rw_rt with (N */ L); auto.
+       apply unshift_substitution_doubly_preserves_rw_rt; auto.
+    -- (* subject reduces *) inversion H8; sauto.
+    -- (* body reduces *) seauto.
   * (* Inside continuation. *)
     subst.
     auto.
@@ -801,6 +1118,15 @@ Proof.
     refute.
     destruct p as [A [K' [M' H6 [N' H7 H8]]]].
     apply NotBind_TmBind in H8; auto.
+  * destruct s as [K' Zeq [K'' K0eq]].
+    assert (plug K (N */ L) ~>> plug K' TmNull).
+    apply Rw_rt_trans with (plug K0 (N */ L)).
+    apply plug_rw_rt; auto.
+    subst.
+    apply Rw_rt_step.
+    apply curtailment.
+    subst.
+    eauto using plug_SN_rw_rt.
   * (* The the interface, and body is a Bind term. *)
     destruct s as [L1 [L1' H8 [K'' [N1 H9 H10]]]].
     inversion H8.
@@ -828,6 +1154,8 @@ Proof.
     simpl in a |- *.
     eapply all_cut; [| apply a]; simpl.
     intros; omega.
+Unshelve.
+exact O. (* what? *)
 Qed.
 
 Lemma Bind_Reducible_core:
@@ -887,34 +1215,181 @@ Qed.
 
 Lemma TmTable_rw:
   forall K t x,
-    (plug K (TmTable t) ~> x) -> {K':Continuation & (x = plug K' (TmTable t)) & Krw K K'}.
+    (plug K (TmTable t) ~> x) ->
+    {K' : Continuation & (x = plug K' (TmTable t)) & Krw K K'} +
+    {K' : Continuation & prefix K' K & x = plug K' TmNull}.
 Proof.
   (* induction K; simpl; intros. *)
   (* inversion H. *)
   simpl; intros.
   apply three_ways_to_reduce_at_interface in H.
-  destruct H as [[[[M' H H1] | H] | H] | H].
+  destruct H as [[[[[M' H H1] | H] | H] | H] | ?].
   - inversion H1.
   - eauto.
   - destruct H.
     lapply n.
     tauto.
     auto.
+  - destruct H as [K' xeq [K'' Keq]].
+    subst.
+    right.
+    exists K'; auto.
+    apply prefix_appendK.
+    auto.
   - firstorder.
     discriminate.
 Qed.
 
+Lemma SN_embedding2'' A f g:
+    forall M : A,
+    (forall (N : A) (Z : Term),
+        (g M ~>> g N) ->
+        (g N ~> Z) ->
+        ({M' : A & ((Z = g M') *
+                    (f N ~> f M'))%type}
+         + SN Z)) ->
+    SN (f M) ->
+    SN (g M).
+Proof.
+ intros.
+ apply SN_embedding2 with (f:=f)(Q:=f M)(Q':=g M).
+    intros.
+    auto.
+   auto.
+  auto.
+ auto.
+Qed.
+
+Lemma deepest_K_NotBind:
+  forall K M K' M',
+    NotBind M -> NotBind M' ->
+    (K', M') = deepest_K (plug K M) ->
+    (K', M') = (K, M)
+Proof.
+Admitted.
+
+Lemma K_TmNull_rw2:
+  forall K Z,
+    (plug K TmNull ~> Z) ->
+    {K' : Continuation & Z = plug K' TmNull &
+          { N : Term & K = Iterate N K' } } +
+    {K' : Continuation & Z = plug K' TmNull &
+          { K'' : Continuation & Ksize K'' > 1 & K = appendK K'' K' } } +
+    {K' : Continuation & Krw K K' & Z = plug K' TmNull}.
+Proof.
+ destruct K; simpl; intros Z H.
+ * inversion H.
+ * clone H.
+   rename H0 into H_rw.
+   apply three_ways_to_reduce_at_interface in H.
+   destruct H as [[[[[M' Ha Hb] | [K' Ha Hb]] |  [H' [K' [M' H0 [N H1 H2]]]]] | ?] | ?].
+   - inversion Hb; subst.
+     ** left; left.
+        eauto.
+     ** left; left.
+        eauto.
+     ** solve [inversion H2].
+     ** right.
+        eauto.
+   - right.
+     subst.
+     eauto.
+   - refute.
+     eapply H2; auto.
+   - destruct s as [K' Zeq [K'' Keq]]; subst.
+     left; right.
+     exists K'; auto.
+     exists (Iterate t (appendK K'' (Iterate TmNull Empty))); simpl; auto.
+     rewrite Ksize_appendK.
+     simpl.
+     omega.
+     rewrite appendK_assoc; simpl.
+     auto.
+   - destruct s as [L [L' H0 [K' [N H1 H2]]]].
+     inversion H0.
+     subst.
+     rewrite reverse_plug_defn.
+     right.
+     eauto using assoc_in_K.
+Qed.
+
+Lemma SN_K_TmNull_primer:
+  forall x K,
+    (forall K', Ksize K' < Ksize K -> SN (plug K' TmNull)) ->
+    SN (plug K x) -> SN (plug K TmNull).
+Proof.
+  (* induction K using Ksize_induction_strong. *)
+  intros.
+  apply SN_embedding2'' with (f:=fun k => plug k x)
+                            (g:=fun k => plug k TmNull);
+    auto.
+  intros K' Z Hdown H1.
+  clone H1.
+  apply K_TmNull_rw2 in H1.
+  destruct H1 as [[[K0 Zeq [N K'eq]] | [K0 Zeq [K1 H3 H4]]] | [K'' eq size_lt]].
+  - subst.
+    right.
+    apply H.
+    assert (Ksize (Iterate N K0) <= Ksize K).
+    apply Rw_rt_conserves_Ksize; auto.
+    simpl in *.
+    omega.
+
+  - subst.
+    right.
+    apply H.
+    assert (Ksize K0 <= Ksize (appendK K1 K0)).
+    { rewrite Ksize_appendK.
+      omega. }
+    assert (Ksize (appendK K1 K0) <= Ksize K).
+    apply Rw_rt_conserves_Ksize; auto.
+    rewrite Ksize_appendK in H4.
+    omega.
+
+  - left.
+    eauto.
+Qed.
+
 Lemma SN_K_TmTable:
-  forall t x K,
+  forall t K x,
     SN (plug K x) -> SN (plug K (TmTable t)).
 Proof.
+  induction K using Ksize_induction_strong.
   intros.
-  apply SN_embedding2' with (f:=fun k => plug k x)
+  apply SN_embedding2'' with (f:=fun k => plug k x)
                             (g:=fun k => plug k (TmTable t));
     auto.
-  intros K' Z H0.
-  apply TmTable_rw in H0.
-  firstorder.
+  intros K' Z Hdown H1.
+  clone H1.
+  apply K_TmTable_rw in H1.
+  destruct H1 as [[K'' Zeq rw] | [K'' eq [K''' K'''eq]]].
+  - left.
+    exists K''.
+    intuition.
+  - right.
+    assert (Z = plug K'' TmNull).
+    { symmetry; apply deepest_K_spec.
+      auto. }
+    subst Z.
+    clear eq.
+    apply SN_K_M_SN_K_Null with (TmTable t).
+    assert (Ksize K'' < Ksize K).
+    { assert (Ksize K' <= Ksize K).
+      { apply Rw_rt_conserves_Ksize.
+        trivial.
+        eauto using Rw_rt_over_TmTable_generalizes. }
+      assert (Ksize K' > Ksize K'').
+      { subst K'.
+        rewrite Ksize_appendK; simpl.
+        omega. }
+      omega. }
+    apply H with TmNull; auto.
+    apply Rw_trans_preserves_SN with (plug K x); auto.
+    assert (plug K' x ~> plug K'' TmNull).
+    apply Rw_curtailment_generalizes with t; auto.
+    assert (plug K x ~>> plug K' x).
+    { eauto using Rw_rt_over_TmTable_generalizes. }
+    eauto.
 Qed.
 
 (** Every well-typed term, with a [Reducible] environment that makes it a closed
