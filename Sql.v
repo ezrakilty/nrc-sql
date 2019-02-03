@@ -456,14 +456,12 @@ Proof.
       auto. }
     specialize (IHM2 (TyList t) (s :: env) H7 H8 H4).
     destruct IHM2 as [[IHM2 IHM2'] IHM2''].
-    lapply IHM2''.
+    lapply IHM2''; [|auto].
     intros.
     destruct M2; inversion H1; auto.
-    bogus_normal Normal_M.
-    admit (* Missing a rewrite rule for TmBind (TmTable x) TmNull *).
-    bogus_normal Normal_M.
-    admit (* Missing a rewrite rule for TmBind (TmTable x) (TmUnion x y) *).
-    auto.
+    * bogus_normal Normal_M.
+    * subst.
+      admit (* Missing a rewrite rule for TmBind (TmTable x) (TmUnion x y) *).
   - repeat split.
     intro H0; inversion H0.
     intro H0; inversion H0.
