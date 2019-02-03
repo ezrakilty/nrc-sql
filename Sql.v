@@ -337,8 +337,20 @@ Inductive is_in_sql_like_sublangi : Term -> Type :=
 
 Hint Constructors is_in_sql_like_sublangi is_joined_relationi is_filtered_relationi is_row_formi is_basic_formi.
 
+Inductive safe (* all table types are row types. *) : Term -> Type :=
+| safe_row_TmTable : forall T, is_row_type T -> safe (TmTable T)
+| safe_sub_TmPair : forall M N, safe M -> safe N -> safe (TmPair M N)
+| safe_sub_TmUnion : forall M N, safe N -> safe M -> safe (TmUnion M N)
+| safe_sub_TmBind : forall M N, safe N -> safe M -> safe (TmBind M N)
+| safe_sub_TmProj : forall b M, safe M -> safe (TmProj b M)
+| safe_sub_TmSingle : forall M, safe M -> safe (TmSingle M)
+| safe_sub_TmApp : forall L M, safe L -> safe M -> safe (TmApp L M).
+
+Hint Constructors safe.
+
 Lemma SQL_Normal_forms:
   forall M T env,
+    safe M ->
     Normal M ->
     is_row_type_env env ->
     Typing env M T ->
@@ -346,7 +358,7 @@ Lemma SQL_Normal_forms:
     (is_row_type T -> is_row_formi M) *
     (is_relation_type T -> is_in_sql_like_sublangi M).
 Proof.
-  induction M; intros T env Normal_M env_typs H;
+  induction M; intros T env safe_M Normal_M env_typs H;
     pose (X:=row_env_Normal_forms _ T env Normal_M env_typs H);
     inversion H; subst T.
 
@@ -361,11 +373,13 @@ Proof.
   - repeat split; intro Z; inversion Z; eauto.
 
     assert (is_basic_formi M1).
-    { assert (Normal_M1:Normal M1) by auto.
-      apply (IHM1 _ _ Normal_M1 env_typs H2); auto. }
+    { assert (Normal_M1: Normal M1) by auto.
+      inversion safe_M.
+      apply (IHM1 _ _ H10 Normal_M1 env_typs H2); auto. }
     assert (is_basic_formi M2).
     { assert (Normal_M2:Normal M2) by auto.
-      apply (IHM2 _ _ Normal_M2 env_typs H4); auto. }
+      inversion safe_M.
+      apply (IHM2 _ _ H12 Normal_M2 env_typs H4); auto. }
     auto.
 
   - repeat split; intro Z; inversion Z; subst.
@@ -409,21 +423,25 @@ Proof.
   - repeat split; intro Z; inversion Z; eauto.
 
     subst.
-    assert (Normal M) by auto.
-    specialize (IHM _ _ H0 env_typs H1); destruct IHM as [[? ?] ?].
+    assert (H2: Normal M) by auto.
+    inversion safe_M.
+    specialize (IHM _ _ H4 H2 env_typs H1); destruct IHM as [[? ?] ?].
     auto.
 
   - repeat split; intro Z; inversion Z; eauto.
-    assert (Normal M1) by auto.
-    assert (Normal M2) by auto.
-    specialize (IHM1 _ _ H6 env_typs H2); destruct IHM1 as [[? ?] ?].
-    specialize (IHM2 _ _ H7 env_typs H4); destruct IHM2 as [[? ?] ?].
+    assert (H6: Normal M1) by auto.
+    assert (H8: Normal M2) by auto.
+    inversion safe_M.
+    specialize (IHM1 _ _ H11 H6 env_typs H2); destruct IHM1 as [[? ?] ?].
+    specialize (IHM2 _ _ H10 H8 env_typs H4); destruct IHM2 as [[? ?] ?].
     apply is_in_sql_like_sublangi_1; auto.
 
   - repeat split; intro Z; inversion Z; eauto.
-    assert (Normal M1) by auto.
-    assert (Normal M2) by auto.
-    assert (H8 : {t& M1 = TmTable t}).
+    assert (H6: Normal M1) by auto.
+    assert (H8: Normal M2) by auto.
+    inversion safe_M.
+    subst M N.
+    assert (H12: {t & M1 = TmTable t}).
     pose (Y := row_env_Normal_forms M1 _ env H6 env_typs H2).
     simpl in Y.
     destruct Y as [[[[Y | Y] | Y] | Y] | Y].
@@ -437,24 +455,27 @@ Proof.
     eauto.
     subst.
     bogus_normal Normal_M.
-    destruct H8 as [T eq]; subst.
+    destruct H12 as [T eq]; subst.
     apply is_in_sql_like_sublangi_3.
     apply is_joined_relationi_1.
     assert (is_row_type s).
-    admit (* Need to limit the type of each TmTable somehow! *).
-    assert (H8 : is_row_type_env (s :: env)).
+    { inversion H11.
+      inversion H2.
+      subst.
+      auto. }
+    assert (H12 : is_row_type_env (s :: env)).
     { intros.
       unfold is_row_type_env.
       intros.
       destruct n.
-      simpl in H1.
-      inversion H1.
-      auto.
-      assert (value T0 = nth_error env n).
-      auto.
-      apply env_typs in H3.
-      auto. }
-    specialize (IHM2 (TyList t) (s :: env) H7 H8 H4).
+      - simpl in H1.
+        inversion H1.
+        subst.
+        auto.
+      - assert (value T0 = nth_error env n) by auto.
+        apply env_typs in H3.
+        auto. }
+    specialize (IHM2 (TyList t) (s :: env) H10 H8 H12 H4).
     destruct IHM2 as [[IHM2 IHM2'] IHM2''].
     lapply IHM2''; [|auto].
     intros.
@@ -474,17 +495,18 @@ Admitted.
 
 Lemma SQL_Normal_form:
   forall M T,
+    safe M ->
     Normal M ->
     Typing nil M T ->
     is_relation_type T -> is_in_sql_like_sublangi M.
 Proof.
   intros.
-  lapply (SQL_Normal_forms M T nil H).
-  intros H2.
-  specialize (H2 H0).
-  apply H2; auto.
+  lapply (SQL_Normal_forms M T nil H H0).
+  intros H3.
+  specialize (H3 H1).
+  apply H3; auto.
   unfold is_row_type_env.
   intros.
-  rewrite NthError.nth_error_nil in H2.
+  rewrite NthError.nth_error_nil in H3.
   easy.
 Qed.
