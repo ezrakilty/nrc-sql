@@ -69,14 +69,6 @@ Proof.
  apply unshift_var_shift_var.
 Qed.
 
-Lemma unshift_shift_alt : (* Alternate proof of unshift_shift *)
-  forall N k n,
-    unshift k n (shift k n N) = N.
-Proof.
- induction N; intros k n; simpl; f_equal; try sauto.
- apply unshift_var_shift_var.
-Qed.
-
 (** (Un)Shifting at De Bruijn index k when k is above the greatest free
     index is a no-op. *)
 Lemma shift_nonfree_noop :
@@ -595,15 +587,6 @@ Proof.
 Qed.
 
 Require Import Listkit.All.
-
-Lemma all_remove A A_dec (x:A) P xs:
-  all _ (fun y => y = x \/ P y) xs -> all _ P (set_remove _ A_dec x xs).
-Proof.
- unfold all.
- intros.
- apply set_remove_elim in H0.
- firstorder.
-Qed.
 
 Lemma shift_var_range:
   forall x k,

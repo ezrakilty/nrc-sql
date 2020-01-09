@@ -89,25 +89,6 @@ Qed.
 
 Hint Resolve iterate_reduce rw_in_K_body.
 
-Lemma Krw_SNK K K' : SNK K -> Krw K K' -> SNK K'.
-Proof.
- unfold SNK, Krw in *.
- intros.
- specialize (H M H1).
- inversion H.
- auto.
-Qed.
-
-(* To do: unused *)
-Lemma Krw_rt_SNK K K' : SNK K -> Krw_rt K K' -> SNK K'.
-Proof.
- intros.
- induction H0.
-   subst; auto.
-  eauto using Krw_SNK.
- auto.
-Qed.
-
 Lemma plug_SN_rw_rt:
   forall (K : Continuation) (M M' : Term),
   (M ~>> M') -> SN (plug K M) -> SN (plug K M').
@@ -116,25 +97,8 @@ Proof.
  induction H; subst; eauto using plug_SN_rw.
 Qed.
 
-Lemma Empty_unrewritable: forall K, (Krw Empty K) -> False.
-Proof.
- unfold Krw.
- intros.
- specialize (H TmConst).
- destruct K; simpl in H; inversion H.
-Qed.
-
 Inductive Ktyping : Continuation -> Ty -> Type :=
   Ktype : forall K T env S M, Typing env M T -> Typing nil (plug K M) S -> Ktyping K T.
-
-Lemma Krw_characterization:
-  forall K T K' N,
-    Ktyping K T ->
-    Krw (Iterate N K) K' ->
-    {K1 : Continuation & ((K' = Iterate N K1) * (Krw K K1))%type} +
-    {N' : Term & ((K' = Iterate N' K) * (N ~> N'))%type}.
-Proof.
-Admitted  (* unused *).
 
 Lemma SN_push_under_k:
   forall K M,
@@ -345,15 +309,6 @@ Proof.
      eauto using assoc_in_K.
 Qed.
 
-Lemma Krw_inhabited:
-  Krw (Iterate (TmBind TmNull TmNull) Empty) (Iterate TmNull Empty).
-Proof.
- unfold Krw.
- intros.
- simpl.
- eauto.
-Qed.
-
 Lemma Ksize_induction P :
   (forall K, Ksize K = 0 -> P K) ->
   (forall n K', (forall K, Ksize K = n -> P K) ->
@@ -407,24 +362,6 @@ Proof.
 (* Seems like the above is dodgy; proving it twice? *)
 Qed.
 
-Lemma Krw_to_Iterate:
-  forall K t K',
-  Krw K (Iterate t K') ->
-  {K0 : Continuation & { M : Term &
-     K = Iterate M K0 }}.
-Proof.
- destruct K.
-  intros.
-  unfold Krw in H.
-  specialize (H TmNull).
-  simpl in *.
-  inversion H.
- intros.
- exists K.
- exists t.
- auto.
-Qed.
-
 Fixpoint deepest_K M :=
 match M with
 | TmBind M' N' =>
@@ -440,18 +377,6 @@ end.
 (*                   (f, Iterate t K'') *)
 (* | Empty => (TmNull, Empty) *)
 (* end. *)
-
-(* Lemma deepest_K_spec3 : *)
-(*   forall K M, *)
-(*     notT {M' : Term & {N' : Term & M = TmBind M' N'}} -> *)
-(*     deepest_K (plug K M) = (K, M). *)
-(* Proof. *)
-(*  induction K using Ksize_induction_strong; destruct K; simpl; intros. *)
-(*  - destruct M; simpl; auto. *)
-(*    contradiction H0. *)
-(*    eauto. *)
-(*  - rewrite H. *)
-(* Qed. *)
 
 Lemma plug_appendK_weird:
   forall K M M',
@@ -517,54 +442,6 @@ Proof.
   auto.
 Qed.
 
-(* Lemma deepest_K_spec2 : *)
-(*   forall K M N, *)
-(*     {M' : Term & {K' : Continuation & *)
-(*       {f : Continuation->Continuation & *)
-(*        deepest_K (plug K (TmBind M N)) = (f K', M')} & *)
-(*        deepest_K (TmBind M N) = (Iterate N K', M')}}. *)
-(* Proof. *)
-(*  induction K. *)
-(*  - simpl. *)
-(*    intros. *)
-(*    set (X := deepest_K M). *)
-(*    destruct X as [K body]. *)
-(*    eauto. *)
-(*  - intros. *)
-(*    simpl. *)
-(*    pose (IHK (TmBind M N) t). *)
-(*    destruct s as [M' [K' [f Ha] Hb]]. *)
-(*    exists M'. *)
-(*    exists K'. *)
-(*    exists f. *)
-(*    * auto. *)
-(*    * assert (H0 : deepest_K (TmBind (TmBind M N) t) = *)
-(*                   let (K0, M0) := deepest_K (TmBind M N) in *)
-(*                   (Iterate t K0, M0)) by auto. *)
-
-(*      rewrite H0 in Hb. *)
-
-(*      pose (X := deepest_K (TmBind M N)). *)
-(*      assert (H : X = deepest_K (TmBind M N)) by auto. *)
-(*      clearbody X. *)
-(*      destruct X. *)
-(*      rewrite <- H in Hb. *)
-(*      simpl in H. *)
-
-(*      pose (X := deepest_K M). *)
-(*      assert (H' : X = deepest_K M) by auto. *)
-(*      clearbody X. *)
-(*      destruct X. *)
-
-(*      rewrite <- H. *)
-
-(*      inversion Hb. *)
-(*      subst. *)
-(*      assert (let (K, body) := deepest_K M in *)
-(*              (Iterate t (Iterate N K), body) = (Iterate t K', M')). *)
-
-(* Qed. *)
-
 Lemma deepest_K_TmNull K :
   deepest_K (plug K TmNull) = (K, TmNull).
 Proof.
@@ -589,40 +466,6 @@ Proof.
 Qed.
 
 Hint Resolve unique_plug_null.
-
-Lemma Rw_null_Krw:
-  forall K' K,
-    Ksize K = Ksize K' ->
-    (plug K' TmNull ~> plug K TmNull) ->
-    Krw K' K.
-Proof.
- intros.
- clone H0.
- apply K_TmNull_rw in H0.
- destruct H0 as [[K0 eq [K'' K''size K'eq]] | [K0 Ha Hb]].
-  subst.
-  assert (K = K0).
-   apply unique_plug_null; auto.
-  subst.
-  rewrite Ksize_appendK in H.
-  exfalso.
-  omega.
- assert (K = K0).
-  apply unique_plug_null; auto.
- subst.
-  auto.
-Qed.
-
-Lemma plug_form:
-  forall K M,
-    (plug K M = M) + {M1 : Term & {N1 : Term & plug K M = TmBind M1 N1}}.
-Proof.
- induction K; simpl.
- - left.
-   auto.
- - right.
-   destruct (IHK (TmBind M t)); eauto.
-Qed.
 
 Lemma Rw_conserves_Ksize:
   forall K K',

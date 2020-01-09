@@ -172,14 +172,6 @@ Proof.
  auto.
 Qed.
 
-Lemma Krw_rt_preserves_ReducibleK :
-  forall T K, ReducibleK Reducible K T -> forall K',
-      Krw_rt K K' -> ReducibleK Reducible K' T.
-Proof.
- intros T K ? K' H.
- induction H; subst; eauto using Krw_preserves_ReducibleK.
-Qed.
-
 (* TODO: This seems to be a cheesy way of helping the Reducible_properties.
 Afterwards, one of the premises is always true, so we can simplify it. *)
 Lemma ReducibleK_Krw_norm_helper:
@@ -750,52 +742,6 @@ Proof.
  apply plug_rw_rt; auto.
 Qed.
 
-Lemma truncate_K_TmNull_rw_rt :
-  forall K' K,
-    plug (appendK K' K) TmNull ~>> plug K TmNull.
-Proof.
-  induction K'; simpl; eauto.
-Qed.
-
-(* TODO: Undoubtedly this is somehow redundant with what's proved for lambda_reducibility. *)
-Lemma SN_beta_withdraw_under_k:
-  forall K L N,
-    SN L ->
-    SN (plug K (N */ L)) ->
-    SN (plug K (TmAbs N @ L)).
-Proof.
- intros.
- assert (SN N).
-  apply SN_push_under_k in H0.
-  eauto using SN_less_substituent. (* Was not needed here in thesis. *)
- assert (Krw_norm K).
-  eauto using Krw_norm_from_SN.
- apply triple_induction_scoped with (K0:=K) (M0:=N) (N0:=L); auto.
- intros.
- rename M into N0, N0 into L0.
- apply reducts_SN; fold SN.
- intros.
- apply Neutral_Lists in H9 as [[[M' H7a H7b] | [K' H7a H7b]] | ?]; [| | | auto]; subst.
- - inversion H7b; subst.
-   * eauto using beta_reduct_under_K_rw_rt, Rw_trans_preserves_SN.
-   * inversion H12; subst.
-     apply H7; sauto.
-   * apply H8; sauto.
- - auto using H6.
- - destruct s as [K' x'eq [K'' K0eq]].
-   subst.
-   assert (plug (appendK K'' K') TmNull ~>> plug K' TmNull).
-   apply truncate_K_TmNull_rw_rt.
-   assert (plug K TmNull ~>> plug (appendK K'' K') TmNull).
-   apply plug_rw_rt; auto.
-   cut (SN (plug K TmNull)).
-   intros.
-   eapply Rw_trans_preserves_SN.
-   apply H11.
-   eauto.
-   eauto using SN_K_M_SN_K_Null.
-Qed.
-
 (** * Bind reducibility. (Lemma 33) *)
 
 Lemma K_TmTable_rw:
@@ -882,27 +828,6 @@ Proof.
   rewrite deepest_K_TmTable in H0.
   rewrite deepest_K_TmTable in H0.
   congruence.
-Qed.
-
-Lemma Rw_intermediate_TmTable_subject:
-  forall t K K' m,
-    (plug K (TmTable t) ~> m) ->
-    (m ~> plug K' (TmTable t)) ->
-    {K'' & m = plug K'' (TmTable t)}.
-Proof.
-  intros.
-  apply K_TmTable_rw in H.
-  destruct H as [[K0 H H'] | [K0 H H']].
-  eauto.
-  assert (m = plug K0 TmNull).
-  symmetry; apply deepest_K_spec; auto.
-  subst.
-  apply K_TmNull_rw in H0.
-  destruct H0 as [[K1 H0 H0'] | [? ? H0']].
-  - apply discriminate_K_TmTable_K_TmNull in H0.
-    easy.
-  - apply discriminate_K_TmTable_K_TmNull in H0'.
-    easy.
 Qed.
 
 (** This is kind of gross, but it's a means to an end. One lemma seemed
@@ -1267,88 +1192,6 @@ Lemma deepest_K_NotBind:
     (K', M') = (K, M).
 Proof.
 Admitted.
-
-Lemma K_TmNull_rw2:
-  forall K Z,
-    (plug K TmNull ~> Z) ->
-    {K' : Continuation & Z = plug K' TmNull &
-          { N : Term & K = Iterate N K' } } +
-    {K' : Continuation & Z = plug K' TmNull &
-          { K'' : Continuation & Ksize K'' > 1 & K = appendK K'' K' } } +
-    {K' : Continuation & Krw K K' & Z = plug K' TmNull}.
-Proof.
- destruct K; simpl; intros Z H.
- * inversion H.
- * clone H.
-   rename H0 into H_rw.
-   apply three_ways_to_reduce_at_interface in H.
-   destruct H as [[[[[M' Ha Hb] | [K' Ha Hb]] |  [H' [K' [M' H0 [N H1 H2]]]]] | ?] | ?].
-   - inversion Hb; subst.
-     ** left; left.
-        eauto.
-     ** left; left.
-        eauto.
-     ** solve [inversion H2].
-     ** right.
-        eauto.
-   - right.
-     subst.
-     eauto.
-   - refute.
-     eapply H2; auto.
-   - destruct s as [K' Zeq [K'' Keq]]; subst.
-     left; right.
-     exists K'; auto.
-     exists (Iterate t (appendK K'' (Iterate TmNull Empty))); simpl; auto.
-     rewrite Ksize_appendK.
-     simpl.
-     omega.
-     rewrite appendK_assoc; simpl.
-     auto.
-   - destruct s as [L [L' H0 [K' [N H1 H2]]]].
-     inversion H0.
-     subst.
-     rewrite reverse_plug_defn.
-     right.
-     eauto using assoc_in_K.
-Qed.
-
-Lemma SN_K_TmNull_primer:
-  forall x K,
-    (forall K', Ksize K' < Ksize K -> SN (plug K' TmNull)) ->
-    SN (plug K x) -> SN (plug K TmNull).
-Proof.
-  (* induction K using Ksize_induction_strong. *)
-  intros.
-  apply SN_embedding2'' with (f:=fun k => plug k x)
-                            (g:=fun k => plug k TmNull);
-    auto.
-  intros K' Z Hdown H1.
-  clone H1.
-  apply K_TmNull_rw2 in H1.
-  destruct H1 as [[[K0 Zeq [N K'eq]] | [K0 Zeq [K1 H3 H4]]] | [K'' eq size_lt]].
-  - subst.
-    right.
-    apply H.
-    assert (Ksize (Iterate N K0) <= Ksize K).
-    apply Rw_rt_conserves_Ksize; auto.
-    simpl in *.
-    omega.
-
-  - subst.
-    right.
-    apply H.
-    assert (Ksize K0 <= Ksize (appendK K1 K0)).
-    { rewrite Ksize_appendK.
-      omega. }
-    assert (Ksize (appendK K1 K0) <= Ksize K).
-    apply Rw_rt_conserves_Ksize; auto.
-    rewrite Ksize_appendK in H4.
-    omega.
-
-  - left.
-    eauto.
-Qed.
 
 Lemma SN_K_TmTable:
   forall t K x,

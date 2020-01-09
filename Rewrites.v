@@ -770,55 +770,6 @@ Hint Resolve Rw_rt_Pair_left Rw_rt_Pair_right Rw_rt_App_left Rw_rt_App_right
 
 (** * [( */ )] and unshift. *)
 
-(* Failed attempt to simplify beta_with_unshift_var *)
-(*Lemma zod:
-  forall n n' k env x,
-    k >= length env ->
-    n >= n' + length env ->
-    unshift n k (subst_env n' env (TmVar x)) =
-    subst_env n' (map (unshift n k) env) (unshift n k (TmVar x)).
-Proof.
- intros.
- destruct (le_gt_dec (n+k) x).
-  replace (subst_env n' env (TmVar x)) with (TmVar x).
-   replace (unshift n k (TmVar x)) with (TmVar (x-k)).
-    rewrite subst_var_outside_range.
-     auto.
-    rewrite map_length.
-    unfold outside_range.
-    break; (easy || (break; (easy || omega))).
-   simpl.
-   unfold unshift_var.
-   break; (easy||omega).
-  rewrite subst_var_outside_range; auto.
-  unfold outside_range; break; (easy || (break; (easy || omega))).
-  cut (unshift n k (TmVar x) =TmVar x); [intro|].
-   case_eq (outside_range n' (length env + n') x); intro.
-   rewrite subst_var_outside_range; auto.
-   rewrite H1.
-   rewrite subst_var_outside_range; auto.
-   rewrite map_length.
-   auto.
-  destruct (subst_var_inside_range n' env x H2) as [V [V_env V_def]].
-rewrite V_def.
-  destruct (subst_var_inside_range n' (map (unshift n k) env) x).
-rewrite map_length.
-sauto.
-destruct H3.
-rewrite H1.
-rewrite H4.
-subst x0.
-
-destruct (le_gt_dec (n' + length env) x).
-destruct (le_gt_dec (n' + length env) x).
-
-rewrite subst_env_nonfree.
-unfold unshift_var at 1.
-destruct (le_gt_dec (k + n) x).
-destruct (unshift_var n k x).
-Qed.
-*)
-
 Lemma beta_with_unshift_var:
   forall x M n n' k,
     n >= n' ->
