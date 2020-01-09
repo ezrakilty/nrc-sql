@@ -9,7 +9,9 @@ It is a work in progress: At the moment most of the heavy-lifting is
 done, but there are a few things left to implement:
 
 * Conditionals in the source language.
-* An actual translation of normalized NRC expressions into SQL.
+* The final translation of normalized NRC expressions into SQL.
+* A necessary rewrite rule is missing, and implementing it looks to
+  require a lot of work.
 
 And there is much to be desired in the cleanliness of of the
 development:
