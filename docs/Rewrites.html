@@ -35,6 +35,17 @@
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.omega.Omega.html#"><span class="id" title="library">Omega</span></a>.<br/>
 
 <br/>
+</div>
+
+<div class="doc">
+Let's make <span class="inlinecode"><span class="id" title="var">N</span></span> <span class="inlinecode">*/</span> <span class="inlinecode"><span class="id" title="var">L</span></span> a notation for the result of a beta-reduction
+    (including all the de Bruijn monkeying). Makes the lemmas a lot easier to read.
+    Precedence is not correct. 
+</div>
+<div class="code">
+<span class="id" title="keyword">Notation</span> <a name="4f8c2fb5072bc2320b6d2f1692f716b8"><span class="id" title="notation">&quot;</span></a>N */ L" := (<a class="idref" href="Shift.html#unshift"><span class="id" title="definition">unshift</span></a> 0 1 (<a class="idref" href="Subst.html#subst_env"><span class="id" title="definition">subst_env</span></a> 0 (<a class="idref" href="Shift.html#shift"><span class="id" title="definition">shift</span></a> 0 1 <span class="id" title="var">L</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Datatypes.html#0a8150c3c4df34d205c5ed9a427e2ed5"><span class="id" title="notation">::</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Datatypes.html#nil"><span class="id" title="constructor">nil</span></a>) <span class="id" title="var">N</span>)) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 99).<br/>
+
+<br/>
 <span class="id" title="keyword">Lemma</span> <a name="beta_reduct_typing_general_var"><span class="id" title="lemma">beta_reduct_typing_general_var</span></a>:<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">S</span> <span class="id" title="var">env'</span> <span class="id" title="var">x</span> <span class="id" title="var">T</span> <span class="id" title="var">M</span> <span class="id" title="var">env</span> <span class="id" title="var">k</span>,<br/>
 &nbsp;&nbsp;&nbsp;<a class="idref" href="Rewrites.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Logic.html#1c39bf18749e5cc609e83c0a0ba5a372"><span class="id" title="notation">=</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Datatypes.html#length"><span class="id" title="definition">length</span></a> <a class="idref" href="Rewrites.html#env"><span class="id" title="variable">env</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Logic.html#d43e996736952df71ebeeae74d10a287"><span class="id" title="notation">→</span></a><br/>
@@ -63,17 +74,6 @@ Beta reduction preserves types:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Term.html#Typing"><span class="id" title="inductive">Typing</span></a> (<a class="idref" href="Rewrites.html#env"><span class="id" title="variable">env</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Datatypes.html#5d35a99a6abff1d64bf70538feb70e36"><span class="id" title="notation">++</span></a> <a class="idref" href="Rewrites.html#env'"><span class="id" title="variable">env'</span></a>)<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<a class="idref" href="Shift.html#unshift"><span class="id" title="definition">unshift</span></a> <a class="idref" href="Rewrites.html#k"><span class="id" title="variable">k</span></a> 1 (<a class="idref" href="Subst.html#subst_env"><span class="id" title="definition">subst_env</span></a> <a class="idref" href="Rewrites.html#k"><span class="id" title="variable">k</span></a> (<a class="idref" href="Shift.html#shift"><span class="id" title="definition">shift</span></a> 0 (<a class="idref" href="Rewrites.html#k"><span class="id" title="variable">k</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Peano.html#b3eea360671e1b32b18a26e15b3aace3"><span class="id" title="notation">+</span></a> 1) <a class="idref" href="Rewrites.html#M"><span class="id" title="variable">M</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Datatypes.html#0a8150c3c4df34d205c5ed9a427e2ed5"><span class="id" title="notation">::</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Datatypes.html#nil"><span class="id" title="constructor">nil</span></a>) <a class="idref" href="Rewrites.html#N"><span class="id" title="variable">N</span></a>))<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Rewrites.html#T"><span class="id" title="variable">T</span></a>.<br/>
-
-<br/>
-</div>
-
-<div class="doc">
-Let's make <span class="inlinecode"><span class="id" title="var">N</span></span> <span class="inlinecode">*/</span> <span class="inlinecode"><span class="id" title="var">L</span></span> a notation for the result of a beta-reduction
-    (including all the de Bruijn monkeying). Makes the lemmas a lot easier to read.
-    Precedence is not correct. 
-</div>
-<div class="code">
-<span class="id" title="keyword">Notation</span> <a name="4f8c2fb5072bc2320b6d2f1692f716b8"><span class="id" title="notation">&quot;</span></a>N */ L" := (<a class="idref" href="Shift.html#unshift"><span class="id" title="definition">unshift</span></a> 0 1 (<a class="idref" href="Subst.html#subst_env"><span class="id" title="definition">subst_env</span></a> 0 (<a class="idref" href="Shift.html#shift"><span class="id" title="definition">shift</span></a> 0 1 <span class="id" title="var">L</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Datatypes.html#0a8150c3c4df34d205c5ed9a427e2ed5"><span class="id" title="notation">::</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.8.2/stdlib//Coq.Init.Datatypes.html#nil"><span class="id" title="constructor">nil</span></a>) <span class="id" title="var">N</span>)) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 99).<br/>
 
 <br/>
 </div>

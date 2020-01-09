@@ -770,6 +770,33 @@ Proof.
     inversion eq.
 Qed.
 
+(* TODO: see if you can replace all uses of K_TmTable_rw with this version. *)
+Lemma K_TmTable_rw2:
+  forall K t M,
+    (plug K (TmTable t) ~> M) ->
+    {K' : Continuation & M = plug K' (TmTable t) & Krw K K'} +
+    {K' : Continuation
+          & M = plug K' TmNull
+          & {K'' : Continuation & K = appendK K'' (Iterate TmNull K')}}.
+Proof.
+  induction K using Ksize_induction_strong.
+  intros.
+  apply three_ways_to_reduce_at_interface in H0.
+  destruct H0 as [[[[[K'' Zeq rw]| [K'' Zeq rw]]| p] | [K'' Zeq  [K0 K''eq]]]| ?].
+  - inversion rw.
+  - left; eauto.
+  - destruct p.
+    lapply n; easy.
+  - subst.
+    right.
+    exists K''.
+    * auto.
+    * exists K0.
+      auto.
+  - destruct s as [L' [M' eq]].
+    inversion eq.
+Qed.
+
 Lemma Rw_over_TmTable_generalizes:
   forall t x K K',
     (plug K (TmTable t) ~> plug K' (TmTable t)) ->
@@ -790,12 +817,11 @@ Proof.
    auto.
  - destruct s as [? H H0].
    assert (deepest_K (plug K' (TmTable t)) = (K', TmTable t)).
-   replace K' with (appendK Empty K') at 2.
+   replace K' with (appendK Empty K') at 2 by auto.
    apply deepest_K_plug.
    trivial.
-   auto.
    rewrite H1 in H.
-   inversion H.
+   congruence.
 Qed.
 
 Lemma discriminate_K_TmTable_K_TmNull:
@@ -1205,17 +1231,13 @@ Proof.
     auto.
   intros K' Z Hdown H1.
   clone H1.
-  apply K_TmTable_rw in H1.
+  apply K_TmTable_rw2 in H1.
   destruct H1 as [[K'' Zeq rw] | [K'' eq [K''' K'''eq]]].
   - left.
     exists K''.
     intuition.
   - right.
-    assert (Z = plug K'' TmNull).
-    { symmetry; apply deepest_K_spec.
-      auto. }
     subst Z.
-    clear eq.
     apply SN_K_M_SN_K_Null with (TmTable t).
     assert (Ksize K'' < Ksize K).
     { assert (Ksize K' <= Ksize K).
