@@ -10,6 +10,11 @@ Require Import Shift.
 Require Import Subst.
 Require Import Omega.
 
+(** Let's make [N */ L] a notation for the result of a beta-reduction
+    (including all the de Bruijn monkeying). Makes the lemmas a lot easier to read.
+    Precedence is not correct. *)
+Notation "N */ L" := (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) (at level 99).
+
 Lemma beta_reduct_typing_general_var:
   forall S env' x T M env k,
    k = length env ->
@@ -28,11 +33,9 @@ Proof.
  simpl in H.
  destruct (le_gt_dec (length env) x).
   destruct (eq_nat_dec x (length env)).
-  (* 'x' points to the type 'S' *)
-  subst x.
+   (* 'x' points to the type 'S' *)
+   subst x.
    replace (length env - length env) with 0 by omega.
-   replace (nth_error (shift 0 1 M :: nil) 0)
-     with (value (shift 0 1 M)); auto.
    simpl.
    rewrite fancy_unshift_shift; auto; [|omega].
    replace (length env+1-1) with (length env); auto; [|omega].
@@ -108,11 +111,6 @@ Proof.
    replace (1 + (k + 1)) with (Datatypes.S k + 1) by auto.
    apply IHN2; simpl; auto.
 Qed.
-
-(** Let's make [N */ L] a notation for the result of a beta-reduction
-    (including all the de Bruijn monkeying). Makes the lemmas a lot easier to read.
-    Precedence is not correct. *)
-Notation "N */ L" := (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) (at level 99).
 
 (** Beta reduction preserves types, specialized to reduce at the head
     of the environment. *)
@@ -454,7 +452,7 @@ Proof.
                   |
                   |
                   | N
-                  | M 
+                  | M
                   | M N
                   | M N
                   | M N

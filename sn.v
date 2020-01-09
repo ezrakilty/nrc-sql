@@ -749,7 +749,7 @@ Lemma K_TmTable_rw:
     (plug K (TmTable t) ~> M) ->
     {K' : Continuation & M = plug K' (TmTable t) & Krw K K'} +
     {K' : Continuation
-          & (K', TmNull) = deepest_K M
+          & (K', TmNull) = deepest_K M (* how about just M = plug K' TmNull ? *)
           & {K'' : Continuation & K = appendK K'' (Iterate TmNull K')}}.
 Proof.
   induction K using Ksize_induction_strong.
@@ -809,6 +809,14 @@ Proof.
   rewrite deepest_K_TmTable in H0.
   discriminate.
 Qed.
+
+Lemma deepest_K_NotBind:
+  forall K M K' M',
+    NotBind M -> NotBind M' ->
+    (K', M') = deepest_K (plug K M) ->
+    (K', M') = (K, M).
+Proof.
+Admitted.
 
 (* To do: Generalize this lemma:
 
@@ -987,23 +995,6 @@ Proof.
     * apply IHRewritesTo_rt2; auto.
 Qed.
 
-Lemma Rw_curtailment_generalizes: forall K t K',
-    (plug K (TmTable t) ~> plug K' TmNull) ->
-    forall x, plug K x ~> plug K' TmNull.
-Proof.
-  intros.
-  apply K_TmTable_rw in H.
-  destruct H as [[K0 H H0] | [K0 H H0]].
-  - symmetry in H; apply discriminate_K_TmTable_K_TmNull in H.
-    easy.
-  - destruct H0.
-    assert (K' = K0).
-    rewrite deepest_K_TmNull in H.
-    congruence.
-    subst.
-    apply curtailment.
-Qed.
-
 (* TODO: Seems like this is overly long.
    I wonder if the induction on K is needed?
  *)
@@ -1165,6 +1156,24 @@ Proof.
     discriminate.
 Qed.
 
+Lemma Rw_curtailment_generalizes: forall K t K',
+    (plug K (TmTable t) ~> plug K' TmNull) ->
+    forall x, plug K x ~> plug K' TmNull.
+Proof.
+  intros.
+  apply K_TmTable_rw in H.
+  destruct H as [[K0 H H0] | [K0 H H0]].
+  - symmetry in H; apply discriminate_K_TmTable_K_TmNull in H.
+    easy.
+  - destruct H0.
+    assert (K' = K0).
+    rewrite deepest_K_TmNull in H.
+    congruence.
+    subst.
+    apply curtailment.
+Qed.
+
+(* TODO: Ugly. Unify all the SN_embedding lemmas--or name them well. *)
 Lemma SN_embedding2'' A f g:
     forall M : A,
     (forall (N : A) (Z : Term),
@@ -1184,14 +1193,6 @@ Proof.
   auto.
  auto.
 Qed.
-
-Lemma deepest_K_NotBind:
-  forall K M K' M',
-    NotBind M -> NotBind M' ->
-    (K', M') = deepest_K (plug K M) ->
-    (K', M') = (K, M).
-Proof.
-Admitted.
 
 Lemma SN_K_TmTable:
   forall t K x,
