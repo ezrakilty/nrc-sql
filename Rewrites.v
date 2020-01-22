@@ -307,7 +307,10 @@ Proof.
  - inversion H.
    subst.
    eauto.
- - admit.
+ - (* Case TmUnion in body of TmBind*)
+   inversion H0.
+   subst.
+   eauto.
  (* Case TmBind_assoc *)
  - inversion H.
    subst.
@@ -315,7 +318,7 @@ Proof.
    eapply TBind; eauto.
    replace (s :: s0 :: env) with ((s::nil) ++ (s0::nil) ++ env) by auto.
    eapply shift_preserves_typing; eauto.
-Admitted.
+Qed.
 
 (** The reflexive-transitive rewrite relation preserves the [Typing] judgment. *)
 Lemma Rw_rt_preserves_types:
