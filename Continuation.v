@@ -189,6 +189,7 @@ Proof.
         exists K, (t */ x); auto. exists t; easy. }
       { subst. left; left; right. split; [introversion | ].
         exists K, (TmUnion (TmBind xs t) (TmBind ys t)); auto. exists t; easy. }
+      { admit. }
       { subst. left; left; left. eauto. }
       { subst. right. eauto. }
       { subst. left; left; left; right. exists (Iterate n' K); auto. }
@@ -207,7 +208,7 @@ Proof.
       simpl.
       auto.
       apply assoc_in_K.
-Qed.
+Admitted.
 
 Lemma appendK_assoc :
   forall K0 K1 K2,
@@ -282,6 +283,7 @@ Proof.
         exists (Iterate t Empty); auto.
      ** left. exists K; auto.
         exists (Iterate TmNull Empty); auto.
+     ** admit.
      ** solve [inversion H2].
      ** right.
         exists (Iterate n' K); auto.
@@ -307,7 +309,7 @@ Proof.
      rewrite reverse_plug_defn.
      right.
      eauto using assoc_in_K.
-Qed.
+Admitted.
 
 Lemma Ksize_induction P :
   (forall K, Ksize K = 0 -> P K) ->
@@ -489,6 +491,7 @@ Proof.
         apply unique_plug_null; auto.
         rewrite H.
         omega.
+     -- admit.
      -- inversion H2.
      -- assert (K' = Iterate n' K).
         { apply unique_plug_null.
@@ -528,7 +531,7 @@ Proof.
      subst.
      simpl.
      omega.
-Qed.
+Admitted.
 
 Lemma Krw_rt_conserves_Ksize:
   forall K K',

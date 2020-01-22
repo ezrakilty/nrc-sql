@@ -166,6 +166,8 @@ Inductive RewritesTo : Term -> Term -> Type :=
     V = (n */ x) -> RewritesTo (TmBind (TmSingle x) n) V
 | Rw_Bind_union : forall n xs ys,
     RewritesTo (TmBind (TmUnion xs ys) n) (TmUnion (TmBind xs n) (TmBind ys n))
+| Rw_Bind_union_body : forall m xs ys,
+    RewritesTo (TmBind m (TmUnion xs ys)) (TmUnion (TmBind m xs) (TmBind m ys))
 | Rw_Bind_subject : forall m n m',
     RewritesTo m m' -> RewritesTo (TmBind m n) (TmBind m' n)
 | Rw_Bind_assoc : forall l m n,
@@ -305,6 +307,7 @@ Proof.
  - inversion H.
    subst.
    eauto.
+ - admit.
  (* Case TmBind_assoc *)
  - inversion H.
    subst.
@@ -312,7 +315,7 @@ Proof.
    eapply TBind; eauto.
    replace (s :: s0 :: env) with ((s::nil) ++ (s0::nil) ++ env) by auto.
    eapply shift_preserves_typing; eauto.
-Qed.
+Admitted.
 
 (** The reflexive-transitive rewrite relation preserves the [Typing] judgment. *)
 Lemma Rw_rt_preserves_types:
@@ -455,6 +458,7 @@ Proof.
                   | M
                   | M N
                   | M N
+                  |
                   | M N
                   | L M N
                   | M N
@@ -623,6 +627,8 @@ Proof.
    simpl in red.
    econstructor; eauto; simpl; auto.
 
+ - admit.
+
  - (* Case: reduction in subject of TmBind. *)
    destruct (IHN1 _ _ H2); subst.
    econstructor; eauto; simpl; auto.
@@ -660,7 +666,7 @@ Proof.
    auto.
    descrim N3.
    auto.
-Qed.
+Admitted.
 
 (** * Compatibility of rewriting with each of the term forms. *)
 

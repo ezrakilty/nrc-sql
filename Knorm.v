@@ -214,6 +214,7 @@ Proof.
        ** eapply plug_SN_rw_rt with (TmBind N t); auto.
           change (SN (plug (Iterate t K0) N)).
           eauto using Krw_rt_preserves_SN.
+     -- admit.
      -- (* Case: rw is within TmUnion _ _ *)
        unfold SN in *.
        inversion H14; subst; seauto.
@@ -280,7 +281,7 @@ Proof.
         apply Rw_trans_preserves_SN with (plug K N).
         { auto. }
         { apply Rw_rt_under_K; auto. }
-Qed.
+Admitted.
 
 Lemma prefix_Krw_norm:
   forall K' K,
