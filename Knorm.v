@@ -76,7 +76,7 @@ Qed.
 
 Lemma Krw_rt_preserves_SN :
   forall K K' M,
-    Krw_rt K K' -> SN (plug K M) -> SN (plug K' M).
+    Krw_rt K K' -> SN (plug M K) -> SN (plug M K').
 Proof.
  intros.
  eauto using Rw_trans_preserves_SN, Krw_rt_Rw_rt.
@@ -84,14 +84,14 @@ Qed.
 
 Lemma Krw_preserves_SN :
   forall K K' M,
-    Krw K K' -> SN (plug K M) -> SN (plug K' M).
+    Krw K K' -> SN (plug M K) -> SN (plug M K').
 Proof.
  intros.
  eauto using Rw_trans_preserves_SN.
 Qed.
 
 Lemma Krw_norm_from_SN:
-  forall M, SN M -> forall K X, (M ~>> plug K X) -> Krw_norm K.
+  forall M, SN M -> forall K X, (M ~>> plug X K) -> Krw_norm K.
 Proof.
  intros Q H.
  induction H.
@@ -103,17 +103,17 @@ Qed.
 (** (Lemma 26) *)
 Lemma SN_K_M_SN_K_Null:
   forall K M,
-    SN (plug K M) ->
-    SN (plug K TmNull).
+    SN (plug M K) ->
+    SN (plug TmNull K).
 Proof.
  induction K using Ksize_induction_strong.
  rename H into IHK.
  intros M H0.
  apply SN_embedding2 with
-     (f := fun k => plug k M)
-     (g := fun k => plug k TmNull)
-     (Q := plug K M)
-     (Q' := plug K TmNull); try auto.
+     (f := fun k => plug M k)
+     (g := fun k => plug TmNull k)
+     (Q := plug M K)
+     (Q' := plug TmNull K); try auto.
  intros K0 Z H2 H3.
 
  clone H3.
@@ -162,7 +162,7 @@ Qed.
 (** (Lemma 30) *)
 Lemma SN_K_Union:
   forall K,
-  forall M N, SN (plug K M) -> SN (plug K N) -> SN (plug K (TmUnion M N)).
+  forall M N, SN (plug M K) -> SN (plug N K) -> SN (plug (TmUnion M N) K).
 Proof.
  intros K'.
  pattern K'.
@@ -193,13 +193,13 @@ Proof.
      subst.
      inversion rw; subst.
      -- (* Case: body of (TmBind (TmUnion _ _ )) is TmNull; collapses *)
-       assert (plug K M ~>> plug (Iterate TmNull :: K0) M).
+       assert (plug M K ~>> plug M (Iterate TmNull :: K0)).
        { apply Krw_rt_Rw_rt; auto. }
        (* To do: Krw_rt_Rw_rt and plug_rw_rt are very similar, but with very different names. *)
-       assert (plug (Iterate TmNull :: K0) M ~> plug K0 TmNull).
+       assert (plug M (Iterate TmNull :: K0) ~> plug TmNull K0).
        simpl.
        auto.
-       assert (plug K M ~>> plug K0 TmNull).
+       assert (plug M K ~>> plug TmNull K0).
        eauto.
        eapply Rw_trans_preserves_SN.
        exact H0.
@@ -211,10 +211,10 @@ Proof.
          simpl in *; omega. }
        apply H; auto.
        ** eapply plug_SN_rw_rt with (TmBind M t); auto.
-          change (SN (plug (Iterate t :: K0) M)).
+          change (SN (plug M (Iterate t :: K0))).
           eauto using Krw_rt_preserves_SN.
        ** eapply plug_SN_rw_rt with (TmBind N t); auto.
-          change (SN (plug (Iterate t :: K0) N)).
+          change (SN (plug N (Iterate t :: K0))).
           eauto using Krw_rt_preserves_SN.
      -- admit.
      -- (* Case: rw is within TmUnion _ _ *)
@@ -222,7 +222,7 @@ Proof.
        inversion H14; subst; seauto.
 
      -- (* Case: rw is within t of TmBind (TmUnion M N) t *)
-        change (SN (plug (Iterate n' :: K0) (TmUnion M0 N0))).
+        change (SN (plug (TmUnion M0 N0) (Iterate n' :: K0))).
         assert (Krw (Iterate t :: K0) (Iterate n' :: K0)).
         ** unfold Krw.
            simpl.
@@ -234,7 +234,7 @@ Proof.
 
    (* Case: rw is within K *)
    * subst.
-     change (SN (plug (Iterate t :: K') (TmUnion M0 N0))).
+     change (SN (plug (TmUnion M0 N0) (Iterate t :: K'))).
      apply H8; auto.
    * (* Case: M is not a bind but it consumes a K frame. *)
      refute.
@@ -274,13 +274,13 @@ Proof.
      -- apply Krw_preserves_SN with (Iterate L' :: (Iterate N' :: K')).
         { apply assoc_in_K. }
         apply Krw_rt_preserves_SN with K; auto.
-        apply Rw_trans_preserves_SN with (plug K M); auto.
+        apply Rw_trans_preserves_SN with (plug M K); auto.
         apply Rw_rt_under_K; auto.
      -- apply Krw_preserves_SN with (Iterate L' :: (Iterate N' :: K')).
         { apply assoc_in_K. }
         apply Krw_rt_preserves_SN with K.
         auto.
-        apply Rw_trans_preserves_SN with (plug K N).
+        apply Rw_trans_preserves_SN with (plug N K).
         { auto. }
         { apply Rw_rt_under_K; auto. }
 Admitted.
@@ -305,7 +305,7 @@ Qed.
 
 Lemma Krw_norm_SN:
   forall K,
-    Krw_norm K -> SN (plug K TmNull).
+    Krw_norm K -> SN (plug TmNull K).
 Proof.
   induction K using Ksize_induction_strong.
   - intros.

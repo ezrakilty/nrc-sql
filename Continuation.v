@@ -17,25 +17,25 @@ Definition Ksize (K:Continuation) := length K.
 
 Require Import List.
 
-Fixpoint plug (K : Continuation) (M : Term) : Term :=
+Fixpoint plug (M : Term) (K : Continuation) : Term :=
   match K with
       nil => M
-    | Iterate N :: K' => plug K' (TmBind M N)
+    | Iterate N :: K' => plug (TmBind M N) K'
   end.
 
 Definition SNK (K : Continuation) :=
   forall M,
     SN M ->
-    SN (plug K (TmSingle M)).
+    SN (plug (TmSingle M) K).
 
 Definition ReducibleK (Reducible:Term->Ty -> Type) (K : Continuation) (T : Ty) :=
     forall M,
       Reducible M T ->
-      SN (plug K (TmSingle M)).
+      SN (plug (TmSingle M) K).
 
 Lemma Rw_under_K:
   forall K M N,
-    (M ~> N) -> (plug K M ~> plug K N).
+    (M ~> N) -> (plug M K ~> plug N K).
 Proof.
   induction K; auto.
   simpl; intros; destruct a; auto.
@@ -45,7 +45,7 @@ Hint Resolve Rw_under_K.
 
 Lemma plug_SN_rw:
   forall K M M',
-    (M ~> M') -> SN (plug K M) -> SN (plug K M').
+    (M ~> M') -> SN (plug M K) -> SN (plug M' K).
 Proof.
  intros.
  inversion H0.
@@ -54,9 +54,9 @@ Proof.
 Qed.
 
 Definition HoleType K T :=
-  forall M env, Typing env M T -> {S : Ty & Typing nil (plug K M) S}.
+  forall M env, Typing env M T -> {S : Ty & Typing nil (plug M K) S}.
 
-Definition Krw K K' := (forall M, plug K M ~> plug K' M).
+Definition Krw (K K' : Continuation) := (forall M, plug M K ~> plug M K').
 
 (** Reflexive, transitive closure of Krw *)
 Inductive Krw_rt : Continuation -> Continuation -> Type :=
@@ -94,18 +94,18 @@ Hint Resolve iterate_reduce rw_in_K_body.
 
 Lemma plug_SN_rw_rt:
   forall (K : Continuation) (M M' : Term),
-  (M ~>> M') -> SN (plug K M) -> SN (plug K M').
+  (M ~>> M') -> SN (plug M K) -> SN (plug M' K).
 Proof.
  intros.
  induction H; subst; eauto using plug_SN_rw.
 Qed.
 
 Inductive Ktyping : Continuation -> Ty -> Type :=
-  Ktype : forall K T env S M, Typing env M T -> Typing nil (plug K M) S -> Ktyping K T.
+  Ktype : forall K T env S M, Typing env M T -> Typing nil (plug M K) S -> Ktyping K T.
 
 Lemma SN_push_under_k:
   forall K M,
-    SN (plug K M) ->
+    SN (plug M K) ->
     SN M.
 Proof.
  induction K.
@@ -161,20 +161,20 @@ Proof.
 Qed.
 
 Lemma three_ways_to_reduce_at_interface:
-  forall K M Z,
-    (plug K M ~> Z) ->
-    {M' : Term         &              Z = plug K M' & M ~> M'} +
-    {K' : Continuation &              Z = plug K' M & Krw K K'} +
+  forall (K : Continuation) (M Z : Term),
+    (plug M K ~> Z) ->
+    {M' : Term         &              Z = plug M' K & M ~> M'} +
+    {K' : Continuation &              Z = plug M K' & Krw K K'} +
     (notT (Neutral M) *
-     { K' : Continuation & { M' : Term & Z = plug K' M' &
+     { K' : Continuation & { M' : Term & Z = plug M' K' &
                                 { t : Term & K = (Iterate t :: K') & NotBind M } } }) +
 
-    { K' : Continuation & Z = plug K' TmNull &
+    { K' : Continuation & Z = plug TmNull K' &
            { K'' : Continuation & K = appendK K'' (Iterate TmNull :: K') } } +
 
     { L : Term & { L' : Term & M = TmBind L L' &
         { K' : Continuation & {N : Term & K = (Iterate N :: K') &
-               Z = plug K' (TmBind L (TmBind L' (shift 1 1 N))) } } } }.
+               Z = plug (TmBind L (TmBind L' (shift 1 1 N))) K' } } } }.
 Proof.
   induction K; simpl; intros.
   - left; left; left.
@@ -232,10 +232,10 @@ Qed.
 Lemma Neutral_Lists:
   forall K M,
     Neutral M ->
-    forall Z, (plug K M ~> Z) ->
-    {M' : Term         & Z = plug K M' & M ~> M'} +
-    {K' : Continuation & Z = plug K' M & Krw K K'} +
-    {K' : Continuation & Z = plug K' TmNull & {K'' & K = appendK K'' K'}}.
+    forall Z, (plug M K ~> Z) ->
+    {M' : Term         & Z = plug M' K & M ~> M'} +
+    {K' : Continuation & Z = plug M K' & Krw K K'} +
+    {K' : Continuation & Z = plug TmNull K' & {K'' & K = appendK K'' K'}}.
 Proof.
  intros.
  clone H0.
@@ -263,17 +263,17 @@ Proof.
 Qed.
 
 Lemma reverse_plug_defn :
-  forall K L M, plug K (TmBind L M) = plug (Iterate M :: K) L.
+  forall K L M, plug (TmBind L M) K = plug L (Iterate M :: K).
 Proof.
   auto.
 Qed.
 
 Lemma K_TmNull_rw:
   forall K Z,
-    (plug K TmNull ~> Z) ->
-    {K' : Continuation & Z = plug K' TmNull &
+    (plug TmNull K ~> Z) ->
+    {K' : Continuation & Z = plug TmNull K' &
           { K'' : Continuation & Ksize K'' > 0 & K = appendK K'' K' } } +
-    {K' : Continuation & Krw K K' & Z = plug K' TmNull}.
+    {K' : Continuation & Krw K K' & Z = plug TmNull K' }.
 Proof.
  destruct K; simpl; intros Z H.
  * inversion H.
@@ -388,7 +388,7 @@ end.
 
 Lemma plug_appendK_weird:
   forall K M M',
-    plug (appendK K (Iterate M :: nil)) M' = TmBind (plug K M') M.
+    plug M' (appendK K (Iterate M :: nil)) = TmBind (plug M' K) M.
 Proof.
  induction K; try (destruct a); simpl; auto.
 Qed.
@@ -396,7 +396,7 @@ Qed.
 Lemma deepest_K_spec:
   forall M K' M',
     deepest_K M = (K', M') ->
-    plug K' M' = M.
+    plug M' K' = M.
 Proof.
  induction M; simpl; intros; inversion H; auto.
  pose (X := deepest_K M1).
@@ -423,7 +423,7 @@ Lemma deepest_K_plug:
   forall K,
      forall M K' M',
        deepest_K M = (K', M') ->
-       deepest_K (plug K M) = (appendK K' K, M').
+       deepest_K (plug M K) = (appendK K' K, M').
 Proof.
  induction K.
  - simpl.
@@ -443,7 +443,7 @@ Proof.
 Qed.
 
 Lemma deepest_K_TmTable :
-  forall K t, deepest_K (plug K (TmTable t)) = (K, TmTable t).
+  forall K t, deepest_K (plug (TmTable t) K) = (K, TmTable t).
 Proof.
   intros.
   replace K with (appendK nil K) at 2.
@@ -453,7 +453,7 @@ Proof.
 Qed.
 
 Lemma deepest_K_TmNull K :
-  deepest_K (plug K TmNull) = (K, TmNull).
+  deepest_K (plug TmNull K) = (K, TmNull).
 Proof.
  pose (X := deepest_K TmNull).
  assert (X = deepest_K TmNull) by auto.
@@ -465,12 +465,12 @@ Qed.
 
 Lemma unique_plug_null:
   forall K K',
-    (plug K TmNull = plug K' TmNull) -> K = K'.
+    (plug TmNull K = plug TmNull K') -> K = K'.
 Proof.
  intros.
- assert (deepest_K (plug K TmNull) = (K, TmNull)).
+ assert (deepest_K (plug TmNull K) = (K, TmNull)).
   apply deepest_K_TmNull.
- assert (deepest_K (plug K' TmNull) = (K', TmNull)).
+ assert (deepest_K (plug TmNull K') = (K', TmNull)).
   apply deepest_K_TmNull.
  congruence.
 Qed.
@@ -479,7 +479,7 @@ Hint Resolve unique_plug_null.
 
 Lemma Rw_conserves_Ksize:
   forall K K',
-    (plug K TmNull ~> plug K' TmNull) -> Ksize K >= Ksize K'.
+    (plug TmNull K ~> plug TmNull K') -> Ksize K >= Ksize K'.
 Proof.
  induction K.
  - simpl.
@@ -513,9 +513,9 @@ Proof.
      { apply unique_plug_null.
        simpl in *; sauto. }
      subst.
-     replace (plug K (TmBind TmNull t)) with (plug (Iterate t :: K) TmNull) in H' by auto.
+     replace (plug (TmBind TmNull t) K) with (plug TmNull (Iterate t :: K)) in H' by auto.
      simpl.
-     assert (plug K TmNull ~> plug K0 TmNull) by auto.
+     assert (plug TmNull K ~> plug TmNull K0) by auto.
      apply IHK in H.
      omega.
 
@@ -556,7 +556,7 @@ Qed.
 
 Lemma rw_rt_preserves_plug_TmNull:
   forall (x : Continuation) (M N : Term),
-    (M ~>> N) -> {x : Continuation& M = plug x TmNull} -> {y : Continuation & N = plug y TmNull}.
+    (M ~>> N) -> {x : Continuation& M = plug TmNull x} -> {y : Continuation & N = plug TmNull y}.
 Proof.
  intros x M N H H0.
  induction H.
@@ -598,7 +598,7 @@ Qed.
 Lemma reexamine:
   forall K' K,
     prefix K' K
-    -> forall M, {M' : Term & plug K' M' = plug K M}.
+    -> forall M, {M' : Term & plug M' K' = plug M K}.
 Proof.
  induction K; simpl; intros.
   inversion H.
@@ -634,8 +634,8 @@ Lemma magic:
 forall K K',
   relK_rt K K'
   -> forall M,
-       SN (plug K M)
-  -> {M' : Term & SN (plug K' M')}.
+       SN (plug M K)
+  -> {M' : Term & SN (plug M' K')}.
 Proof.
  intros K K' rel.
  induction rel; intros M sn.
@@ -677,7 +677,7 @@ Qed.
 
 Lemma K_TmNull_relK:
   forall K K',
-    (plug K TmNull ~> plug K' TmNull)
+    (plug TmNull K ~> plug TmNull K')
     -> relK_rt K K'.
 Proof.
  intros.
@@ -691,14 +691,14 @@ Proof.
    auto.
 Qed.
 
-Definition is_K_null M := {K : Continuation & M = plug K TmNull}.
+Definition is_K_null M := {K : Continuation & M = plug TmNull K}.
 
 Definition gimme_K M (p : is_K_null M) := projT1 p.
 
 Lemma K_TmNull_rw_abstract
      : forall (K : Continuation) (Z : Term),
-       (plug K TmNull ~> Z) ->
-       {K' : Continuation & Z = plug K' TmNull & Ksize K' <= Ksize K}.
+       (plug TmNull K ~> Z) ->
+       {K' : Continuation & Z = plug TmNull K' & Ksize K' <= Ksize K}.
 Proof.
  intros.
  apply K_TmNull_rw in H.
@@ -754,20 +754,20 @@ Proof.
   assert (x0 = K') by (apply unique_plug_null; auto).
   subst.
   auto.
- assert (is_K_null (plug x TmNull)).
+ assert (is_K_null (plug TmNull x)).
   unfold is_K_null.
   eauto.
  specialize (IHRewritesTo_rt1 H1).
  assert (is_K_null m).
-  apply K_TmNull_rw_rt with (A := plug x TmNull); auto.
+  apply K_TmNull_rw_rt with (A := plug TmNull x); auto.
  specialize (IHRewritesTo_rt1 H2).
- replace (gimme_K (plug x TmNull) H1) with x in IHRewritesTo_rt1.
+ replace (gimme_K (plug TmNull x) H1) with x in IHRewritesTo_rt1.
   apply trans with (gimme_K m H2); auto.
-  assert (H3 : is_K_null (plug x0 TmNull)).
+  assert (H3 : is_K_null (plug TmNull x0)).
    unfold is_K_null.
    eauto.
   specialize (IHRewritesTo_rt2 H2 H3).
-  replace (gimme_K (plug x0 TmNull) H3) with x0 in IHRewritesTo_rt2.
+  replace (gimme_K (plug TmNull x0) H3) with x0 in IHRewritesTo_rt2.
    exact IHRewritesTo_rt2.
   unfold gimme_K.
   unfold projT1.
@@ -781,19 +781,19 @@ Qed.
 
 Lemma K_TmNull_relK_rt:
   forall K K',
-    (plug K TmNull ~>> plug K' TmNull)
+    (plug TmNull K ~>> plug TmNull K')
     -> relK_rt K K'.
 Proof.
  intros.
- assert (is_K_null (plug K TmNull)).
+ assert (is_K_null (plug TmNull K)).
   unfold is_K_null.
   eauto.
- assert (is_K_null (plug K' TmNull)).
+ assert (is_K_null (plug TmNull K')).
   unfold is_K_null.
   eauto.
  eapply K_TmNull_relK_rt_inner in H; eauto.
- replace (gimme_K (plug K TmNull) H0) with K in H.
-  replace (gimme_K (plug K' TmNull) H1) with K' in H.
+ replace (gimme_K (plug TmNull K) H0) with K in H.
+  replace (gimme_K (plug TmNull K') H1) with K' in H.
    auto.
   destruct H1.
   simpl.
@@ -804,7 +804,7 @@ Proof.
 Qed.
 
 Lemma Krw_rt_Rw_rt:
-  forall K K' M, Krw_rt K K' -> (plug K M ~>> plug K' M).
+  forall K K' M, Krw_rt K K' -> (plug M K ~>> plug M K').
 Proof.
  intros.
  induction H; subst; eauto.
@@ -812,7 +812,7 @@ Qed.
 
 Lemma Rw_rt_under_K:
   forall K M N,
-    (M ~>> N) -> (plug K M ~>> plug K N).
+    (M ~>> N) -> (plug M K ~>> plug N K).
 Proof.
  intros K M N red.
  induction red.
@@ -830,12 +830,12 @@ P K.
 
 Lemma Rw_rt_conserves_Ksize:
   forall K K',
-    (plug K TmNull ~>> plug K' TmNull) -> Ksize K >= Ksize K'.
+    (plug TmNull K ~>> plug TmNull K') -> Ksize K >= Ksize K'.
 Proof.
  intros.
  apply rw_rt_f_induction
    with (A := Continuation)
-        (f := fun k => plug k TmNull)
+        (f := fun k => plug TmNull k)
         (x := K)
         (R := fun k k' => Ksize k >= Ksize k') in H.
  - destruct H as [x e [x0 e0 g]].
@@ -854,19 +854,19 @@ Proof.
 Qed.
 
 Lemma plug_rw_rt:
-  forall K K' M M', Krw_rt K K' -> (M ~>> M') -> (plug K M ~>> plug K' M').
+  forall K K' M M', Krw_rt K K' -> (M ~>> M') -> (plug M K ~>> plug M' K').
 Proof.
  intros.
- assert (plug K M ~>> plug K' M).
+ assert (plug M K ~>> plug M K').
  apply Krw_rt_Rw_rt; auto.
- assert (plug K' M ~>> plug K' M').
+ assert (plug M K' ~>> plug M' K').
  { apply Rw_rt_under_K; auto. }
  eauto.
 Qed.
 
 Lemma plug_appendK:
   forall (K K' : Continuation) (M : Term),
-  plug (appendK K K') M = plug K' (plug K M).
+  plug M (appendK K K') = plug (plug M K) K'.
 Proof.
   induction K; simpl; intros; auto.
   destruct a.
@@ -876,7 +876,7 @@ Qed.
 
 Lemma curtailment:
   forall K' K M,
-    plug (appendK K (Iterate TmNull :: K')) M ~> plug K' TmNull.
+    plug M (appendK K (Iterate TmNull :: K')) ~> plug TmNull K'.
 Proof.
   induction K; simpl; intros; auto.
   destruct a.
