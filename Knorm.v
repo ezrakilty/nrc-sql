@@ -6,6 +6,7 @@ Require Import Continuation.
 Require Import Rewrites.
 Require Import Norm.
 Require Import Term.
+Require Import List.
 
 (** * More Induction Principles on Reduction Sequences *)
 
@@ -192,10 +193,10 @@ Proof.
      subst.
      inversion rw; subst.
      -- (* Case: body of (TmBind (TmUnion _ _ )) is TmNull; collapses *)
-       assert (plug K M ~>> plug (ConsFrame (Iterate TmNull) K0) M).
+       assert (plug K M ~>> plug (Iterate TmNull :: K0) M).
        { apply Krw_rt_Rw_rt; auto. }
        (* To do: Krw_rt_Rw_rt and plug_rw_rt are very similar, but with very different names. *)
-       assert (plug (ConsFrame (Iterate TmNull) K0) M ~> plug K0 TmNull).
+       assert (plug (Iterate TmNull :: K0) M ~> plug K0 TmNull).
        simpl.
        auto.
        assert (plug K M ~>> plug K0 TmNull).
@@ -205,15 +206,15 @@ Proof.
        auto.
      -- (* Case: rw is zippering TmUnion thru TmBind _ _ *)
        assert (Ksize K0 < Ksize K).
-       { assert (Ksize (ConsFrame (Iterate t) K0) <= Ksize K).
+       { assert (Ksize (Iterate t :: K0) <= Ksize K).
          { apply Krw_rt_conserves_Ksize with (K := K); auto. }
          simpl in *; omega. }
        apply H; auto.
        ** eapply plug_SN_rw_rt with (TmBind M t); auto.
-          change (SN (plug (ConsFrame (Iterate t) K0) M)).
+          change (SN (plug (Iterate t :: K0) M)).
           eauto using Krw_rt_preserves_SN.
        ** eapply plug_SN_rw_rt with (TmBind N t); auto.
-          change (SN (plug (ConsFrame (Iterate t) K0) N)).
+          change (SN (plug (Iterate t :: K0) N)).
           eauto using Krw_rt_preserves_SN.
      -- admit.
      -- (* Case: rw is within TmUnion _ _ *)
@@ -221,8 +222,8 @@ Proof.
        inversion H14; subst; seauto.
 
      -- (* Case: rw is within t of TmBind (TmUnion M N) t *)
-        change (SN (plug (ConsFrame (Iterate n') K0) (TmUnion M0 N0))).
-        assert (Krw (ConsFrame (Iterate t) K0) (ConsFrame (Iterate n') K0)).
+        change (SN (plug (Iterate n' :: K0) (TmUnion M0 N0))).
+        assert (Krw (Iterate t :: K0) (Iterate n' :: K0)).
         ** unfold Krw.
            simpl.
            intros.
@@ -233,7 +234,7 @@ Proof.
 
    (* Case: rw is within K *)
    * subst.
-     change (SN (plug (ConsFrame (Iterate t) K') (TmUnion M0 N0))).
+     change (SN (plug (Iterate t :: K') (TmUnion M0 N0))).
      apply H8; auto.
    * (* Case: M is not a bind but it consumes a K frame. *)
      refute.
@@ -243,16 +244,16 @@ Proof.
    * destruct s as [K' Zeq [K'' K0eq]].
      subst.
      assert (relK_rt K K').
-     -- assert (relK_rt K (ConsFrame (Iterate t) (appendK K'' (ConsFrame (Iterate TmNull) K')))).
+     -- assert (relK_rt K (Iterate t :: (appendK K'' (Iterate TmNull :: K')))).
         ** apply Krw_rt_relK_rt; auto.
-        ** assert (relK_rt (ConsFrame (Iterate t) (appendK K'' (ConsFrame (Iterate TmNull) K'))) K').
+        ** assert (relK_rt (Iterate t :: (appendK K'' (Iterate TmNull :: K'))) K').
            --- eapply trans.
                *** apply step.
                    apply strip with (Iterate t).
                    eauto.
-               *** assert (relK_rt (ConsFrame (Iterate TmNull) K') K').
+               *** assert (relK_rt (Iterate TmNull :: K') K').
                    apply step; eapply strip; eauto.
-                   assert (relK_rt (appendK K'' (ConsFrame (Iterate TmNull) K')) (ConsFrame (Iterate TmNull) K')).
+                   assert (relK_rt (appendK K'' (Iterate TmNull :: K')) (Iterate TmNull :: K')).
                    eapply relK_rt_appendK.
                    eauto.
            --- eauto.
@@ -270,12 +271,12 @@ Proof.
         apply Krw_rt_conserves_Ksize in H5.
         simpl in *.
         omega.
-     -- apply Krw_preserves_SN with (ConsFrame (Iterate L') (ConsFrame (Iterate N') K')).
+     -- apply Krw_preserves_SN with (Iterate L' :: (Iterate N' :: K')).
         { apply assoc_in_K. }
         apply Krw_rt_preserves_SN with K; auto.
         apply Rw_trans_preserves_SN with (plug K M); auto.
         apply Rw_rt_under_K; auto.
-     -- apply Krw_preserves_SN with (ConsFrame (Iterate L') (ConsFrame (Iterate N') K')).
+     -- apply Krw_preserves_SN with (Iterate L' :: (Iterate N' :: K')).
         { apply assoc_in_K. }
         apply Krw_rt_preserves_SN with K.
         auto.

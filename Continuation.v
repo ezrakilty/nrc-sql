@@ -11,20 +11,16 @@ Require Import Shift.
 Inductive Frame :=
   Iterate : Term -> Frame.
 
-Inductive Continuation :=
-  Empty : Continuation
-| ConsFrame : Frame -> Continuation -> Continuation.
+Definition Continuation := list Frame.
 
-Fixpoint Ksize K :=
-  match K with
-      Empty => 0
-    | ConsFrame (Iterate _) K' => S (Ksize K')
-  end.
+Definition Ksize (K:Continuation) := length K.
+
+Require Import List.
 
 Fixpoint plug (K : Continuation) (M : Term) : Term :=
   match K with
-      Empty => M
-    | ConsFrame (Iterate N) K' => plug K' (TmBind M N)
+      nil => M
+    | Iterate N :: K' => plug K' (TmBind M N)
   end.
 
 Definition SNK (K : Continuation) :=
@@ -42,7 +38,7 @@ Lemma Rw_under_K:
     (M ~> N) -> (plug K M ~> plug K N).
 Proof.
   induction K; auto.
-  simpl; intros; destruct f; auto.
+  simpl; intros; destruct a; auto.
 Qed.
 
 Hint Resolve Rw_under_K.
@@ -71,7 +67,10 @@ Inductive Krw_rt : Continuation -> Continuation -> Type :=
 
 Hint Constructors Krw_rt.
 
-Lemma iterate_reduce K K' : Krw K K' -> forall F, Krw (ConsFrame (Iterate F) K) (ConsFrame (Iterate F) K').
+Lemma iterate_reduce K K' :
+  Krw K K' ->
+  forall F,
+    Krw (Iterate F :: K) (Iterate F :: K').
 Proof.
  unfold Krw.
  intros.
@@ -81,7 +80,7 @@ Qed.
 
 Lemma rw_in_K_body:
   forall K M M',
-   (M ~> M') -> (Krw (ConsFrame (Iterate M) K) (ConsFrame (Iterate M') K)).
+   (M ~> M') -> (Krw (Iterate M :: K) (Iterate M' :: K)).
 Proof.
  intros.
  unfold Krw.
@@ -113,7 +112,7 @@ Proof.
   simpl.
   auto.
  intros.
- destruct f.
+ destruct a.
  simpl in H.
  pose (s := IHK (TmBind M t) H).
  eapply SN_embedding with (f := fun x => TmBind x t) (Q := TmBind M t); sauto.
@@ -121,11 +120,7 @@ Qed.
 
 Hint Constructors Neutral.
 
-Fixpoint appendK K1 K2 :=
-  match K1 with
-    | Empty => K2
-    | ConsFrame f K1' => ConsFrame f (appendK K1' K2)
-  end.
+Definition appendK := app (A:=Frame) : Continuation -> Continuation -> Continuation.
 
 Lemma Ksize_appendK:
   forall K1 K2,
@@ -133,7 +128,7 @@ Lemma Ksize_appendK:
 Proof.
   induction K1; simpl; intros.
   - auto.
-  - destruct f.
+  - destruct a.
     simpl in *.
     rewrite IHK1.
     auto.
@@ -146,7 +141,7 @@ Qed.
  *)
 Lemma assoc_in_K:
   forall N0 N K,
-  Krw (ConsFrame (Iterate N0) (ConsFrame (Iterate N) K)) (ConsFrame (Iterate (TmBind N0 (shift 1 1 N))) K).
+  Krw (Iterate N0 :: (Iterate N :: K)) (Iterate (TmBind N0 (shift 1 1 N)) :: K).
 Proof.
  unfold Krw.
  simpl.
@@ -172,13 +167,13 @@ Lemma three_ways_to_reduce_at_interface:
     {K' : Continuation &              Z = plug K' M & Krw K K'} +
     (notT (Neutral M) *
      { K' : Continuation & { M' : Term & Z = plug K' M' &
-                                { t : Term & K = ConsFrame (Iterate t) K' & NotBind M } } }) +
+                                { t : Term & K = (Iterate t :: K') & NotBind M } } }) +
 
     { K' : Continuation & Z = plug K' TmNull &
-           { K'' : Continuation & K = appendK K'' (ConsFrame (Iterate TmNull) K') } } +
+           { K'' : Continuation & K = appendK K'' (Iterate TmNull :: K') } } +
 
     { L : Term & { L' : Term & M = TmBind L L' &
-        { K' : Continuation & {N : Term & K = ConsFrame (Iterate N) K' &
+        { K' : Continuation & {N : Term & K = (Iterate N :: K') &
                Z = plug K' (TmBind L (TmBind L' (shift 1 1 N))) } } } }.
 Proof.
   induction K; simpl; intros.
@@ -186,13 +181,13 @@ Proof.
     eauto.
   - clone H.
     rename H0 into H_rw.
-    destruct f; simpl in *.
+    destruct a; simpl in *.
     apply IHK in H; clear IHK.
     destruct H as [[[[[M' H0 H1] | [K' H0 H1]] | [H' [K' [M' H0 H1]]]] | [K' Zeq [K'' Keq]]] | [L [L' H0 [K' [N H1 H2]]]]].
     * inversion H1.
       { subst. left; left; right. split. introversion.
         exists K, TmNull; auto. exists t; easy. }
-      { subst. left; right. exists K; auto. exists Empty; auto. }
+      { subst. left; right. exists K; auto. exists nil; auto. }
       { subst. left; left; right. split; [introversion | ].
         exists K, (t */ x); auto. exists t; easy. }
       { subst. left; left; right. split; [introversion | ].
@@ -200,19 +195,19 @@ Proof.
       { admit. }
       { subst. left; left; left. eauto. }
       { subst. right. eauto. }
-      { subst. left; left; left; right. exists (ConsFrame (Iterate n') K); auto. }
+      { subst. left; left; left; right. exists (Iterate n' :: K); auto. }
     * left; left; left; right.
-      exists (ConsFrame (Iterate t) K'); auto.
+      exists (Iterate t :: K'); auto.
     * destruct H1 as [u H1 H2].
       exfalso. unfold NotBind, not in H2. eauto using H2.
     * subst.
       left; right.
       exists K'; auto.
-      exists (ConsFrame (Iterate t) K''); simpl; auto.
+      exists (Iterate t :: K''); simpl; auto.
     * left; left; left; right.
       inversion H0.
       subst.
-      exists (ConsFrame (Iterate (TmBind L' (shift 1 1 N))) K').
+      exists (Iterate (TmBind L' (shift 1 1 N)) :: K').
       simpl.
       auto.
       apply assoc_in_K.
@@ -224,7 +219,7 @@ Lemma appendK_assoc :
 Proof.
   induction K0; intros; simpl.
   - auto.
-  - destruct f; simpl in *.
+  - destruct a; simpl in *.
     rewrite IHK0.
     auto.
 Qed.
@@ -257,7 +252,7 @@ Proof.
  * right.
    exists K'.
    { auto. }
-   exists (appendK K'' (ConsFrame (Iterate TmNull) Empty)).
+   exists (appendK K'' (Iterate TmNull :: nil)).
    rewrite appendK_assoc.
    simpl.
    auto.
@@ -268,7 +263,7 @@ Proof.
 Qed.
 
 Lemma reverse_plug_defn :
-  forall K L M, plug K (TmBind L M) = plug (ConsFrame (Iterate M) K) L.
+  forall K L M, plug K (TmBind L M) = plug (Iterate M :: K) L.
 Proof.
   auto.
 Qed.
@@ -290,16 +285,16 @@ Proof.
    - inversion Hb; subst.
      ** left.
         exists K; auto.
-        exists (ConsFrame (Iterate t) Empty); auto.
+        exists (Iterate t :: nil); auto.
      ** left. exists K; auto.
-        exists (ConsFrame (Iterate TmNull) Empty); auto.
+        exists (Iterate TmNull :: nil); auto.
      ** admit.
      ** solve [inversion H2].
      ** right.
-        exists (ConsFrame (Iterate n') K); auto.
+        exists (Iterate n' :: K); auto.
    - right.
      subst.
-     exists (ConsFrame (Iterate t) K').
+     exists (Iterate t :: K').
      eauto.
      auto.
    - refute.
@@ -308,7 +303,7 @@ Proof.
    - destruct s as [K' Zeq [K'' Keq]]; subst.
      left.
      exists K'; auto.
-     exists (ConsFrame (Iterate t) (appendK K'' (ConsFrame (Iterate TmNull) Empty))); simpl; auto.
+     exists (Iterate t :: (appendK K'' (Iterate TmNull :: nil))); simpl; auto.
      { omega. }
      rewrite appendK_assoc.
      simpl.
@@ -379,8 +374,8 @@ Fixpoint deepest_K M :=
 match M with
 | TmBind M' N' =>
   let (K, body) := deepest_K M' in
-  (appendK K (ConsFrame (Iterate N') Empty), body)
-| _ => (Empty, M)
+  (appendK K (Iterate N' :: nil), body)
+| _ => (nil, M)
 end.
 
 (* Fixpoint drop_outermost K := *)
@@ -393,9 +388,9 @@ end.
 
 Lemma plug_appendK_weird:
   forall K M M',
-    plug (appendK K (ConsFrame (Iterate M) Empty)) M' = TmBind (plug K M') M.
+    plug (appendK K (Iterate M :: nil)) M' = TmBind (plug K M') M.
 Proof.
- induction K; try (destruct f); simpl; auto.
+ induction K; try (destruct a); simpl; auto.
 Qed.
 
 Lemma deepest_K_spec:
@@ -410,17 +405,17 @@ Proof.
  rewrite <- H0 in H.
  inversion H.
  subst.
- pose (IHM1 c M').
+ pose (IHM1 l M').
  rewrite <- e; auto.
  apply plug_appendK_weird.
 Qed.
 
 Lemma appendK_Empty:
-  forall K, appendK K Empty = K.
+  forall K, appendK K nil = K.
 Proof.
  induction K; simpl; auto.
  rewrite IHK.
- destruct f.
+ destruct a.
  auto.
 Qed.
 
@@ -435,10 +430,10 @@ Proof.
    intros.
    rewrite appendK_Empty.
    auto.
- - destruct f.
+ - destruct a.
    simpl.
    intros.
-   rewrite IHK with (K':=appendK K' (ConsFrame (Iterate t) Empty))(M':=M').
+   rewrite IHK with (K':=appendK K' (Iterate t :: nil))(M':=M').
    * rewrite appendK_assoc.
      simpl.
      auto.
@@ -451,7 +446,7 @@ Lemma deepest_K_TmTable :
   forall K t, deepest_K (plug K (TmTable t)) = (K, TmTable t).
 Proof.
   intros.
-  replace K with (appendK Empty K) at 2.
+  replace K with (appendK nil K) at 2.
   apply deepest_K_plug.
   trivial.
   auto.
@@ -490,7 +485,7 @@ Proof.
  - simpl.
    intros.
    inversion H.
- - destruct f.
+ - destruct a.
    simpl.
    intros.
    let T := type of H in assert (H' : T) by auto.
@@ -507,18 +502,18 @@ Proof.
         omega.
      -- admit.
      -- inversion H2.
-     -- assert (K' = ConsFrame (Iterate n') K).
+     -- assert (K' = Iterate n' :: K).
         { apply unique_plug_null.
           simpl in *; sauto. }
         subst.
         simpl.
         omega.
 
-   * assert (K' = ConsFrame (Iterate t) K0).
+   * assert (K' = Iterate t :: K0).
      { apply unique_plug_null.
        simpl in *; sauto. }
      subst.
-     replace (plug K (TmBind TmNull t)) with (plug (ConsFrame (Iterate t) K) TmNull) in H' by auto.
+     replace (plug K (TmBind TmNull t)) with (plug (Iterate t :: K) TmNull) in H' by auto.
      simpl.
      assert (plug K TmNull ~> plug K0 TmNull) by auto.
      apply IHK in H.
@@ -539,7 +534,7 @@ Proof.
      simpl.
      inversion H0.
      subst.
-     assert (K' = ConsFrame (Iterate (TmBind L' (shift 1 1 N))) K0).
+     assert (K' = Iterate (TmBind L' (shift 1 1 N)) :: K0).
      { apply unique_plug_null.
        simpl in *; sauto. }
      subst.
@@ -580,7 +575,7 @@ Inductive prefix : Continuation -> Continuation -> Set :=
     prefix K K
 | prefix_frame: forall K K' f,
     prefix K' K ->
-    prefix K' (ConsFrame f K).
+    prefix K' (f :: K).
 
 Hint Constructors prefix.
 
@@ -590,13 +585,13 @@ Lemma prefix_breakdown :
 Proof.
   induction K; intros.
   - inversion H; subst.
-    exists Empty; auto.
+    exists nil; auto.
   - inversion H; subst.
-    * exists Empty; auto.
+    * exists nil; auto.
     * apply IHK in H2.
       destruct H2.
       subst.
-      exists (ConsFrame f x).
+      exists (a :: x).
       auto.
 Qed.
 
@@ -611,7 +606,7 @@ Proof.
   simpl.
   exists M; sauto.
 
- destruct f.
+ destruct a.
  inversion H.
   subst.
   exists M.
@@ -626,7 +621,7 @@ Qed.
 
 Inductive relK : Continuation -> Continuation -> Set :=
   rw : forall K K', Krw K K' -> relK K K'
-| strip : forall K K' f, K = ConsFrame f K' -> relK K K'.
+| strip : forall K K' f, K = f :: K' -> relK K K'.
 
 Inductive relK_rt  : Continuation -> Continuation -> Set :=
   refl : forall K, relK_rt K K
@@ -650,7 +645,7 @@ Proof.
    exists M.
    inversion sn.
    seauto.
-  lapply (reexamine K' (ConsFrame f K')).
+  lapply (reexamine K' (f :: K')).
    intros H.
    subst.
    specialize (H M).
@@ -675,7 +670,7 @@ Proof.
   auto.
   eapply trans.
   apply step.
-  apply strip with f.
+  apply strip with a.
   eauto.
   auto.
 Qed.
@@ -874,17 +869,17 @@ Lemma plug_appendK:
   plug (appendK K K') M = plug K' (plug K M).
 Proof.
   induction K; simpl; intros; auto.
-  destruct f.
+  destruct a.
   rewrite IHK.
   auto.
 Qed.
 
 Lemma curtailment:
   forall K' K M,
-    plug (appendK K (ConsFrame (Iterate TmNull) K')) M ~> plug K' TmNull.
+    plug (appendK K (Iterate TmNull :: K')) M ~> plug K' TmNull.
 Proof.
   induction K; simpl; intros; auto.
-  destruct f.
+  destruct a.
   apply IHK.
 Qed.
 
@@ -893,7 +888,7 @@ Lemma Krw_appendK:
     Krw K K' ->
     Krw (appendK K1 K) (appendK K1 K').
 Proof.
- induction K1; simpl; try (destruct f); auto.
+ induction K1; simpl; try (destruct a); auto.
 Qed.
 
 Lemma prefix_appendK:

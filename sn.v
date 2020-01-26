@@ -409,7 +409,7 @@ Proof.
   simpl.
   intros tm X.
   destruct X as [X0 X1].
-  apply (X1 Empty).
+  apply (X1 nil).
   simpl.
   intros M H.
   apply SN_TmSingle; sauto.
@@ -659,7 +659,7 @@ Qed.
 (** * Reducible things at list type *)
 
 Lemma ReducibleK_Empty :
-  forall T, ReducibleK Reducible Empty T.
+  forall T, ReducibleK Reducible nil T.
 Proof.
  unfold ReducibleK.
  simpl.
@@ -683,11 +683,9 @@ Proof.
  pattern K at 2 3.
  apply Ksize_induction with (K := K); intros; auto.
   destruct K0; simpl in *; try (inversion H).
-   apply reducts_SN.
-   intros m' H'.
-   inversion H'.
-  destruct f.
-  discriminate.
+  apply reducts_SN.
+  intros m' H'.
+  inversion H'.
  destruct K'.
  inversion H0.
  destruct (Reducible_inhabited T) as [M M_H].
@@ -751,7 +749,7 @@ Lemma K_TmTable_rw:
     {K' : Continuation & M = plug K' (TmTable t) & Krw K K'} +
     {K' : Continuation
           & (K', TmNull) = deepest_K M (* how about just M = plug K' TmNull ? *)
-          & {K'' : Continuation & K = appendK K'' (ConsFrame (Iterate TmNull) K')}}.
+          & {K'' : Continuation & K = appendK K'' (Iterate TmNull :: K')}}.
 Proof.
   induction K using Ksize_induction_strong.
   intros.
@@ -778,7 +776,7 @@ Lemma K_TmTable_rw2:
     {K' : Continuation & M = plug K' (TmTable t) & Krw K K'} +
     {K' : Continuation
           & M = plug K' TmNull
-          & {K'' : Continuation & K = appendK K'' (ConsFrame (Iterate TmNull) K')}}.
+          & {K'' : Continuation & K = appendK K'' (Iterate TmNull :: K')}}.
 Proof.
   induction K using Ksize_induction_strong.
   intros.
@@ -808,7 +806,7 @@ Proof.
  destruct H as [? | ?].
  - destruct s as [? H H0].
    unfold Krw in H0.
-   assert (deepest_K (TmTable t) = (Empty, TmTable t)).
+   assert (deepest_K (TmTable t) = (nil, TmTable t)).
    auto.
    pose (deepest_K_TmTable K' t).
    pose (deepest_K_TmTable x0 t).
@@ -818,7 +816,7 @@ Proof.
    auto.
  - destruct s as [? H H0].
    assert (deepest_K (plug K' (TmTable t)) = (K', TmTable t)).
-   replace K' with (appendK Empty K') at 2 by auto.
+   replace K' with (appendK nil K') at 2 by auto.
    apply deepest_K_plug.
    trivial.
    rewrite H1 in H.
@@ -1080,9 +1078,9 @@ Proof.
       simpl in H2.
       omega. }
     { eauto. }
-    assert (SN (plug (ConsFrame (Iterate N1) K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)))).
+    assert (SN (plug (Iterate N1 :: K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)))).
      assert (plug K (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N))
-                ~>> plug (ConsFrame (Iterate N1) K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0))).
+                ~>> plug (Iterate N1 :: K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0))).
       apply beta_reduct_under_K_rw_rt; sauto.
      apply Rw_trans_preserves_SN in H5; sauto.
     simpl in H5 |- *.
@@ -1115,7 +1113,7 @@ Lemma Bind_Reducible_core:
       SN (plug K (TmBind M N)).
 Proof.
  intros.
- enough (SN (plug (ConsFrame (Iterate N) K) M)) by auto.
+ enough (SN (plug (Iterate N :: K) M)) by auto.
  simpl in X.
  apply X.
  simpl.
@@ -1148,7 +1146,7 @@ Proof.
   destruct (Reducible_inhabited S) as [L L_red].
   specialize (X0 L L_red).
   destruct X0 as [t s].
-  specialize (s Empty).
+  specialize (s nil).
   lapply s.
    simpl.
    apply SN_less_substituent.
