@@ -17,10 +17,15 @@ Definition Ksize (K:Continuation) := length K.
 
 Require Import List.
 
+Definition plugframe M f : Term :=
+  match f with
+    | Iterate N => (TmBind M N)
+  end.
+
 Fixpoint plug (M : Term) (K : Continuation) : Term :=
   match K with
       nil => M
-    | Iterate N :: K' => plug (TmBind M N) K'
+    | f :: K' => plug (plugframe M f) K'
   end.
 
 Definition SNK (K : Continuation) :=
@@ -38,7 +43,7 @@ Lemma Rw_under_K:
     (M ~> N) -> (plug M K ~> plug N K).
 Proof.
   induction K; auto.
-  simpl; intros; destruct a; auto.
+  intros; destruct a; simpl; auto.
 Qed.
 
 Hint Resolve Rw_under_K.
@@ -870,9 +875,6 @@ Lemma plug_appendK:
   plug M (appendK K K') = plug (plug M K) K'.
 Proof.
   induction K; simpl; intros; auto.
-  destruct a.
-  rewrite IHK.
-  auto.
 Qed.
 
 Lemma curtailment:
@@ -880,8 +882,6 @@ Lemma curtailment:
     plug M (appendK K (Iterate TmNull :: K')) ~> plug TmNull K'.
 Proof.
   induction K; simpl; intros; auto.
-  destruct a.
-  apply IHK.
 Qed.
 
 Lemma Krw_appendK:
