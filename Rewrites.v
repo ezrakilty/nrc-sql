@@ -630,7 +630,11 @@ Proof.
    simpl in red.
    econstructor; eauto; simpl; auto.
 
- - admit.
+ - subst.
+   descrim N2.
+   inversion H1; subst.
+   simpl in red.
+   econstructor; eauto; simpl; auto.
 
  - (* Case: reduction in subject of TmBind. *)
    destruct (IHN1 _ _ H2); subst.
@@ -669,7 +673,7 @@ Proof.
    auto.
    descrim N3.
    auto.
-Admitted.
+Qed.
 
 (** * Compatibility of rewriting with each of the term forms. *)
 
