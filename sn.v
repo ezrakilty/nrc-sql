@@ -748,7 +748,7 @@ Lemma K_TmTable_rw:
     (plug (TmTable t) K ~> M) ->
     {K' : Continuation & M = plug (TmTable t) K' & Krw K K'} +
     {K' : Continuation
-          & (K', TmNull) = deepest_K M (* how about just M = plug K' TmNull ? *)
+          & (TmNull, K') = deepest_K M (* how about just M = plug K' TmNull ? *)
           & {K'' : Continuation & K = appendK K'' (Iterate TmNull :: K')}}.
 Proof.
   induction K using Ksize_induction_strong.
@@ -806,7 +806,7 @@ Proof.
  destruct H as [? | ?].
  - destruct s as [? H H0].
    unfold Krw in H0.
-   assert (deepest_K (TmTable t) = (nil, TmTable t)).
+   assert (deepest_K (TmTable t) = (TmTable t, nil)).
    auto.
    pose (deepest_K_TmTable K' t).
    pose (deepest_K_TmTable x0 t).
@@ -815,7 +815,7 @@ Proof.
    subst x0.
    auto.
  - destruct s as [? H H0].
-   assert (deepest_K (plug (TmTable t) K') = (K', TmTable t)).
+   assert (deepest_K (plug (TmTable t) K') = (TmTable t, K')).
    replace K' with (appendK nil K') at 2 by auto.
    apply deepest_K_plug.
    trivial.
@@ -838,8 +838,8 @@ Qed.
 Lemma deepest_K_NotBind:
   forall K M K' M',
     NotBind M -> NotBind M' ->
-    (K', M') = deepest_K (plug M K) ->
-    (K', M') = (K, M).
+    (M', K') = deepest_K (plug M K) ->
+    (M', K') = (M, K).
 Proof.
 Admitted.
 
@@ -908,7 +908,7 @@ Qed.
 Lemma once_TmNull_subject_always:
   forall A Z,
     (A ~>> Z) -> {K & A = plug TmNull K}
-    -> {K' & deepest_K Z = (K', TmNull)}.
+    -> {K' & deepest_K Z = (TmNull, K')}.
 Proof.
   intros.
   induction H; intros; destruct H0 as [K H0]; subst.

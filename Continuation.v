@@ -371,12 +371,12 @@ Proof.
 Qed.
 
 Fixpoint deepest_K M :=
-match M with
-| TmBind M' N' =>
-  let (K, body) := deepest_K M' in
-  (appendK K (Iterate N' :: nil), body)
-| _ => (nil, M)
-end.
+  match M with
+  | TmBind M' N' =>
+    let (body, K) := deepest_K M' in
+    (body, appendK K (Iterate N' :: nil))
+  | _ => (M, nil)
+  end.
 
 (* Fixpoint drop_outermost K := *)
 (* match K with *)
@@ -395,7 +395,7 @@ Qed.
 
 Lemma deepest_K_spec:
   forall M K' M',
-    deepest_K M = (K', M') ->
+    deepest_K M = (M', K') ->
     plug M' K' = M.
 Proof.
  induction M; simpl; intros; inversion H; auto.
@@ -422,8 +422,8 @@ Qed.
 Lemma deepest_K_plug:
   forall K,
      forall M K' M',
-       deepest_K M = (K', M') ->
-       deepest_K (plug M K) = (appendK K' K, M').
+       deepest_K M          = (M', K')             ->
+       deepest_K (plug M K) = (M', K' ++ K).
 Proof.
  induction K.
  - simpl.
@@ -433,7 +433,7 @@ Proof.
  - destruct a.
    simpl.
    intros.
-   rewrite IHK with (K':=appendK K' (Iterate t :: nil))(M':=M').
+   rewrite IHK with (K' := K' ++ (Iterate t :: nil)) (M' := M').
    * rewrite appendK_assoc.
      simpl.
      auto.
@@ -443,7 +443,8 @@ Proof.
 Qed.
 
 Lemma deepest_K_TmTable :
-  forall K t, deepest_K (plug (TmTable t) K) = (K, TmTable t).
+  forall K t,
+    deepest_K (plug (TmTable t) K) = (TmTable t, K).
 Proof.
   intros.
   replace K with (appendK nil K) at 2.
@@ -453,7 +454,7 @@ Proof.
 Qed.
 
 Lemma deepest_K_TmNull K :
-  deepest_K (plug TmNull K) = (K, TmNull).
+  deepest_K (plug TmNull K) = (TmNull, K).
 Proof.
  pose (X := deepest_K TmNull).
  assert (X = deepest_K TmNull) by auto.
@@ -468,9 +469,9 @@ Lemma unique_plug_null:
     (plug TmNull K = plug TmNull K') -> K = K'.
 Proof.
  intros.
- assert (deepest_K (plug TmNull K) = (K, TmNull)).
+ assert (deepest_K (plug TmNull K) = (TmNull, K)).
   apply deepest_K_TmNull.
- assert (deepest_K (plug TmNull K') = (K', TmNull)).
+ assert (deepest_K (plug TmNull K') = (TmNull, K')).
   apply deepest_K_TmNull.
  congruence.
 Qed.
