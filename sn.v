@@ -683,12 +683,13 @@ Proof.
  pattern K at 2 3.
  apply Ksize_induction with (K := K); intros; auto.
   destruct K0; simpl in *; try (inversion H).
-  apply reducts_SN.
-  intros m' H'.
-  inversion H'.
+   apply reducts_SN.
+   intros m' H'.
+   inversion H'.
+  destruct f.
+  discriminate.
  destruct K'.
-  inversion H0.
-
+ inversion H0.
  destruct (Reducible_inhabited T) as [M M_H].
  pose (X M M_H).
  apply SN_K_M_SN_K_Null with (TmSingle M).
@@ -750,7 +751,7 @@ Lemma K_TmTable_rw:
     {K' : Continuation & M = plug K' (TmTable t) & Krw K K'} +
     {K' : Continuation
           & (K', TmNull) = deepest_K M (* how about just M = plug K' TmNull ? *)
-          & {K'' : Continuation & K = appendK K'' (Iterate TmNull K')}}.
+          & {K'' : Continuation & K = appendK K'' (ConsFrame (Iterate TmNull) K')}}.
 Proof.
   induction K using Ksize_induction_strong.
   intros.
@@ -777,7 +778,7 @@ Lemma K_TmTable_rw2:
     {K' : Continuation & M = plug K' (TmTable t) & Krw K K'} +
     {K' : Continuation
           & M = plug K' TmNull
-          & {K'' : Continuation & K = appendK K'' (Iterate TmNull K')}}.
+          & {K'' : Continuation & K = appendK K'' (ConsFrame (Iterate TmNull) K')}}.
 Proof.
   induction K using Ksize_induction_strong.
   intros.
@@ -1079,9 +1080,9 @@ Proof.
       simpl in H2.
       omega. }
     { eauto. }
-    assert (SN (plug (Iterate N1 K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)))).
+    assert (SN (plug (ConsFrame (Iterate N1) K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)))).
      assert (plug K (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N))
-                ~>> plug (Iterate N1 K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0))).
+                ~>> plug (ConsFrame (Iterate N1) K'') (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0))).
       apply beta_reduct_under_K_rw_rt; sauto.
      apply Rw_trans_preserves_SN in H5; sauto.
     simpl in H5 |- *.
@@ -1114,7 +1115,7 @@ Lemma Bind_Reducible_core:
       SN (plug K (TmBind M N)).
 Proof.
  intros.
- enough (SN (plug (Iterate N K) M)) by auto.
+ enough (SN (plug (ConsFrame (Iterate N) K) M)) by auto.
  simpl in X.
  apply X.
  simpl.
