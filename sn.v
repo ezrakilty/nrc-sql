@@ -928,8 +928,8 @@ Proof.
     firstorder.
     specialize (H0 x).
     simpl in H0.
-    apply deepest_K_spec in p.
     symmetry in p.
+    apply deepest_K_spec in p.
     auto.
 Qed.
 

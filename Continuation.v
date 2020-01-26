@@ -9,7 +9,8 @@ Require Import Omega.
 Require Import Shift.
 
 Inductive Frame :=
-  Iterate : Term -> Frame.
+  Iterate : Term -> Frame
+| Include : Term -> Frame.
 
 Definition Continuation := list Frame.
 
@@ -19,7 +20,8 @@ Require Import List.
 
 Definition plugframe M f : Term :=
   match f with
-    | Iterate N => (TmBind M N)
+  | Iterate N => TmBind M N
+  | Include N => TmUnion M N
   end.
 
 Fixpoint plug (M : Term) (K : Continuation) : Term :=
@@ -121,6 +123,9 @@ Proof.
  simpl in H.
  pose (s := IHK (TmBind M t) H).
  eapply SN_embedding with (f := fun x => TmBind x t) (Q := TmBind M t); sauto.
+ simpl in H.
+ pose (s := IHK (TmUnion M t) H).
+ eapply SN_embedding with (f := fun x => TmUnion x t) (Q := TmUnion M t); sauto.
 Qed.
 
 Hint Constructors Neutral.
@@ -133,8 +138,7 @@ Lemma Ksize_appendK:
 Proof.
   induction K1; simpl; intros.
   - auto.
-  - destruct a.
-    simpl in *.
+  - simpl in *.
     rewrite IHK1.
     auto.
 Qed.
@@ -224,8 +228,7 @@ Lemma appendK_assoc :
 Proof.
   induction K0; intros; simpl.
   - auto.
-  - destruct a; simpl in *.
-    rewrite IHK0.
+  - rewrite IHK0.
     auto.
 Qed.
 
@@ -359,7 +362,6 @@ Proof.
    let T := type of H in absurd T.
    omega.
    auto.
-   destruct f.
    simpl in H; exfalso; omega.
  - intros.
    apply X.
@@ -379,7 +381,10 @@ Fixpoint deepest_K M :=
   match M with
   | TmBind M' N' =>
     let (body, K) := deepest_K M' in
-    (body, appendK K (Iterate N' :: nil))
+    (body, K ++ Iterate N' :: nil)
+  | TmUnion M' N' =>
+    let (body, K) := deepest_K M' in
+    (body, K ++ Include N' :: nil)
   | _ => (M, nil)
   end.
 
@@ -391,28 +396,45 @@ Fixpoint deepest_K M :=
 (* | Empty => (TmNull, Empty) *)
 (* end. *)
 
-Lemma plug_appendK_weird:
+Lemma plug_appendK_weird_Iterate:
   forall K M M',
     plug M' (appendK K (Iterate M :: nil)) = TmBind (plug M' K) M.
 Proof.
  induction K; try (destruct a); simpl; auto.
 Qed.
 
+Lemma plug_appendK_weird_Include:
+  forall K M M',
+    plug M' (appendK K (Include M :: nil)) = TmUnion (plug M' K) M.
+Proof.
+ induction K; try (destruct a); simpl; auto.
+Qed.
+
 Lemma deepest_K_spec:
   forall M K' M',
-    deepest_K M = (M', K') ->
-    plug M' K' = M.
+        (M', K') = deepest_K M ->
+    plug M'  K'  = M.
 Proof.
  induction M; simpl; intros; inversion H; auto.
- pose (X := deepest_K M1).
- assert (X = deepest_K M1) by auto.
- destruct X.
- rewrite <- H0 in H.
- inversion H.
- subst.
- pose (IHM1 l M').
- rewrite <- e; auto.
- apply plug_appendK_weird.
+ - pose (X := deepest_K M1).
+   assert (X = deepest_K M1) by auto.
+   destruct X.
+   rewrite <- H0 in H.
+   inversion H.
+   subst.
+   pose (IHM1 l t).
+   rewrite <- e; auto.
+   apply plug_appendK_weird_Include.
+
+ - pose (X := deepest_K M1).
+   assert (X = deepest_K M1) by auto.
+   destruct X.
+   rewrite <- H0 in H.
+   inversion H.
+   subst.
+   pose (IHM1 l t).
+   rewrite <- e; auto.
+   apply plug_appendK_weird_Iterate.
 Qed.
 
 Lemma appendK_Empty:
@@ -420,8 +442,17 @@ Lemma appendK_Empty:
 Proof.
  induction K; simpl; auto.
  rewrite IHK.
- destruct a.
  auto.
+Qed.
+
+Lemma deepest_K_plugframe:
+  forall a,
+     forall M K' M',
+       deepest_K M               = (M', K')                ->
+       deepest_K (plugframe M a) = (M', K' ++ (a :: nil)).
+Proof.
+  intros.
+  destruct a; simpl; rewrite H; auto.
 Qed.
 
 Lemma deepest_K_plug:
@@ -435,15 +466,14 @@ Proof.
    intros.
    rewrite appendK_Empty.
    auto.
- - destruct a.
-   simpl.
+ - simpl.
    intros.
-   rewrite IHK with (K' := K' ++ (Iterate t :: nil)) (M' := M').
+   rewrite IHK with (K' := K' ++ (a :: nil)) (M' := M').
    * rewrite appendK_assoc.
      simpl.
      auto.
    * simpl.
-     rewrite H.
+     apply deepest_K_plugframe.
      auto.
 Qed.
 
@@ -607,22 +637,18 @@ Lemma reexamine:
     -> forall M, {M' : Term & plug M' K' = plug M K}.
 Proof.
  induction K; simpl; intros.
-  inversion H.
-  subst.
-  simpl.
-  exists M; sauto.
-
- destruct a.
- inversion H.
-  subst.
-  exists M.
-
+ - inversion H.
+   subst.
+   simpl.
+   exists M; sauto.
+ - inversion H.
+   subst.
+   exists M.
    auto.
-
- subst.
- pose (IHK H2 (TmBind M t)).
- destruct s.
- eauto.
+   subst.
+   pose (IHK H2 (plugframe M a)).
+   destruct s.
+   eauto.
 Qed.
 
 Inductive relK : Continuation -> Continuation -> Set :=
@@ -884,12 +910,25 @@ Proof.
   induction K; simpl; intros; auto.
 Qed.
 
+Lemma Krw_cons:
+  forall K K' a,
+  Krw K K' -> Krw (a::K) (a::K').
+Proof.
+  intros.
+  intro; simpl.
+  auto.
+Qed.
+
 Lemma Krw_appendK:
   forall K K' K1,
     Krw K K' ->
     Krw (appendK K1 K) (appendK K1 K').
 Proof.
- induction K1; simpl; try (destruct a); auto.
+ induction K1; simpl; auto.
+ intros.
+ intro.
+ simpl.
+ lapply IHK1; auto.
 Qed.
 
 Lemma prefix_appendK:
