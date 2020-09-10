@@ -125,12 +125,9 @@ Proof.
    apply TAbs.
    replace (S (length env)) with (length (s::env)) by trivial.
    apply IHM with env'; trivial.
-   Check env_typing_shift_noop.
    erewrite env_typing_shift_noop; eauto.
  - (* Case TmBind *)
-   eapply TBind.
-    eapply IHM1; eauto.
-   apply IHM2 with (env':=env'); trivial.
+   eapply TBind; eauto using IHM1, IHM2.
    erewrite env_typing_shift_noop; eauto.
 Qed.
 
