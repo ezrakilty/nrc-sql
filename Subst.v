@@ -119,18 +119,19 @@ Lemma subst_env_preserves_typing:
 Proof.
  induction M; simpl; intros Vs env env' T k Vs_tp tp k_eq;
     inversion tp; subst; eauto.
- (* Case TmVar *)
- eapply subst_env_preserves_typing_var; eauto.
- (* Case TmAbs *)
-  apply TAbs.
-  replace (S (length env)) with (length (s::env)) by trivial.
-  apply IHM with env'; trivial.
-  erewrite env_typing_shift_noop; eauto.
- (* Case TmBind *)
- eapply TBind.
-  eapply IHM1; eauto.
- apply IHM2 with (env':=env'); trivial.
- erewrite env_typing_shift_noop; eauto.
+ - (* Case TmVar *)
+   eapply subst_env_preserves_typing_var; eauto.
+ - (* Case TmAbs *)
+   apply TAbs.
+   replace (S (length env)) with (length (s::env)) by trivial.
+   apply IHM with env'; trivial.
+   Check env_typing_shift_noop.
+   erewrite env_typing_shift_noop; eauto.
+ - (* Case TmBind *)
+   eapply TBind.
+    eapply IHM1; eauto.
+   apply IHM2 with (env':=env'); trivial.
+   erewrite env_typing_shift_noop; eauto.
 Qed.
 
 Hint Resolve subst_env_preserves_typing.
