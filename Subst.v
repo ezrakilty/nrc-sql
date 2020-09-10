@@ -341,7 +341,6 @@ Proof.
         as [[x_small [VW' [T' HH]]] | [x_large HH]]; trivial;
     destruct HH as [lookup_VWs lookup_env].
   (* Case x < k + length (Vs ++ Ws) *)
-
    destruct (le_gt_dec (k + length Vs) x).
    (* Case k + length Vs <= x *)
     rewrite <- rewrite_nth_error_app; [|omega].
@@ -395,6 +394,7 @@ Proof.
   apply IHN with env; auto.
   rewrite <- map_app.
   erewrite env_typing_shift_noop; eauto.
+
  (* Case TmBind *)
  simpl; f_equal; eauto.
  rewrite map_app.
@@ -680,7 +680,7 @@ Proof.
      rewrite unions_remove.
      rewrite map_map.
      rewrite map_union.
-     rewrite <- set_unions_map.
+     rewrite set_unions_map.
      rewrite map_map.
 
      (* Corresponding sides of the union are \subseteq *)
@@ -769,7 +769,7 @@ Proof.
   break; break; try (break; try break); auto; finish.
  (* Obligation (shift 0 1 ; pred) = idy *)
  rewrite unions_remove.
- rewrite <- set_unions_map.
+ rewrite set_unions_map.
  apply unions2_mor.
  rewrite map_map.
  rewrite map_map.
