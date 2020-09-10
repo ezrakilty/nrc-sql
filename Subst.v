@@ -141,7 +141,7 @@ Hint Resolve subst_nil (* Used in the proof of @normalization@! *).
 Lemma subst_env_big_var :
   forall q x env,
     q + length env <= x ->
-      TmVar x = subst_env q env (TmVar x).
+      subst_env q env (TmVar x) = TmVar x.
 Proof.
  intros.
  simpl.
@@ -164,8 +164,8 @@ Proof.
         unfold shift at 3.
         unfold shift_var.
         destruct (le_gt_dec k x) ; [ | ].
-         rewrite <- subst_env_big_var by omega.
-         rewrite <- subst_env_big_var.
+         rewrite subst_env_big_var by omega.
+         rewrite subst_env_big_var.
           simpl; unfold shift_var.
           break; finish.
          solve[map_omega].
@@ -353,7 +353,7 @@ Proof.
   rewrite <- rewrite_nth_error_app; [|omega].
   rewrite lookup_VWs; simpl.
   double_case.
-  symmetry; apply subst_env_big_var; omega.
+  apply subst_env_big_var; omega.
 
  (* Case k > x *)
  break; try easy.
