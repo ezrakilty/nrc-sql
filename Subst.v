@@ -77,47 +77,59 @@ Proof.
  simpl; omega.
 Qed.
 
-(**
-       Vs :: env'
-env, env' |- tm       : ty
-env       |- tm{Vs/k} : ty    (where k = length env)
-*)
-Lemma subst_env_preserves_typing:
-  forall tm Vs env env' ty k,
+    (* env_typing Vs env' -> *)
+    (* x < length Vs & x < length env' & Typing (TmVar x) T *)
+Lemma subst_env_preserves_typing_var:
+  forall x Vs env env' T k,
     env_typing Vs env' ->
-    Typing (env ++ env') tm ty ->
+    Typing (env ++ env') (TmVar x) T ->
     k = length env ->
-      Typing env (subst_env k Vs tm) ty.
+      Typing env (subst_env k Vs (TmVar x)) T.
 Proof.
- induction tm; simpl; intros Vs env env' ty k Vs_tp tp k_eq;
-    inversion tp; subst; eauto.
-(* Case TmVar *)
-  destruct Vs_tp as [Vs_env'_equilong Vs_tp].
-  destruct (le_gt_dec (length env) x).
-  (* Case x is beyond [length env] *)
-   assert (value ty = nth_error env' (x - length env)).
-    apply nth_error_app; trivial.
-    case_eq (nth_error Vs (x - length env));
-      [intros v H_v | intros H_v; refute]; auto.
-    (* Obtained value v for x - length env in Vs. *)
+ simpl; intros x Vs env env' T k Vs_tp tp k_eq; inversion tp; subst.
+ destruct Vs_tp as [Vs_env'_equilong Vs_tp].
+ destruct (le_gt_dec (length env) x).
+ - (* Case x is beyond [length env] *)
+   case_eq (nth_error Vs (x - length env));
+     [intros v H_v | intros H_v; refute]; auto.
+   (* Obtained value v for x - length env in Vs. *)
     apply Weakening_closed.
     eapply foreach2_ty_member; eauto.
-   (* Bogus case of no value for x - length env. *)
+    (* Bogus case of no value for x - length env. *)
+    apply nth_error_app in H0; auto.
+   apply nth_error_ok_rev in H0.
    apply <- nth_error_overflow in H_v.
-   apply nth_error_ok_rev in H.
    omega.
-  (* Case of x in env. *)
+ - (* Case of x in env. *)
   apply TVar.
   rewrite <- nth_error_ext_length in H0; auto.
+Qed.
+
+(**
+       Vs :: env'
+env, env' |- M       : T
+env       |- M{Vs/k} : T    (where k = length env)
+*)
+Lemma subst_env_preserves_typing:
+  forall M Vs env env' T k,
+    env_typing Vs env' ->
+    Typing (env ++ env') M T ->
+    k = length env ->
+      Typing env (subst_env k Vs M) T.
+Proof.
+ induction M; simpl; intros Vs env env' T k Vs_tp tp k_eq;
+    inversion tp; subst; eauto.
+ (* Case TmVar *)
+ eapply subst_env_preserves_typing_var; eauto.
  (* Case TmAbs *)
   apply TAbs.
   replace (S (length env)) with (length (s::env)) by trivial.
-  apply IHtm with env'; trivial.
+  apply IHM with env'; trivial.
   erewrite env_typing_shift_noop; eauto.
  (* Case TmBind *)
  eapply TBind.
-  eapply IHtm1; eauto.
- apply IHtm2 with (env':=env'); trivial.
+  eapply IHM1; eauto.
+ apply IHM2 with (env':=env'); trivial.
  erewrite env_typing_shift_noop; eauto.
 Qed.
 

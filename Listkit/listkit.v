@@ -18,6 +18,7 @@ Proof.
   congruence.
  firstorder.
 Qed.
+
 Lemma nth_error_In:
   forall A xs x (v:A),
     nth_error xs x = value v -> ListSet.set_In v xs.
