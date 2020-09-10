@@ -319,22 +319,19 @@ Proof.
  sauto.
 Qed.
 
+(** If two successive substitutions are "independent" and adjacent then we can combine
+   them into one (on a var). *)
 Lemma subst_env_concat_TmVar:
-  forall
-    (x : nat)
-    (Vs Ws : list Term)
-    (env : list Ty)
-    (k : nat),
+  forall (x : nat) (Vs Ws : list Term) (env : list Ty) (k : nat),
     env_typing (Vs ++ Ws) env ->
     length (Vs ++ Ws) = length env ->
-    foreach2_ty Term Ty (Vs ++ Ws) env
-                (fun (x0 : Term) (y : Ty) => Typing nil x0 y) ->
        subst_env k Vs (subst_env (k + length Vs) Ws (TmVar x)) =
        subst_env k (Vs ++ Ws) (TmVar x).
 Proof.
- intros ? ? ? ? ? env_closed VsWs_env_equilong env_closed'.
+ intros ? ? ? ? ? env_closed VsWs_env_equilong.
  unfold subst_env at 3.
  unfold subst_env at 2.
+ unfold env_typing in *.
 
  case_eq (le_gt_dec k x); [intros k_le_x ?|intros x_gt_x H].
  (* Case k <= x *)
@@ -352,7 +349,8 @@ Proof.
     (* subst_env k Vs VW' = VW': *)
     apply subst_env_closed_noop with T'.
     (* Typing nil VW' T': *)
-    eapply foreach2_ty_member; eauto; trivial.
+    eapply foreach2_ty_member; eauto.
+    apply env_closed.
    (* Case k + length Vs > x *)
    simpl; rewrite H.
    (rewrite <- nth_error_ext_length in lookup_VWs by omega);
