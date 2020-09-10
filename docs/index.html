@@ -47,7 +47,7 @@
 <td><a href="index.html#global_Z">Z</a></td>
 <td>_</td>
 <td><a href="index.html#global_*">other</a></td>
-<td>(508 entries)</td>
+<td>(512 entries)</td>
 </tr>
 <tr>
 <td>Notation Index</td>
@@ -143,7 +143,7 @@
 <td><a href="index.html#lemma_Z">Z</a></td>
 <td>_</td>
 <td>other</td>
-<td>(333 entries)</td>
+<td>(336 entries)</td>
 </tr>
 <tr>
 <td>Constructor Index</td>
@@ -175,7 +175,7 @@
 <td>Z</td>
 <td>_</td>
 <td>other</td>
-<td>(76 entries)</td>
+<td>(77 entries)</td>
 </tr>
 <tr>
 <td>Inductive Index</td>
@@ -303,6 +303,7 @@
 <a href="Continuation.html#deepest_K_TmNull">deepest_K_TmNull</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#deepest_K_TmTable">deepest_K_TmTable</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#deepest_K_plug">deepest_K_plug</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
+<a href="Continuation.html#deepest_K_plugframe">deepest_K_plugframe</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#deepest_K_spec">deepest_K_spec</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#deepest_K">deepest_K</a> [definition, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="sn.html#deepest_K_NotBind">deepest_K_NotBind</a> [lemma, in <a href="sn.html">sn</a>]<br/>
@@ -360,6 +361,7 @@
 <a href="Listkit.logickit.html#idy">idy</a> [definition, in <a href="Listkit.logickit.html">Listkit.logickit</a>]<br/>
 <a href="Listkit.logickit.html#if_irrelevant">if_irrelevant</a> [lemma, in <a href="Listkit.logickit.html">Listkit.logickit</a>]<br/>
 <a href="Listkit.logickit.html#if_cc">if_cc</a> [lemma, in <a href="Listkit.logickit.html">Listkit.logickit</a>]<br/>
+<a href="Continuation.html#Include">Include</a> [constructor, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Listkit.Sets.html#incl_union_right">incl_union_right</a> [lemma, in <a href="Listkit.Sets.html">Listkit.Sets</a>]<br/>
 <a href="Listkit.Sets.html#incl_union_left">incl_union_left</a> [lemma, in <a href="Listkit.Sets.html">Listkit.Sets</a>]<br/>
 <a href="Listkit.Sets.html#incl_sets_union">incl_sets_union</a> [lemma, in <a href="Listkit.Sets.html">Listkit.Sets</a>]<br/>
@@ -385,6 +387,7 @@
 <a href="Knorm.html">Knorm</a> [library]<br/>
 <a href="Continuation.html#Krw">Krw</a> [definition, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#Krw_appendK">Krw_appendK</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
+<a href="Continuation.html#Krw_cons">Krw_cons</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#Krw_rt_Rw_rt">Krw_rt_Rw_rt</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#Krw_rt_conserves_Ksize">Krw_rt_conserves_Ksize</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#Krw_rt_trans">Krw_rt_trans</a> [constructor, in <a href="Continuation.html">Continuation</a>]<br/>
@@ -481,7 +484,8 @@
 <a href="Continuation.html#plugframe">plugframe</a> [definition, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#plug_appendK">plug_appendK</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#plug_rw_rt">plug_rw_rt</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
-<a href="Continuation.html#plug_appendK_weird">plug_appendK_weird</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
+<a href="Continuation.html#plug_appendK_weird_Include">plug_appendK_weird_Include</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
+<a href="Continuation.html#plug_appendK_weird_Iterate">plug_appendK_weird_Iterate</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#plug_SN_rw_rt">plug_SN_rw_rt</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#plug_SN_rw">plug_SN_rw</a> [lemma, in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="sn.html#plug_TmTable_unique">plug_TmTable_unique</a> [lemma, in <a href="sn.html">sn</a>]<br/>
@@ -871,6 +875,7 @@
 <a href="Continuation.html#deepest_K_TmNull">deepest_K_TmNull</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#deepest_K_TmTable">deepest_K_TmTable</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#deepest_K_plug">deepest_K_plug</a> [in <a href="Continuation.html">Continuation</a>]<br/>
+<a href="Continuation.html#deepest_K_plugframe">deepest_K_plugframe</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#deepest_K_spec">deepest_K_spec</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="sn.html#deepest_K_NotBind">deepest_K_NotBind</a> [in <a href="sn.html">sn</a>]<br/>
 <a href="sn.html#discriminate_K_TmTable_K_TmNull">discriminate_K_TmTable_K_TmNull</a> [in <a href="sn.html">sn</a>]<br/>
@@ -926,6 +931,7 @@
 <a href="Continuation.html#iterate_reduce">iterate_reduce</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <br/><br/><a name="lemma_K"></a><h2>K </h2>
 <a href="Continuation.html#Krw_appendK">Krw_appendK</a> [in <a href="Continuation.html">Continuation</a>]<br/>
+<a href="Continuation.html#Krw_cons">Krw_cons</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#Krw_rt_Rw_rt">Krw_rt_Rw_rt</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#Krw_rt_conserves_Ksize">Krw_rt_conserves_Ksize</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Knorm.html#Krw_norm_SN">Krw_norm_SN</a> [in <a href="Knorm.html">Knorm</a>]<br/>
@@ -998,7 +1004,8 @@
 <a href="sn.html#pair_proj_reducible">pair_proj_reducible</a> [in <a href="sn.html">sn</a>]<br/>
 <a href="Continuation.html#plug_appendK">plug_appendK</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#plug_rw_rt">plug_rw_rt</a> [in <a href="Continuation.html">Continuation</a>]<br/>
-<a href="Continuation.html#plug_appendK_weird">plug_appendK_weird</a> [in <a href="Continuation.html">Continuation</a>]<br/>
+<a href="Continuation.html#plug_appendK_weird_Include">plug_appendK_weird_Include</a> [in <a href="Continuation.html">Continuation</a>]<br/>
+<a href="Continuation.html#plug_appendK_weird_Iterate">plug_appendK_weird_Iterate</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#plug_SN_rw_rt">plug_SN_rw_rt</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#plug_SN_rw">plug_SN_rw</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="sn.html#plug_TmTable_unique">plug_TmTable_unique</a> [in <a href="sn.html">sn</a>]<br/>
@@ -1179,6 +1186,7 @@
 <a name="constructor_B"></a><h2>B </h2>
 <a href="Norm.html#both_reducts_sn">both_reducts_sn</a> [in <a href="Norm.html">Norm</a>]<br/>
 <br/><br/><a name="constructor_I"></a><h2>I </h2>
+<a href="Continuation.html#Include">Include</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <a href="Continuation.html#Iterate">Iterate</a> [in <a href="Continuation.html">Continuation</a>]<br/>
 <br/><br/><a name="constructor_K"></a><h2>K </h2>
 <a href="Continuation.html#Krw_rt_trans">Krw_rt_trans</a> [in <a href="Continuation.html">Continuation</a>]<br/>
@@ -1389,7 +1397,7 @@
 <td><a href="index.html#global_Z">Z</a></td>
 <td>_</td>
 <td><a href="index.html#global_*">other</a></td>
-<td>(508 entries)</td>
+<td>(512 entries)</td>
 </tr>
 <tr>
 <td>Notation Index</td>
@@ -1485,7 +1493,7 @@
 <td><a href="index.html#lemma_Z">Z</a></td>
 <td>_</td>
 <td>other</td>
-<td>(333 entries)</td>
+<td>(336 entries)</td>
 </tr>
 <tr>
 <td>Constructor Index</td>
@@ -1517,7 +1525,7 @@
 <td>Z</td>
 <td>_</td>
 <td>other</td>
-<td>(76 entries)</td>
+<td>(77 entries)</td>
 </tr>
 <tr>
 <td>Inductive Index</td>
