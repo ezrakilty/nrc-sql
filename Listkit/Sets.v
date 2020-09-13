@@ -4,8 +4,9 @@ Require Import Omega.
 Require Import Coq.Lists.List.
 Require Export Coq.Lists.ListSet.
 
-Add LoadPath "../Listkit" as Listkit.
-Add LoadPath "../".
+(* Add LoadPath "../Listkit" as Listkit. *)
+
+(* Add LoadPath "." as e. *)
 
 Load "eztactics.v".
 

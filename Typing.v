@@ -1,7 +1,9 @@
+Add Rec LoadPath "Listkit" as Listkit.
+
 Require Import Term.
 Require Import List.
 
-Add Rec LoadPath "Listkit" as Listkit.
+Load "eztactics.v".
 
 Require Import Listkit.NthError.
 

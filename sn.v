@@ -1400,3 +1400,6 @@ Qed.
 (** Prints out "Closed under the global context" if we have no
 remaining assumptions. *)
 Print Assumptions normalization.
+
+Require dpdgraph.dpdgraph.
+Print DependGraph normalization.

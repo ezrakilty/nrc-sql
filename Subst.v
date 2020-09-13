@@ -102,7 +102,7 @@ Proof.
    omega.
  - (* Case of x in env. *)
   apply TVar.
-  rewrite <- nth_error_ext_length in H0; auto.
+  rewrite nth_error_ext_length in H0; auto.
 Qed.
 
 (**
@@ -352,8 +352,8 @@ Proof.
     apply env_closed.
    (* Case k + length Vs > x *)
    simpl; rewrite H.
-   (rewrite <- nth_error_ext_length in lookup_VWs by omega);
-   (rewrite <- nth_error_ext_length by omega; reflexivity).
+   (rewrite nth_error_ext_length in lookup_VWs by omega);
+   (rewrite nth_error_ext_length by omega; reflexivity).
 
   (* Case x >= k + length (Vs ++ Ws) *)
   rewrite app_length in x_large.
@@ -672,6 +672,10 @@ Proof.
 
      rewrite IHM by auto.
      clear IHM.
+
+     (* consider that this works as well as the explicit rewrites below :-/ *)
+     (* Hint Rewrite map_length map_map set_filter_map union_remove unions_remove map_union set_unions_map : idunno. *)
+     (* autorewrite with idunno. *)
 
      rewrite map_length.
      rewrite map_map.

@@ -72,8 +72,8 @@ Proof.
  (* x is in the first environment *)
  apply TVar.
  replace (unshift_var (length env) 1 x) with x.
-  rewrite <- nth_error_ext_length; auto.
-  rewrite <- nth_error_ext_length in H0; auto.
+  rewrite nth_error_ext_length; auto.
+  rewrite nth_error_ext_length in H0; auto.
  rewrite unshift_var_lo; auto.
 Qed.
 
@@ -402,7 +402,9 @@ Proof.
    apply all_map_image.
    intros X.
    pose (shift_freevars_range X 0).
-   firstorder.
+   eapply all_cut; [|apply a].
+   firstorder omega.
+
   (* Obl 2: Substitutions do not overlap:
        (0, [_]) does not overlap (S n, _). *)
   simpl.
@@ -435,7 +437,7 @@ Proof.
  split.
   subst fvs_M.
   pose (shift_freevars_range M 0). (* only need another step because all /= all_Type. *)
-  firstorder.
+  firstorder omega.
  apply all_Type_filter.
  apply outside_range_elim.
 Qed.

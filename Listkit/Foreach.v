@@ -99,6 +99,10 @@ Lemma foreach2_cut A B (P Q : A -> B -> Prop):
     foreach2 _ _ xs ys P -> foreach2 _ _ xs ys Q.
 Proof.
  induction xs; [idtac|destruct ys]; firstorder.
+ apply IHxs; auto.
+ intros; apply H; auto.
+ apply in_cons; auto.
+ apply in_cons; auto.
 Qed.
 
 Lemma foreach2_ty_cons :
@@ -118,6 +122,10 @@ Lemma foreach2_ty_cut A B (P Q : A -> B -> Type):
     foreach2_ty _ _ xs ys P -> foreach2_ty _ _ xs ys Q.
 Proof.
  induction xs; [idtac|destruct ys]; firstorder.
+ apply IHxs; auto.
+ intros; apply X; auto.
+ apply in_cons; auto.
+ apply in_cons; auto.
 Qed.
 
 Lemma foreach_ty_map :

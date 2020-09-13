@@ -144,8 +144,8 @@ Proof.
   replace (n + length env' - length env1 - length env')
      with (n - length env1) by omega.
   sauto.
- rewrite <- nth_error_ext_length; auto.
- rewrite <- nth_error_ext_length in H by auto.
+ rewrite nth_error_ext_length; auto.
+ rewrite nth_error_ext_length in H by auto.
  auto.
 Qed.
 
