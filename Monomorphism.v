@@ -1,3 +1,8 @@
+(*
+ * Strong Normalization for Nested Relational Calculus.
+ * Copyright Ezra Cooper, 2008-2020.
+ *)
+
 Require Import Coq.Lists.ListSet.
 
 Require Import Listkit.Sets.
