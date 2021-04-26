@@ -65,18 +65,6 @@ Proof.
  induction H; eauto.
 Qed.
 
-Lemma SN_double_induction_weak P:
-  (forall x y,
-    (forall x', (x ~> x') -> P x' y) -> P x y) ->
-  (forall x y,
-    (forall y', (y ~> y') -> P x y') -> P x y) ->
-  forall x y, SN x -> SN y -> P x y.
-Proof.
- intros IH_x IH_y x y SN_x SN_y.
- induction SN_x; induction SN_y.
- eauto.
- Qed.
-
 (** [Double_SN] holds for a pair of terms iff all of the immediate
     reducts of each one is also [Double_SN]. TODO: I think this is the
     same as each one separately being strongly normalizing, so what do I
@@ -96,18 +84,6 @@ Proof.
  induction SN_N.
  rename x into M, x0 into N.
  apply both_reducts_sn; auto.
-Qed.
-
-Lemma double_sn_elim :
-  forall M N, Double_SN M N -> SN M * SN N.
-Proof.
- intros.
- induction H.
- split.
-  apply reducts_SN.
-  firstorder.
- apply reducts_SN.
- firstorder.
 Qed.
 
 Lemma Double_SN_induction P:

@@ -19,13 +19,17 @@
 <h1 class="libtitle">Library NthError</h1>
 
 <div class="code">
-<span class="id" title="keyword">Load</span> <span class="id" title="var">eztactics</span>.<br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">LoadPath</span> ".." <span class="id" title="keyword">as</span> <span class="id" title="var">e</span>.<br/>
+
+<br/>
+<span class="id" title="keyword">Load</span> "eztactics.v".<br/>
 
 <br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">List</span>.<br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Omega</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">LoadPath</span> "../Listkit" <span class="id" title="keyword">as</span> <span class="id" title="var">Listkit</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Listkit.logickit</span>.<br/>
@@ -66,7 +70,7 @@
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">nth_error_ext_length</span>:<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">A</span> (<span class="id" title="var">a</span> <span class="id" title="var">b</span>: <span class="id" title="var">list</span> <span class="id" title="var">A</span>) <span class="id" title="var">n</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">n</span> &lt; <span class="id" title="var">length</span> <span class="id" title="var">a</span> →<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">nth_error</span> <span class="id" title="var">a</span> <span class="id" title="var">n</span> = <span class="id" title="var">nth_error</span> (<span class="id" title="var">a</span>++<span class="id" title="var">b</span>) <span class="id" title="var">n</span>.<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">nth_error</span> (<span class="id" title="var">a</span>++<span class="id" title="var">b</span>) <span class="id" title="var">n</span> = <span class="id" title="var">nth_error</span> <span class="id" title="var">a</span> <span class="id" title="var">n</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">nth_error_ext</span>:<br/>

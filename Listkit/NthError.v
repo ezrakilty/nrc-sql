@@ -3,12 +3,14 @@
  * Copyright Ezra Cooper, 2008-2020.
  *)
 
-Load eztactics.
+Add LoadPath ".." as e.
+
+Load "eztactics.v".
 
 Require Import List.
 Require Import Omega.
 
-(* Add LoadPath "../Listkit" as Listkit. *)
+Add LoadPath "../Listkit" as Listkit.
 
 Require Import Listkit.logickit.
 
@@ -26,14 +28,18 @@ Qed.
 Lemma nth_error_overflow :
   forall A (l:list A) n, length l <= n <-> nth_error l n = error.
 Proof.
- induction l; induction n; firstorder.
-   simpl in H.
-   inversion H.
-  discriminate.
- simpl in H1 |- *.
- apply le_n_S.
- apply <- IHl.
- trivial.
+ induction l; induction n; simpl; firstorder.
+ - simpl.
+   omega.
+ - omega.
+ - discriminate.
+ - simpl in H0 |- *.
+   simpl in *.
+   apply IHl.
+   omega.
+ - cut (length l <= n); try omega.
+   apply IHl.
+   auto.
 Qed.
 
 Lemma nth_error_overflow_errors:
@@ -89,14 +95,13 @@ Hint Resolve nth_error_nil nth_error_ok nth_error_ok_rev
 Lemma nth_error_ext_length:
   forall A (a b: list A) n,
     n < length a ->
-    nth_error a n = nth_error (a++b) n.
+    nth_error (a++b) n = nth_error a n.
  induction a; simpl; intros b n H.
-  omega.
- (* rewrite <- app_comm_cons.*)
- destruct n; simpl.
-  auto.
- apply IHa.
- omega.
+ - omega.
+ - destruct n; simpl.
+   * auto.
+   * apply IHa.
+     omega.
 Qed.
 
 Lemma nth_error_ext:
@@ -104,7 +109,7 @@ Lemma nth_error_ext:
     nth_error a n = value v ->
     value v = nth_error (a++b) n.
 Proof.
- intros; rewrite <- nth_error_ext_length; auto.
+ intros; rewrite nth_error_ext_length; auto.
  eauto.
 Qed.
 
@@ -177,10 +182,12 @@ Lemma nth_error_app_split :
 Proof.
  induction xs;
  intros ys n v H;
-  simpl in H |- *.
-  right; intuition; eauto.
-  replace (n-0) with n; auto; omega.
- destruct n; simpl in *; firstorder.
+   simpl in H |- *.
+ - right; intuition; eauto.
+   replace (n-0) with n; auto; omega.
+ - destruct n; simpl in *; firstorder.
+   * left; firstorder; omega.
+   * destruct (IHxs ys n v H); [left|right]; firstorder; omega.
 Qed.
 
 Lemma nth_error_app_split_error :
@@ -194,8 +201,11 @@ Proof.
   simpl in *.
   intuition; eauto.
    cut (length ys <= n); [omega|apply <- nth_error_overflow]; trivial.
-  replace (n-0) with n; auto; omega.
+   replace (n-0) with n; auto; omega.
  destruct n; try discriminate; simpl in *; firstorder.
+ destruct (IHxs ys n H).
+ destruct H1.
+ omega.
 Qed.
 
 (** When two lists are equally long, we can take the same index into

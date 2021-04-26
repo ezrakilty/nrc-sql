@@ -27,7 +27,8 @@
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">Coq.Lists.ListSet</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Add</span> <span class="id" title="var">LoadPath</span> "../Listkit" <span class="id" title="keyword">as</span> <span class="id" title="var">Listkit</span>.<br/>
+
+<br/>
 
 <br/>
 <span class="id" title="keyword">Load</span> "eztactics.v".<br/>
@@ -35,7 +36,7 @@
 <br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Listkit.logickit</span>.<br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Listkit.Foreach</span>.<br/>
-<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">NthError</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Listkit.NthError</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Notation</span> &quot;X ∪ Y" := (<span class="id" title="var">set_union</span> <span class="id" title="var">eq_nat_dec</span> <span class="id" title="var">X</span> <span class="id" title="var">Y</span>) (<span class="id" title="tactic">at</span> <span class="id" title="keyword">level</span> 600).<br/>
@@ -322,7 +323,7 @@
 &nbsp;&nbsp;<span class="id" title="keyword">end</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Foreach</span>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Listkit.Foreach</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Definition</span> <span class="id" title="var">compwise_eq_sets</span> <span class="id" title="var">A</span> :=<br/>
@@ -404,8 +405,8 @@
 &nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">A</span> <span class="id" title="var">B</span> <span class="id" title="var">eq_dec_A</span> <span class="id" title="var">eq_dec_B</span> <span class="id" title="var">f</span> <span class="id" title="var">Xs</span>,<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eq_sets</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">_</span><br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">set_unions</span> <span class="id" title="var">B</span> <span class="id" title="var">eq_dec_B</span> (<span class="id" title="var">map</span> (<span class="id" title="var">set_map</span> <span class="id" title="var">eq_dec_B</span> <span class="id" title="var">f</span>) <span class="id" title="var">Xs</span>))<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">set_map</span> <span class="id" title="var">eq_dec_B</span> <span class="id" title="var">f</span>) (<span class="id" title="var">set_unions</span> <span class="id" title="var">A</span> <span class="id" title="var">eq_dec_A</span> <span class="id" title="var">Xs</span>)).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="id" title="var">set_map</span> <span class="id" title="var">eq_dec_B</span> <span class="id" title="var">f</span>) (<span class="id" title="var">set_unions</span> <span class="id" title="var">A</span> <span class="id" title="var">eq_dec_A</span> <span class="id" title="var">Xs</span>))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="id" title="var">set_unions</span> <span class="id" title="var">B</span> <span class="id" title="var">eq_dec_B</span> (<span class="id" title="var">map</span> (<span class="id" title="var">set_map</span> <span class="id" title="var">eq_dec_B</span> <span class="id" title="var">f</span>) <span class="id" title="var">Xs</span>)).<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">add_cons_incl</span> <span class="id" title="var">A</span> <span class="id" title="var">eq_dec</span>:<br/>

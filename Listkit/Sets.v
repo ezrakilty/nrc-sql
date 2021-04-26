@@ -9,13 +9,15 @@ Require Import Omega.
 Require Import Coq.Lists.List.
 Require Export Coq.Lists.ListSet.
 
-Add LoadPath "../Listkit" as Listkit.
+(* Add LoadPath "../Listkit" as Listkit. *)
+
+(* Add LoadPath "." as e. *)
 
 Load "eztactics.v".
 
 Require Import Listkit.logickit.
 Require Import Listkit.Foreach.
-Require Import NthError.
+Require Import Listkit.NthError.
 
 Notation "X ∪ Y" := (set_union eq_nat_dec X Y) (at level 600).
 (*Notation "⋃ Xs" := (set_unions nat eq_nat_dec Xs) (at level 700).
@@ -655,7 +657,7 @@ Fixpoint set_unions A eq_dec (xss : list (set A)) : set A :=
     | xs :: xss => set_union eq_dec xs (set_unions A eq_dec xss)
   end.
 
-Require Import Foreach.
+Require Import Listkit.Foreach.
 
 Definition compwise_eq_sets A :=
   fun x y => length x = length y /\ foreach2 (set A) (set A) x y (eq_sets A).
@@ -864,14 +866,13 @@ Lemma set_unions_map:
   forall A B eq_dec_A eq_dec_B f Xs,
     eq_sets
       _
-      (set_unions B eq_dec_B (map (set_map eq_dec_B f) Xs))
-      ((set_map eq_dec_B f) (set_unions A eq_dec_A Xs)).
+      ((set_map eq_dec_B f) (set_unions A eq_dec_A Xs))
+      (set_unions B eq_dec_B (map (set_map eq_dec_B f) Xs)).
 Proof.
  induction Xs; simpl; intros.
   auto.
- setoid_rewrite IHXs.
- symmetry.
  setoid_rewrite map_union.
+ setoid_rewrite IHXs.
  auto.
 Qed.
 

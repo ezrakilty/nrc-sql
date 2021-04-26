@@ -3,10 +3,12 @@
  * Copyright Ezra Cooper, 2008-2020.
  *)
 
+Add Rec LoadPath "Listkit" as Listkit.
+
 Require Import Term.
 Require Import List.
 
-Add Rec LoadPath "Listkit" as Listkit.
+Load "eztactics.v".
 
 Require Import Listkit.NthError.
 
@@ -39,14 +41,3 @@ Proof.
 Qed.
 
 Hint Resolve Weakening_closed.
-
-Lemma Typing_two_ways:
-  {M : Term & {S : Ty & {T : Ty &
-   ((Typing nil M S * Typing nil M T)%type * (S <> T))%type}}}.
-Proof.
- exists (TmAbs (TmVar 0)).
- exists (TyArr TyBase TyBase).
- exists (TyArr (TyPair TyBase TyBase) (TyPair TyBase TyBase)).
- intuition.
- discriminate.
-Qed.

@@ -41,7 +41,7 @@ Qed.
 
 Add LoadPath "../Listkit" as Listkit.
 
-Require Import Sets. (* Consider NOT doing this. *)
+Require Import Listkit.Sets. (* Consider NOT doing this. *)
 
 Lemma all_Type_incl:
   forall A eq_dec f smaller bigger,
@@ -250,7 +250,7 @@ Proof.
  auto.
 Qed.
 
-Ltac sufficient H :=
+Ltac suff H :=
   cut H; [solve[auto] | ].
 
 Lemma all_Type_union_rev:
@@ -260,7 +260,7 @@ Lemma all_Type_union_rev:
 Proof.
  unfold all_Type.
  intros ? ? ? ? ? H.
- sufficient (forall x, (set_In x xs \/ set_In x ys) -> pred x).
+ suff (forall x, (set_In x xs \/ set_In x ys) -> pred x).
  intros.
  auto.
 Qed.

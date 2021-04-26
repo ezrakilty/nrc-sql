@@ -15,6 +15,11 @@ Require Import Shift.
 Require Import Subst.
 Require Import Omega.
 
+(** Let's make [N */ L] a notation for the result of a beta-reduction
+    (including all the de Bruijn monkeying). Makes the lemmas a lot easier to read.
+    Precedence is not correct. *)
+Notation "N */ L" := (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) (at level 99).
+
 Lemma beta_reduct_typing_general_var:
   forall S env' x T M env k,
    k = length env ->
@@ -33,11 +38,9 @@ Proof.
  simpl in H.
  destruct (le_gt_dec (length env) x).
   destruct (eq_nat_dec x (length env)).
-  (* 'x' points to the type 'S' *)
-  subst x.
+   (* 'x' points to the type 'S' *)
+   subst x.
    replace (length env - length env) with 0 by omega.
-   replace (nth_error (shift 0 1 M :: nil) 0)
-     with (value (shift 0 1 M)); auto.
    simpl.
    rewrite fancy_unshift_shift; auto; [|omega].
    replace (length env+1-1) with (length env); auto; [|omega].
@@ -74,8 +77,8 @@ Proof.
  (* x is in the first environment *)
  apply TVar.
  replace (unshift_var (length env) 1 x) with x.
-  rewrite <- nth_error_ext_length; auto.
-  rewrite <- nth_error_ext_length in H0; auto.
+  rewrite nth_error_ext_length; auto.
+  rewrite nth_error_ext_length in H0; auto.
  rewrite unshift_var_lo; auto.
 Qed.
 
@@ -113,11 +116,6 @@ Proof.
    replace (1 + (k + 1)) with (Datatypes.S k + 1) by auto.
    apply IHN2; simpl; auto.
 Qed.
-
-(** Let's make [N */ L] a notation for the result of a beta-reduction
-    (including all the de Bruijn monkeying). Makes the lemmas a lot easier to read.
-    Precedence is not correct. *)
-Notation "N */ L" := (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) (at level 99).
 
 (** Beta reduction preserves types, specialized to reduce at the head
     of the environment. *)
@@ -173,6 +171,8 @@ Inductive RewritesTo : Term -> Term -> Type :=
     V = (n */ x) -> RewritesTo (TmBind (TmSingle x) n) V
 | Rw_Bind_union : forall n xs ys,
     RewritesTo (TmBind (TmUnion xs ys) n) (TmUnion (TmBind xs n) (TmBind ys n))
+| Rw_Bind_union_body : forall m xs ys,
+    RewritesTo (TmBind m (TmUnion xs ys)) (TmUnion (TmBind m xs) (TmBind m ys))
 | Rw_Bind_subject : forall m n m',
     RewritesTo m m' -> RewritesTo (TmBind m n) (TmBind m' n)
 | Rw_Bind_assoc : forall l m n,
@@ -312,6 +312,10 @@ Proof.
  - inversion H.
    subst.
    eauto.
+ - (* Case TmUnion in body of TmBind*)
+   inversion H0.
+   subst.
+   eauto.
  (* Case TmBind_assoc *)
  - inversion H.
    subst.
@@ -403,7 +407,9 @@ Proof.
    apply all_map_image.
    intros X.
    pose (shift_freevars_range X 0).
-   firstorder.
+   eapply all_cut; [|apply a].
+   firstorder omega.
+
   (* Obl 2: Substitutions do not overlap:
        (0, [_]) does not overlap (S n, _). *)
   simpl.
@@ -436,7 +442,7 @@ Proof.
  split.
   subst fvs_M.
   pose (shift_freevars_range M 0). (* only need another step because all /= all_Type. *)
-  firstorder.
+  firstorder omega.
  apply all_Type_filter.
  apply outside_range_elim.
 Qed.
@@ -459,9 +465,10 @@ Proof.
                   |
                   |
                   | N
-                  | M 
+                  | M
                   | M N
                   | M N
+                  |
                   | M N
                   | L M N
                   | M N
@@ -630,6 +637,12 @@ Proof.
    simpl in red.
    econstructor; eauto; simpl; auto.
 
+ - subst.
+   descrim N2.
+   inversion H1; subst.
+   simpl in red.
+   econstructor; eauto; simpl; auto.
+
  - (* Case: reduction in subject of TmBind. *)
    destruct (IHN1 _ _ H2); subst.
    econstructor; eauto; simpl; auto.
@@ -774,55 +787,6 @@ Hint Resolve Rw_rt_Pair_left Rw_rt_Pair_right Rw_rt_App_left Rw_rt_App_right
      Rw_rt_Bind_left Rw_rt_Bind_right Rw_rt_If_cond Rw_rt_If_left Rw_rt_If_right.
 
 (** * [( */ )] and unshift. *)
-
-(* Failed attempt to simplify beta_with_unshift_var *)
-(*Lemma zod:
-  forall n n' k env x,
-    k >= length env ->
-    n >= n' + length env ->
-    unshift n k (subst_env n' env (TmVar x)) =
-    subst_env n' (map (unshift n k) env) (unshift n k (TmVar x)).
-Proof.
- intros.
- destruct (le_gt_dec (n+k) x).
-  replace (subst_env n' env (TmVar x)) with (TmVar x).
-   replace (unshift n k (TmVar x)) with (TmVar (x-k)).
-    rewrite subst_var_outside_range.
-     auto.
-    rewrite map_length.
-    unfold outside_range.
-    break; (easy || (break; (easy || omega))).
-   simpl.
-   unfold unshift_var.
-   break; (easy||omega).
-  rewrite subst_var_outside_range; auto.
-  unfold outside_range; break; (easy || (break; (easy || omega))).
-  cut (unshift n k (TmVar x) =TmVar x); [intro|].
-   case_eq (outside_range n' (length env + n') x); intro.
-   rewrite subst_var_outside_range; auto.
-   rewrite H1.
-   rewrite subst_var_outside_range; auto.
-   rewrite map_length.
-   auto.
-  destruct (subst_var_inside_range n' env x H2) as [V [V_env V_def]].
-rewrite V_def.
-  destruct (subst_var_inside_range n' (map (unshift n k) env) x).
-rewrite map_length.
-sauto.
-destruct H3.
-rewrite H1.
-rewrite H4.
-subst x0.
-
-destruct (le_gt_dec (n' + length env) x).
-destruct (le_gt_dec (n' + length env) x).
-
-rewrite subst_env_nonfree.
-unfold unshift_var at 1.
-destruct (le_gt_dec (k + n) x).
-destruct (unshift_var n k x).
-Qed.
-*)
 
 Lemma beta_with_unshift_var:
   forall x M n n' k,

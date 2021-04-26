@@ -82,48 +82,58 @@ Proof.
  simpl; omega.
 Qed.
 
-(**
-       Vs :: env'
-env, env' |- tm       : ty
-env       |- tm{Vs/k} : ty    (where k = length env)
-*)
-Lemma subst_env_preserves_typing:
-  forall tm Vs env env' ty k,
+    (* env_typing Vs env' -> *)
+    (* x < length Vs & x < length env' & Typing (TmVar x) T *)
+Lemma subst_env_preserves_typing_var:
+  forall x Vs env env' T k,
     env_typing Vs env' ->
-    Typing (env ++ env') tm ty ->
+    Typing (env ++ env') (TmVar x) T ->
     k = length env ->
-      Typing env (subst_env k Vs tm) ty.
+      Typing env (subst_env k Vs (TmVar x)) T.
 Proof.
- induction tm; simpl; intros Vs env env' ty k Vs_tp tp k_eq;
-    inversion tp; subst; eauto.
-(* Case TmVar *)
-  destruct Vs_tp as [Vs_env'_equilong Vs_tp].
-  destruct (le_gt_dec (length env) x).
-  (* Case x is beyond [length env] *)
-   assert (value ty = nth_error env' (x - length env)).
-    apply nth_error_app; trivial.
-    case_eq (nth_error Vs (x - length env));
-      [intros v H_v | intros H_v; refute]; auto.
-    (* Obtained value v for x - length env in Vs. *)
+ simpl; intros x Vs env env' T k Vs_tp tp k_eq; inversion tp; subst.
+ destruct Vs_tp as [Vs_env'_equilong Vs_tp].
+ destruct (le_gt_dec (length env) x).
+ - (* Case x is beyond [length env] *)
+   case_eq (nth_error Vs (x - length env));
+     [intros v H_v | intros H_v; refute]; auto.
+   (* Obtained value v for x - length env in Vs. *)
     apply Weakening_closed.
     eapply foreach2_ty_member; eauto.
-   (* Bogus case of no value for x - length env. *)
+    (* Bogus case of no value for x - length env. *)
+    apply nth_error_app in H0; auto.
+   apply nth_error_ok_rev in H0.
    apply <- nth_error_overflow in H_v.
-   apply nth_error_ok_rev in H.
    omega.
-  (* Case of x in env. *)
+ - (* Case of x in env. *)
   apply TVar.
-  rewrite <- nth_error_ext_length in H0; auto.
- (* Case TmAbs *)
-  apply TAbs.
-  replace (S (length env)) with (length (s::env)) by trivial.
-  apply IHtm with env'; trivial.
-  erewrite env_typing_shift_noop; eauto.
- (* Case TmBind *)
- eapply TBind.
-  eapply IHtm1; eauto.
- apply IHtm2 with (env':=env'); trivial.
- erewrite env_typing_shift_noop; eauto.
+  rewrite nth_error_ext_length in H0; auto.
+Qed.
+
+(**
+       Vs :: env'
+env, env' |- M       : T
+env       |- M{Vs/k} : T    (where k = length env)
+*)
+Lemma subst_env_preserves_typing:
+  forall M Vs env env' T k,
+    env_typing Vs env' ->
+    Typing (env ++ env') M T ->
+    k = length env ->
+      Typing env (subst_env k Vs M) T.
+Proof.
+ induction M; simpl; intros Vs env env' T k Vs_tp tp k_eq;
+    inversion tp; subst; eauto.
+ - (* Case TmVar *)
+   eapply subst_env_preserves_typing_var; eauto.
+ - (* Case TmAbs *)
+   apply TAbs.
+   replace (S (length env)) with (length (s::env)) by trivial.
+   apply IHM with env'; trivial.
+   erewrite env_typing_shift_noop; eauto.
+ - (* Case TmBind *)
+   eapply TBind; eauto using IHM1, IHM2.
+   erewrite env_typing_shift_noop; eauto.
 Qed.
 
 Hint Resolve subst_env_preserves_typing.
@@ -146,7 +156,7 @@ Hint Resolve subst_nil (* Used in the proof of @normalization@! *).
 Lemma subst_env_big_var :
   forall q x env,
     q + length env <= x ->
-      TmVar x = subst_env q env (TmVar x).
+      subst_env q env (TmVar x) = TmVar x.
 Proof.
  intros.
  simpl.
@@ -169,8 +179,8 @@ Proof.
         unfold shift at 3.
         unfold shift_var.
         destruct (le_gt_dec k x) ; [ | ].
-         rewrite <- subst_env_big_var by omega.
-         rewrite <- subst_env_big_var.
+         rewrite subst_env_big_var by omega.
+         rewrite subst_env_big_var.
           simpl; unfold shift_var.
           break; finish.
          solve[map_omega].
@@ -314,22 +324,19 @@ Proof.
  sauto.
 Qed.
 
+(** If two successive substitutions are "independent" and adjacent then we can combine
+   them into one (on a var). *)
 Lemma subst_env_concat_TmVar:
-  forall
-    (x : nat)
-    (Vs Ws : list Term)
-    (env : list Ty)
-    (k : nat),
+  forall (x : nat) (Vs Ws : list Term) (env : list Ty) (k : nat),
     env_typing (Vs ++ Ws) env ->
     length (Vs ++ Ws) = length env ->
-    foreach2_ty Term Ty (Vs ++ Ws) env
-                (fun (x0 : Term) (y : Ty) => Typing nil x0 y) ->
        subst_env k Vs (subst_env (k + length Vs) Ws (TmVar x)) =
        subst_env k (Vs ++ Ws) (TmVar x).
 Proof.
- intros ? ? ? ? ? env_closed VsWs_env_equilong env_closed'.
+ intros ? ? ? ? ? env_closed VsWs_env_equilong.
  unfold subst_env at 3.
  unfold subst_env at 2.
+ unfold env_typing in *.
 
  case_eq (le_gt_dec k x); [intros k_le_x ?|intros x_gt_x H].
  (* Case k <= x *)
@@ -339,7 +346,6 @@ Proof.
         as [[x_small [VW' [T' HH]]] | [x_large HH]]; trivial;
     destruct HH as [lookup_VWs lookup_env].
   (* Case x < k + length (Vs ++ Ws) *)
-
    destruct (le_gt_dec (k + length Vs) x).
    (* Case k + length Vs <= x *)
     rewrite <- rewrite_nth_error_app; [|omega].
@@ -347,18 +353,19 @@ Proof.
     (* subst_env k Vs VW' = VW': *)
     apply subst_env_closed_noop with T'.
     (* Typing nil VW' T': *)
-    eapply foreach2_ty_member; eauto; trivial.
+    eapply foreach2_ty_member; eauto.
+    apply env_closed.
    (* Case k + length Vs > x *)
    simpl; rewrite H.
-   (rewrite <- nth_error_ext_length in lookup_VWs by omega);
-   (rewrite <- nth_error_ext_length by omega; reflexivity).
+   (rewrite nth_error_ext_length in lookup_VWs by omega);
+   (rewrite nth_error_ext_length by omega; reflexivity).
 
   (* Case x >= k + length (Vs ++ Ws) *)
   rewrite app_length in x_large.
   rewrite <- rewrite_nth_error_app; [|omega].
   rewrite lookup_VWs; simpl.
   double_case.
-  symmetry; apply subst_env_big_var; omega.
+  apply subst_env_big_var; omega.
 
  (* Case k > x *)
  break; try easy.
@@ -392,6 +399,7 @@ Proof.
   apply IHN with env; auto.
   rewrite <- map_app.
   erewrite env_typing_shift_noop; eauto.
+
  (* Case TmBind *)
  simpl; f_equal; eauto.
  rewrite map_app.
@@ -670,6 +678,10 @@ Proof.
      rewrite IHM by auto.
      clear IHM.
 
+     (* consider that this works as well as the explicit rewrites below :-/ *)
+     (* Hint Rewrite map_length map_map set_filter_map union_remove unions_remove map_union set_unions_map : idunno. *)
+     (* autorewrite with idunno. *)
+
      rewrite map_length.
      rewrite map_map.
      rewrite set_filter_map.
@@ -677,7 +689,7 @@ Proof.
      rewrite unions_remove.
      rewrite map_map.
      rewrite map_union.
-     rewrite <- set_unions_map.
+     rewrite set_unions_map.
      rewrite map_map.
 
      (* Corresponding sides of the union are \subseteq *)
@@ -766,7 +778,7 @@ Proof.
   break; break; try (break; try break); auto; finish.
  (* Obligation (shift 0 1 ; pred) = idy *)
  rewrite unions_remove.
- rewrite <- set_unions_map.
+ rewrite set_unions_map.
  apply unions2_mor.
  rewrite map_map.
  rewrite map_map.

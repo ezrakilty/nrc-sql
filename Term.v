@@ -119,52 +119,6 @@ Proof.
  intuition.
 Qed.
 
-Lemma env_typing_env_app:
-  forall env Vs Ws Ts,
-    env_typing_env env (Vs++Ws) Ts ->
-    {T1s : list Ty & { T2s : list Ty &
-      ((length T1s = length Vs) *
-      (length T2s = length Ws) *
-      (Ts = T1s ++ T2s) *
-      (env_typing_env env (Vs ++ Ws) (T1s ++ T2s)))%type } }.
-Proof.
- induction Vs.
-  simpl.
-  intros Ws Ts H.
-  exists nil.
-  exists Ts.
-  simpl.
-  inversion H.
-  auto.
- simpl.
- intros Ws Ts H.
- inversion H as [H0 X].
- simpl in H0.
- destruct Ts.
- simpl in H0.
-  omega.
- destruct (IHVs Ws Ts) as [T1s' H1].
-  apply env_typing_elim in H.
-  destruct H; auto.
- destruct H1 as [T2s' H2].
- exists (t::T1s').
- exists (T2s').
- simpl.
- destruct H2 as [[[H3 H4] H5] H6].
- split; [split; [split |]|].
-    omega.
-   auto.
-  congruence.
- apply env_typing_intro.
-  intuition.
-   simpl in *.
-   subst Ts.
-  unfold foreach2_ty in X.
-  simpl in X.
-  intuition.
- auto.
-Qed.
-
 Lemma env_typing_cons :
   forall V T Vs env,
     Typing nil V T -> env_typing Vs env -> env_typing (V::Vs) (T::env).
