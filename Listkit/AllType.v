@@ -1,3 +1,8 @@
+(*
+ * Listkit: A library for working with lists in Coq.
+ * Copyright Ezra Cooper, 2008-2020.
+ *)
+
 Require Import Coq.Lists.List.
 Require Import Coq.Lists.ListSet.
 
