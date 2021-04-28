@@ -330,7 +330,7 @@ Proof.
     exists (TmAbs (shift 0 1 N)).
     split.
     (* The dummy abstraction has the appropriate type. *)
-     solve [auto with Reducible Shift].
+     solve [auto with Reducible].
     (* It is reducible at -> type; it applied to any reducible term gives
        a reducible application. *)
     intros M M_tp M_Red.
@@ -342,7 +342,7 @@ Proof.
     double_induction_SN_intro M N.
     (* We'll show that all reducts are reducible. *)
     apply IHT2_Red_neutral_withdraw; eauto.
-     apply TApp with T1; solve [eauto with Reducible Shift].
+     apply TApp with T1; solve [eauto with Reducible].
     intros M'' red.
     (* Take cases on the reductions. *)
     inversion red as [ | ? Z ? redn_Z | | | | | | | | | | | | | | | | | | | | | |] ; subst.
@@ -583,19 +583,7 @@ Proof.
 
  assert (Typing nil P' S) by (eauto with Reducible).
  assert (Reducible P' S) by (eauto with Reducible).
- (* FIXME: Should be more automatic *)
- apply Neutral_Reducible_withdraw.
- sauto.
- cut (Typing nil (TmAbs (subst_env 1 Vs N) @ P') T).
- intro.
- apply Rw_rt_preserves_types with (TmAbs (subst_env 1 Vs N) @ P').
- auto.
- eauto.
- eapply TApp.
- apply TAbs.
- eapply subst_env_preserves_typing; eauto.
- auto.
-
+ apply Neutral_Reducible_withdraw; [sauto | seauto |].
  intros M' redn.
 
  inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | | | | | | |].
@@ -1095,7 +1083,7 @@ Proof.
     { apply Krw_rt_conserves_Ksize in H2.
       simpl in H2.
       lia. }
-    { eauto with Norm. }
+    { eauto. }
     assert (SN (plug (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)) (Iterate N1 :: K''))).
      assert (plug (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) K
                 ~>> plug (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)) (Iterate N1 :: K'')).
