@@ -2,8 +2,9 @@ Load "eztactics.v".
 
 Add LoadPath "Listkit" as Listkit.
 
-Require Import List.
 Require Import Arith.
+Require Import Lia.
+Require Import List.
 
 Require Import Listkit.logickit.
 Require Import Listkit.NthError.
@@ -31,6 +32,8 @@ Import Setoid.
 Require Import Coq.Program.Basics. (* TODO: What's this for?? *)
 Require Import Bool.
 
+(* Set Loose Hint Behavior Strict. *)
+
 Hint Rewrite app_comm_cons : list.
 
 Definition set_remove := Listkit.Sets.set_remove.
@@ -40,7 +43,7 @@ Definition set_remove := Listkit.Sets.set_remove.
    Hint Transparent nat_set_map.
    Hint Unfold nat_set_map. *)
 
-Hint Resolve subst_env_compat_rw_rt.
+#[local] Hint Resolve subst_env_compat_rw_rt : core.
 
 (**
 * Embeddings
@@ -130,7 +133,7 @@ Proof.
   destruct ty; firstorder auto.
 Qed.
 
-Hint Immediate Reducible_welltyped_closed.
+#[local] Hint Immediate Reducible_welltyped_closed : Reducible.
 
 (** The Rewrites relation preserves reducibility. (Lemma 22) *)
 Lemma Rw_preserves_Reducible :
@@ -142,7 +145,7 @@ Proof.
    solve [firstorder using Rw_preserves_types].
   solve [firstorder using Rw_preserves_types].
  intros.
- split; eauto using Rw_preserves_types.
+ split; eauto using Rw_preserves_types with Reducible.
  intros.
  assert (H2 : SN (plug M K)) by firstorder.
  inversion H2 as [H3].
@@ -160,7 +163,7 @@ Proof.
  induction red; subst; eauto using Rw_preserves_Reducible.
 Qed.
 
-Hint Resolve Rw_rt_preserves_Reducible.
+#[local] Hint Resolve Rw_rt_preserves_Reducible : Reducible.
 
 Lemma Krw_preserves_ReducibleK :
   forall T K, ReducibleK Reducible K T -> forall K',
@@ -227,7 +230,7 @@ Proof.
      destruct IHT2 as [[[N N_red] Reducible_SN_T2] Neutral_Reducible_T2].
      exists (TmPair M N).
      simpl.
-     split; [auto | ].
+     split; [auto with Reducible | ].
 
      (* Case: When continuation frames (left & right projections) are applied, a
         reducible term is formed. *)
@@ -240,7 +243,7 @@ Proof.
       double_induction_SN_intro M N.
       (* Because (TmProj _ _) is Neutral, it's sufficient to show that all its
          reducts are reducible. *)
-      apply Neutral_Reducible_T1; [seauto | seauto | ].
+      apply Neutral_Reducible_T1; [seauto | solve [eauto with Reducible] | ].
       intros Z H.
       inversion H.
       (* Case: <M', N'> itself reduces *)
@@ -254,7 +257,7 @@ Proof.
        apply IHN; seauto.
       (* Case: The reduct is at the head; we project. *)
       subst m n Z.
-      seauto.
+      solve [eauto with Reducible].
 
      (* Case: right projection *)
      (* TODO: refactor between the TmProj true / TmProj false cases. *)
@@ -264,7 +267,7 @@ Proof.
      apply Neutral_Reducible_T2; [seauto | | ].
      (* TODO: why does the TProj1 case go with seauto but this needs me
          to tell is what lemma to use? *)
-      apply TProj2 with T1; seauto.
+      apply TProj2 with T1; solve [eauto with Reducible].
      intros Z H.
      inversion H.
      (* Case: <M', N'> itself reduces *)
@@ -276,7 +279,7 @@ Proof.
       apply IHN; seauto.
      (* Case: The reduct is at the head; we project. *)
      subst m n Z.
-     seauto.
+     solve [eauto with Reducible].
 
    (* Case: Reducible pair-type terms are strongly normalizing *)
     simpl.
@@ -322,7 +325,7 @@ Proof.
     exists (TmAbs (shift 0 1 N)).
     split.
     (* The dummy abstraction has the appropriate type. *)
-     sauto.
+     solve [auto with Reducible].
     (* It is reducible at -> type; it applied to any reducible term gives
        a reducible application. *)
     intros M M_tp M_Red.
@@ -334,7 +337,7 @@ Proof.
     double_induction_SN_intro M N.
     (* We'll show that all reducts are reducible. *)
     apply IHT2_Red_neutral_withdraw; eauto.
-     apply TApp with T1; seauto.
+     apply TApp with T1; solve [eauto with Reducible].
     intros M'' red.
     (* Take cases on the reductions. *)
     inversion red as [ | ? Z ? redn_Z | | | | | | | | | | | | | | | | | | | | | | |] ; subst.
@@ -358,7 +361,7 @@ Proof.
    destruct M_red as [M_tp M_applied_Red].
    destruct IHT1 as [[[X Red_X] _] _].
    assert (Reducible (M@X) T2).
-    apply M_applied_Red; seauto.
+    apply M_applied_Red; solve [eauto with Reducible].
    assert (SN (M@X)).
     solve [firstorder] (* Finds the needed lemma in IHT2 *).
    apply SN_context_App_left with X; sauto.
@@ -390,13 +393,13 @@ Proof.
     assert (Reducible_m2: Reducible m2 (TyArr T1 T2)).
      apply M_reducts_Reducible; sauto.
     simpl in Reducible_m2.
-    apply Reducible_m2; seauto.
+    apply Reducible_m2; solve [eauto with Reducible].
    (* Right of (@) case: by inductive hypothesis. *)
    rename n2 into L''.
    apply IHL'; seauto.
   assert (Reducible (M@L) T2).
    apply X; sauto.
-  seauto.
+  solve [eauto with Reducible].
 
  (* Case TyList *)
  destruct IHT as [[[N N_Red] Red_T_tms_SN] IHT_Red_neutral_withdraw].
@@ -404,7 +407,7 @@ Proof.
  (* Existence of a reducible term. *)
    exists (TmSingle N).
    simpl.
-   auto.
+   solve [auto with Reducible].
  (* Reducible terms are strongly normalizing. *)
   simpl.
   intros tm X.
@@ -457,7 +460,7 @@ Proof.
  firstorder using Reducible_properties.
 Qed.
 
-Hint Resolve Reducible_SN.
+#[local] Hint Resolve Reducible_SN : SN.
 
 (** Every neutral term whose reducts are all [Reducible] is itself [Reducible].
     (Lemma 25) *)
@@ -540,7 +543,7 @@ Proof.
  replace (map (shift 0 1) Vs) with Vs
    by (symmetry; eauto).
 
- assert (SN P) by eauto.
+ assert (SN P) by eauto with SN.
  set (N'' := subst_env 1 Vs N).
  assert (SN_N'' : SN N'').
   assert (forall V, Reducible V S -> SN (subst_env 0 (V::nil) N'')).
@@ -566,8 +569,8 @@ Proof.
  double_induction_SN_intro P N''.
  subst N''.
 
- assert (Typing nil P' S) by eauto.
- assert (Reducible P' S) by eauto.
+ assert (Typing nil P' S) by (eauto with Reducible).
+ assert (Reducible P' S) by (eauto with Reducible).
  apply Neutral_Reducible_withdraw; [sauto | seauto |].
  intros M' redn.
 
@@ -587,7 +590,7 @@ Proof.
       auto.
      eapply subst_env_concat; simpl; solve [eauto].
     assert (Reducible (subst_env 0 (P'::Vs) N) T) by auto.
-    solve [eauto].
+    solve [eauto with Reducible].
    (* To show that unshift 0 1 has no effect on (subst_env 0 [P'] N'''). *)
    (* First, N, after substitution of P'::Vs, is closed: *)
    assert (Typing nil (subst_env 0 (P'::Vs) N) T).
@@ -623,8 +626,8 @@ Proof.
 
  apply Neutral_Reducible_withdraw; auto.
  (* Discharge the typing obligation. *)
- - assert (Typing nil y T) by eauto.
-   assert (Typing nil x S) by eauto.
+ - assert (Typing nil y T) by solve [eauto with Reducible].
+   assert (Typing nil x S) by solve [eauto with Reducible].
    destruct b; eauto.
  (* All reducts are reducible. *)
  - intros M' H3.
@@ -633,9 +636,9 @@ Proof.
    (* Case: reduction under the operation. *)
    * inversion H7; subst; eauto.
    (* Case: beta-reduction on the left *)
-   * eauto.
+   * eauto with Reducible.
    (* Case: beta-reduction on the right *)
-   * eauto.
+   * eauto with Reducible.
 Qed.
 
 (** (Lemma 29, for pairs rather than records) *)
@@ -645,8 +648,8 @@ Lemma pair_reducible:
 Proof.
  intros.
  simpl.
- assert (Typing nil M S) by auto.
- assert (Typing nil N T) by auto.
+ assert (Typing nil M S) by solve [auto with Reducible].
+ assert (Typing nil N T) by solve [auto with Reducible].
  assert (SN M) by (eapply Reducible_SN; eauto).
  assert (SN N) by (eapply Reducible_SN; eauto).
  intuition.
@@ -664,7 +667,7 @@ Proof.
  unfold ReducibleK.
  simpl.
  intros.
- eauto using SN_TmSingle.
+ eauto using SN_TmSingle with SN.
 Qed.
 
 (* Hint Resolve ReducibleK_Empty. *)
@@ -875,7 +878,7 @@ Inductive RewritesTo_rt_right_linear : Term -> Term -> Type :=
                   RewritesTo_rt_right_linear m n ->
                   RewritesTo_rt_right_linear l n.
 
-Hint Constructors RewritesTo_rt_right_linear.
+#[local] Hint Constructors RewritesTo_rt_right_linear : flatten_rw.
 
 Lemma concat_redseq:
   forall l m n
@@ -893,8 +896,8 @@ Lemma normal_redseq:
 Proof.
  intros.
  induction r; intros; subst.
- - auto.
- - eauto.
+ - auto with flatten_rw.
+ - eauto with flatten_rw.
  - eauto using concat_redseq.
 Qed.
 
@@ -1076,7 +1079,7 @@ Proof.
     apply IHK.
     { apply Krw_rt_conserves_Ksize in H2.
       simpl in H2.
-      omega. }
+      lia. }
     { eauto. }
     assert (SN (plug (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)) (Iterate N1 :: K''))).
      assert (plug (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) K
@@ -1095,7 +1098,7 @@ Proof.
     unfold in_env_domain.
     simpl in a |- *.
     eapply all_cut; [| apply a]; simpl.
-    intros; omega.
+    intros; lia.
 Unshelve.
 exact O. (* what? *)
 Admitted.
@@ -1134,7 +1137,7 @@ Lemma Bind_Reducible :
 Proof.
  intros.
  split.
-  intuition; eauto.
+  intuition; solve [eauto with Reducible].
  intros.
  simpl in X0.
  assert (forall L, Reducible L S -> SN (plug (N */ L) K)).
@@ -1247,8 +1250,8 @@ Proof.
       assert (Ksize K' > Ksize K'').
       { subst K'.
         rewrite Ksize_appendK; simpl.
-        omega. }
-      omega. }
+        lia. }
+      lia. }
     apply H with TmNull; auto.
     apply Rw_trans_preserves_SN with (plug x K); auto.
     assert (plug x K' ~> plug TmNull K'').
@@ -1274,11 +1277,11 @@ Proof.
    intuition.
 
  (* Case TmVar *)
- * replace (x - 0) with x by omega.
+ * replace (x - 0) with x by lia.
    case_eq (nth_error Vs x); [intros V V_H | intro H_bogus].
     eapply Reducible_env_value; eauto.
    absurd (length Vs <= x).
-    cut (length tyEnv > x); [omega|]. (* todo: sufficient ... by omega. *)
+    cut (length tyEnv > x); [lia|]. (* todo: sufficient ... by lia. *)
     seauto.
    apply <- nth_error_overflow; sauto.
 
@@ -1313,7 +1316,7 @@ Proof.
    (* proof of reducibility of the lambda. *)
    - apply lambda_reducibility with tyEnv; auto.
      intros V V_red.
-     eapply IHM; eauto.
+     eapply IHM; eauto with Reducible.
      simpl.
      intuition.
 
@@ -1324,8 +1327,12 @@ Proof.
  (* Case TmApp *)
  * subst.
    assert (Reducible (subst_env 0 Vs M1) (TyArr a T)) by eauto.
-   assert (Reducible (subst_env 0 Vs M2) a) by eauto.
-   firstorder.
+   assert (Reducible (subst_env 0 Vs M2) a) by eauto with Reducible.
+   inversion X.
+   apply X1.
+   apply Reducible_welltyped_closed.
+   auto.
+   apply X0.
 
  (* Case TmNull *)
  * simpl.
@@ -1394,7 +1401,7 @@ Proof.
   replace M with (subst_env 0 nil M) by seauto.
   eapply reducibility; eauto; solve [firstorder].
  (* With reducibility comes strong normalization. *)
- seauto.
+ solve [eauto with SN].
 Qed.
 
 (** Prints out "Closed under the global context" if we have no
