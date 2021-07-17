@@ -156,7 +156,7 @@ Proof.
  destruct (le_gt_dec k x); auto.
 Qed.
 
-Hint Resolve subst_nil (* Used in the proof of @normalization@! *).
+#[local] Hint Resolve subst_nil (* Used in the proof of @normalization@! *).
 
 (** If a variable is bigger than [q + length env] then it is untouched
  by substituting ([q], [env]). *)
