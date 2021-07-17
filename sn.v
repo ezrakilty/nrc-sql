@@ -534,7 +534,14 @@ Proof.
  split.
 
  (* Typing *)
-  solve [eauto].
+ (* FIXME: Should be more automatic *)
+  eapply subst_env_preserves_typing.
+  eauto.
+  simpl.
+  apply TAbs.
+  auto.
+  simpl.
+  sauto.
 
  (* Reducibility *)
  intros P P_tp P_red.
@@ -571,7 +578,19 @@ Proof.
 
  assert (Typing nil P' S) by (eauto with Reducible).
  assert (Reducible P' S) by (eauto with Reducible).
- apply Neutral_Reducible_withdraw; [sauto | seauto |].
+ (* FIXME: Should be more automatic *)
+ apply Neutral_Reducible_withdraw.
+ sauto.
+ cut (Typing nil (TmAbs (subst_env 1 Vs N) @ P') T).
+ intro.
+ apply Rw_rt_preserves_types with (TmAbs (subst_env 1 Vs N) @ P').
+ auto.
+ eauto.
+ eapply TApp.
+ apply TAbs.
+ eapply subst_env_preserves_typing; eauto.
+ auto.
+
  intros M' redn.
 
  inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | | | | | | | |].
@@ -868,7 +887,7 @@ Qed.
 
 (** This is kind of gross, but it's a means to an end. One lemma seemed
     particularly hard to prove by induction on the RewritesTo_rt type, because
-    of the _trans case. It was much easier using this equivalent data
+    of the trans case. It was much easier using this equivalent data
     structure, which is a right-linear linked-list of reduction steps. Perhaps
     I should have done all reduction sequences this way from the beginning? *)
 
@@ -1100,7 +1119,6 @@ Proof.
     eapply all_cut; [| apply a]; simpl.
     intros; lia.
 Unshelve.
-exact O. (* what? *)
 Admitted.
 
 Lemma Bind_Reducible_core:
@@ -1398,7 +1416,8 @@ Proof.
  intros M T tp.
 
  assert (Reducible M T).
-  replace M with (subst_env 0 nil M) by seauto.
+  replace M with (subst_env 0 nil M)
+   by (eapply subst_env_closed_noop; eauto).
   eapply reducibility; eauto; solve [firstorder].
  (* With reducibility comes strong normalization. *)
  solve [eauto with SN].

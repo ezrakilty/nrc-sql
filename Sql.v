@@ -23,7 +23,7 @@ Fixpoint is_basic_form B :=
   | _ => false
   end.
 
-Fixpoint is_row_form R :=
+Definition is_row_form R :=
   match R with
   | TmPair b1 b2 => is_basic_form b1 && is_basic_form b2
   | TmVar x => true
