@@ -55,11 +55,11 @@ Require Import Rewrites.
 
 Definition Rewrites M := {N:Term & (M ~> N) }.
 
-Hint Unfold Rewrites.
+#[local] Hint Unfold Rewrites : Sql.
 
 Definition Normal M := notT (Rewrites M).
 
-Hint Transparent Rewrites Normal.
+#[local] Hint Transparent Rewrites Normal : Sql.
 
 Lemma Normal_sub_TmPair_1 : forall M N,
     Normal (TmPair M N) -> Normal M.
@@ -111,11 +111,13 @@ Lemma Normal_sub_TmApp_2 : forall L M,
 Proof.
 Admitted.
 
+#[local] 
 Hint Resolve Normal_sub_TmPair_1 Normal_sub_TmPair_2 Normal_sub_TmUnion_1 Normal_sub_TmUnion_2
      Normal_sub_TmBind_1 Normal_sub_TmBind_2
      Normal_sub_TmProj Normal_sub_TmSingle
-     Normal_sub_TmApp_1 Normal_sub_TmApp_2.
+     Normal_sub_TmApp_1 Normal_sub_TmApp_2 : Sql.
 
+#[local]
 Hint Extern 1 (Normal ?M) =>
 match goal with
 | H : Normal (TmPair ?N M) |- _ => eapply Normal_sub_TmPair_2; eauto
@@ -132,7 +134,7 @@ match goal with
 
 | H : Normal (TmApp M ?N) |- _ => eapply Normal_sub_TmApp_1; eauto
 | H : Normal (TmApp ?N M) |- _ => eapply Normal_sub_TmApp_2; eauto
-end.
+end : Sql.
 
 Axiom var_not_closed: forall x T, notT(Typing nil (TmVar x) T).
 
@@ -335,7 +337,7 @@ Inductive is_in_sql_like_sublangi : Term -> Type :=
 | is_in_sql_like_sublangi_3 : forall M, is_joined_relationi M -> is_in_sql_like_sublangi M
 .
 
-Hint Constructors is_in_sql_like_sublangi is_joined_relationi is_filtered_relationi is_row_formi is_basic_formi.
+#[local] Hint Constructors is_in_sql_like_sublangi is_joined_relationi is_filtered_relationi is_row_formi is_basic_formi : Sql.
 
 Inductive safe (* all table types are row types. *) : Term -> Type :=
 | safe_row_TmTable : forall T, is_row_type T -> safe (TmTable T)
@@ -346,7 +348,7 @@ Inductive safe (* all table types are row types. *) : Term -> Type :=
 | safe_sub_TmSingle : forall M, safe M -> safe (TmSingle M)
 | safe_sub_TmApp : forall L M, safe L -> safe M -> safe (TmApp L M).
 
-Hint Constructors safe.
+#[local] Hint Constructors safe : Sql.
 
 Lemma SQL_Normal_forms:
   forall M T env,
