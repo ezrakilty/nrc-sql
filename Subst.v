@@ -17,8 +17,17 @@ Require Import Term.
 Require Import Shift.
 Require Import Typing.
 
+Require Import OutsideRange.
+
+Require Import Listkit.Sets.
+Require Import Listkit.AllType.
+Require Import Listkit.AllType.
+Require Import Listkit.listkit.
+Require Import Listkit.Map.
+
 Hint Rewrite map_length: map.
 
+(*Section Subst.*)
 
 (** Until I did all this, I didn't realize that substitution was a big
 ask; a complex function with an algorithm in its own right. *)
@@ -430,8 +439,6 @@ Proof.
  unfold subst_env.
  break; break; finish.
 Qed.
-
-Require Import OutsideRange.
 
 Lemma subst_var_outside_range:
   forall q env x,

@@ -13,6 +13,7 @@ Require Import Rewrites.
 Require Import Term.
 Require Import Lia.
 Require Import Shift.
+Require Import Arith.
 
 Inductive Frame :=
   Iterate : Term -> Frame

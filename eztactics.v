@@ -198,7 +198,7 @@ Ltac extro H :=
 Ltac breakauto := break; try lia; try auto.
 
 Ltac finish := solve [auto | lia].
-Ltac efinish := solve [simpl;eauto | simpl;lia].
+Ltac efinish := solve [simpl; eauto | simpl; lia].
 
 Ltac sauto := solve [auto].
 Ltac seauto := solve [eauto].
