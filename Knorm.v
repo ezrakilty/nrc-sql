@@ -1,6 +1,6 @@
 Add LoadPath "Listkit" as Listkit.
 
-Require Import Omega.
+Require Import Lia.
 
 Require Import Continuation.
 Require Import Rewrites.
@@ -137,7 +137,7 @@ Proof.
   apply IHK with (M:=M'); auto.
   apply Rw_rt_conserves_Ksize in H2.
   rewrite Ksize_appendK in H2.
-  omega.
+  lia.
 
  (* Case K0 ~> K' *)
  left.
@@ -208,7 +208,7 @@ Proof.
        assert (Ksize K0 < Ksize K).
        { assert (Ksize (Iterate t :: K0) <= Ksize K).
          { apply Krw_rt_conserves_Ksize with (K := K); auto. }
-         simpl in *; omega. }
+         simpl in *; lia. }
        apply H; auto.
        ** eapply plug_SN_rw_rt with (TmBind M t); auto.
           change (SN (plug M (Iterate t :: K0))).
@@ -270,7 +270,7 @@ Proof.
      -- simpl.
         apply Krw_rt_conserves_Ksize in H5.
         simpl in *.
-        omega.
+        lia.
      -- apply Krw_preserves_SN with (Iterate L' :: (Iterate N' :: K')).
         { apply assoc_in_K. }
         apply Krw_rt_preserves_SN with K; auto.
@@ -317,7 +317,7 @@ Proof.
     firstorder; subst.
     * apply H.
       rewrite Ksize_appendK.
-      omega.
+      lia.
       apply prefix_Krw_norm with (appendK x1 x0).
       apply prefix_appendK.
       auto.
@@ -329,7 +329,7 @@ Proof.
       eauto.
       intros.
       apply H.
-      omega.
+      lia.
       auto.
       inversion H1.
       apply H2.

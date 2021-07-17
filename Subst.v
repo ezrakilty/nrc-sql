@@ -12,14 +12,23 @@ Require Import Term.
 Require Import Shift.
 Require Import Typing.
 
+Require Import OutsideRange.
+
+Require Import Listkit.Sets.
+Require Import Listkit.AllType.
+Require Import Listkit.AllType.
+Require Import Listkit.listkit.
+Require Import Listkit.Map.
+
 Hint Rewrite map_length: map.
 
+(*Section Subst.*)
 
 (** Until I did all this, I didn't realize that substitution was a big
 ask; a complex function with an algorithm in its own right. *)
 
-Ltac map_omega :=
-   autorewrite with map; omega.
+Ltac map_lia :=
+   autorewrite with map; lia.
 
 (** * Simultaneous substitution of a list of terms beginning at De Bruijn index k *)
 Fixpoint subst_env k vs tm {struct tm} :=
@@ -64,7 +73,7 @@ Proof.
  (* Case TmBind *)
  eapply IHN2 with (T:=TyList t).
   apply H3.
- simpl; omega.
+ simpl; lia.
 Qed.
 
 Lemma subst_env_closed_noop:
@@ -74,7 +83,7 @@ Lemma subst_env_closed_noop:
 Proof.
  intros.
  eapply subst_env_nonfree_noop; eauto.
- simpl; omega.
+ simpl; lia.
 Qed.
 
     (* env_typing Vs env' -> *)
@@ -99,7 +108,7 @@ Proof.
     apply nth_error_app in H0; auto.
    apply nth_error_ok_rev in H0.
    apply <- nth_error_overflow in H_v.
-   omega.
+   lia.
  - (* Case of x in env. *)
   apply TVar.
   rewrite nth_error_ext_length in H0; auto.
@@ -174,11 +183,11 @@ Proof.
         unfold shift at 3.
         unfold shift_var.
         destruct (le_gt_dec k x) ; [ | ].
-         rewrite subst_env_big_var by omega.
+         rewrite subst_env_big_var by lia.
          rewrite subst_env_big_var.
           simpl; unfold shift_var.
           break; finish.
-         solve[map_omega].
+         solve[map_lia].
         simpl.
         break.
          rewrite nth_error_map.
@@ -197,14 +206,14 @@ Proof.
 
  (* Case TmAbs *)
      simpl.
-     rewrite IHM by map_omega.
+     rewrite IHM by map_lia.
      f_equal.
      f_equal.
      rewrite map_map.
      rewrite map_map.
      apply map_ext; intros x.
      apply shift_shift_commute.
-     omega.
+     lia.
 
  (* Case TmApp *)
     simpl; f_equal; seauto.
@@ -228,9 +237,9 @@ Proof.
   rewrite map_map.
   apply map_ext; intros M'.
   apply shift_shift_commute.
-  omega.
+  lia.
  rewrite map_length.
- omega.
+ lia.
 
  (* Case TmIf *)
  simpl; f_equal; seauto.
@@ -253,10 +262,10 @@ Proof.
         unfold shift_var.
         (* Take cases on where x is in relation to k, q: *)
         case_eq (le_gt_dec q x); intros;
-          case_eq (le_gt_dec k x); intros; try (solve[exfalso;omega]);
-          destruct (le_gt_dec (q + n) (x + n)); try (solve[exfalso;omega]).
+          case_eq (le_gt_dec k x); intros; try (solve[exfalso;lia]);
+          destruct (le_gt_dec (q + n) (x + n)); try (solve[exfalso;lia]).
         (* Case k <= q <= x. *)
-          replace (x + n - (q + n)) with (x - q) by omega.
+          replace (x + n - (q + n)) with (x - q) by lia.
           (* Take cases on whether x - q is defined in env: *)
           nth_error_dichotomize index_hi result_none V V_def;
             rewrite nth_error_map ; (rewrite result_none || rewrite V_def);
@@ -280,14 +289,14 @@ Proof.
       f_equal; seauto.
 
  (* Case TmAbs *)
-     rewrite IHM by omega.
+     rewrite IHM by lia.
      f_equal.
      f_equal.
      rewrite map_map.
      rewrite map_map.
      apply map_ext; intros M'.
      apply shift_shift_commute.
-     omega.
+     lia.
 
  (* Case TmApp *)
     f_equal; seauto.
@@ -304,13 +313,13 @@ Proof.
  (* Case TmBind *)
  rewrite IHM1; auto.
  f_equal.
- rewrite IHM2 by omega.
+ rewrite IHM2 by lia.
  f_equal.
  rewrite map_map.
  rewrite map_map.
  apply map_ext; intros M'.
  apply shift_shift_commute.
- omega.
+ lia.
 
  (* Case TmIf *)
  f_equal; auto.
@@ -335,7 +344,7 @@ Proof.
 
  case_eq (le_gt_dec k x); [intros k_le_x ?|intros x_gt_x H].
  (* Case k <= x *)
-  replace (x - (k + length Vs)) with (x - k - length Vs) by omega.
+  replace (x - (k + length Vs)) with (x - k - length Vs) by lia.
 
   destruct (equilong_nth_error Term Ty (Vs ++ Ws) env (x - k))
         as [[x_small [VW' [T' HH]]] | [x_large HH]]; trivial;
@@ -343,7 +352,7 @@ Proof.
   (* Case x < k + length (Vs ++ Ws) *)
    destruct (le_gt_dec (k + length Vs) x).
    (* Case k + length Vs <= x *)
-    rewrite <- rewrite_nth_error_app; [|omega].
+    rewrite <- rewrite_nth_error_app; [|lia].
     rewrite lookup_VWs; simpl.
     (* subst_env k Vs VW' = VW': *)
     apply subst_env_closed_noop with T'.
@@ -352,15 +361,15 @@ Proof.
     apply env_closed.
    (* Case k + length Vs > x *)
    simpl; rewrite H.
-   (rewrite nth_error_ext_length in lookup_VWs by omega);
-   (rewrite nth_error_ext_length by omega; reflexivity).
+   (rewrite nth_error_ext_length in lookup_VWs by lia);
+   (rewrite nth_error_ext_length by lia; reflexivity).
 
   (* Case x >= k + length (Vs ++ Ws) *)
   rewrite app_length in x_large.
-  rewrite <- rewrite_nth_error_app; [|omega].
+  rewrite <- rewrite_nth_error_app; [|lia].
   rewrite lookup_VWs; simpl.
   double_case.
-  apply subst_env_big_var; omega.
+  apply subst_env_big_var; lia.
 
  (* Case k > x *)
  break; try easy.
@@ -418,15 +427,13 @@ Proof.
  unfold shift, shift_var.
  destruct (le_gt_dec k x).
   unfold subst_env.
-  replace (x + 1 - k) with (S (x - k)) by omega.
+  replace (x + 1 - k) with (S (x - k)) by lia.
   replace (nth_error (h::t1) (S (x - k))) with (nth_error t1 (x - k)) by auto.
-  replace (x + 1 - (S k)) with (x - k) by omega.
+  replace (x + 1 - (S k)) with (x - k) by lia.
   break; break; finish.
  unfold subst_env.
  break; break; finish.
 Qed.
-
-Require Import OutsideRange.
 
 Lemma subst_var_outside_range:
   forall q env x,
@@ -440,7 +447,7 @@ Proof.
  nth_error_dichotomize a b c d.
   auto.
  destruct (le_gt_dec (length env + q) x).
-  exfalso; omega.
+  exfalso; lia.
  discriminate.
 Qed.
 
@@ -457,7 +464,7 @@ Proof.
   nth_error_dichotomize a b c d.
   destruct (le_gt_dec (length env + q) x).
    discriminate.
-   exfalso; omega.
+   exfalso; lia.
    destruct (le_gt_dec (length env + q) x).
    eauto.
   eauto.
@@ -494,7 +501,7 @@ Proof.
      unfold unshift, shift, unshift_var, shift_var.
      simpl.
      rewrite nth_error_map.
-     replace (x - (n + k)) with (x - k - n) by omega.
+     replace (x - (n + k)) with (x - k - n) by lia.
 
      destruct H.
      (* x < q *)
@@ -520,10 +527,10 @@ Proof.
   rewrite map_map.
   replace (map (fun x => shift 0 1 (shift q k x)) env)
      with (map (fun x => shift (S q) k (shift 0 1 x)) env)
-       by (apply map_ext ; intro M'; apply shift_shift_commute; solve [auto|omega]).
+       by (apply map_ext ; intro M'; apply shift_shift_commute; solve [auto|lia]).
   rewrite IHM.
     rewrite -> map_map; solve [trivial].
-   solve [omega].
+   solve [lia].
 
   (* Obligation: that if {x - 1 | x \in (S \\ {0})} is all outside [q, k + q),
      then {x | x \in S} is all outside [Sq, k + Sq). *)
@@ -532,11 +539,11 @@ Proof.
   intros x H.
   destruct x.
    unfold Outside_Range.
-   left; omega.
+   left; lia.
   specialize (fvs_dichot x).
   lapply fvs_dichot.
-  unfold Outside_Range; firstorder omega.
-  replace x with (pred (S x)) by omega.
+  unfold Outside_Range; firstorder lia.
+  replace x with (pred (S x)) by lia.
   apply set_map_intro.
   sauto.
 
@@ -545,8 +552,8 @@ Proof.
  subst.
  apply all_Type_union_rev in fvs_dichot.
  destruct fvs_dichot.
- rewrite (IHM1 _ _ _ _) by (auto || omega).
- rewrite (IHM2 _ _ _ _) by (auto || omega).
+ rewrite (IHM1 _ _ _ _) by (auto || lia).
+ rewrite (IHM2 _ _ _ _) by (auto || lia).
  trivial.
 
  (* Case TmNull *)
@@ -558,15 +565,15 @@ Proof.
  (* Case TmUnion *)
  apply all_Type_union_rev in fvs_dichot.
  destruct fvs_dichot.
- rewrite (IHM1 _ _ _ _) by (auto || omega).
- rewrite (IHM2 _ _ _ _) by (auto || omega).
+ rewrite (IHM1 _ _ _ _) by (auto || lia).
+ rewrite (IHM2 _ _ _ _) by (auto || lia).
  trivial.
 
  (* Case TmBind *)
  apply all_Type_union_rev in fvs_dichot.
  destruct fvs_dichot.
- rewrite IHM1; (try omega || auto).
- rewrite IHM2; (try omega || auto).
+ rewrite IHM1; (try lia || auto).
+ rewrite IHM2; (try lia || auto).
   f_equal.
   simpl.
   rewrite map_map.
@@ -576,7 +583,7 @@ Proof.
   apply map_ext.
   intros.
   apply shift_shift_commute.
-  omega.
+  lia.
  (* replace (fun x => Outside_Range (S q) (k + S q) x) *)
  (*   with (fun y => (fun x => Outside_Range q (k + q) x) ((fun z => z - 1) y)). *)
  Require Import Listkit.AllType.
@@ -588,21 +595,21 @@ Proof.
   destruct (eq_nat_dec x 0).
    subst x.
    unfold Outside_Range.
-  left; omega.
+  left; lia.
  specialize (a0 x).
  lapply a0.
  unfold Outside_Range.
  intros H0.
  destruct H0.
-   left; omega.
-  right; omega.
+   left; lia.
+  right; lia.
  apply set_remove_intro.
  intuition.
 
  (* Case TmIf *)
  apply all_Type_union_rev in fvs_dichot as [a a0].
  apply all_Type_union_rev in a0 as [a0 a1].
- rewrite (IHM1 _ _ _ _) by (auto || omega).
+ rewrite (IHM1 _ _ _ _) by (auto || lia).
  rewrite (IHM2 _ _ _ _); auto.
  rewrite (IHM3 _ _ _ _); auto.
 
@@ -833,11 +840,11 @@ Proof.
    auto.
   destruct (eq_nat_dec x 0).
    unfold in_env_domain.
-   omega.
+   lia.
   cut (~in_env_domain n env (pred x)).
    unfold in_env_domain.
    intros.
-   omega.
+   lia.
   apply H.
   apply set_map_intro.
   apply set_remove_intro.
@@ -867,11 +874,11 @@ Proof.
  intros x H1.
  destruct (eq_nat_dec x 0).
   unfold in_env_domain.
-  omega.
+  lia.
  set (H2 := H0 x).
  lapply H2.
   unfold in_env_domain.
-  omega.
+  lia.
  apply set_remove_intro.
  auto.
 
@@ -916,14 +923,14 @@ Proof.
        intuition.
         destruct (le_gt_dec x n);
           destruct (le_gt_dec x m);
-          omega.
+          lia.
        destruct (le_gt_dec x n);
          destruct (le_gt_dec x m);
-         omega.
+         lia.
       destruct H. (* ... as ... *)
        destruct H.
        subst P Q.
-       assert (H3:x - n < length env) by omega.
+       assert (H3:x - n < length env) by lia.
        destruct (nth_error_exists _ env (x - n) H3)
          as [v v_def].
        set (v_fvs := freevars v).
@@ -937,7 +944,7 @@ Proof.
 
        breakauto; breakauto.
         rewrite v_def.
-        nth_error_dichotomize a' b' c' d'; try (omega).
+        nth_error_dichotomize a' b' c' d'; try (lia).
         breakauto.
         rewrite v_def.
         simpl.
@@ -949,13 +956,13 @@ Proof.
       destruct H; subst P Q.
        destruct H.
 
-       assert (H3: x - m < length env') by omega.
+       assert (H3: x - m < length env') by lia.
        destruct (nth_error_exists _ env' (x - m) H3)
          as [v v_def].
        rewrite v_def; simpl.
 
        breakauto; breakauto.
-        nth_error_dichotomize a b c d; try (omega).
+        nth_error_dichotomize a b c d; try (lia).
         breakauto.
 
         rewrite nth_error_map.
@@ -1009,8 +1016,8 @@ Proof.
 
  (* Case TmAbs. *)
      f_equal.
-     replace (S m) with (m + 1) by omega.
-     replace (S n) with (n + 1) by omega.
+     replace (S m) with (m + 1) by lia.
+     replace (S n) with (n + 1) by lia.
      rewrite map_map.
      rewrite map_ext with (g:=(fun x => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x))).
       replace (map (fun x : Term => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x)) env')
@@ -1029,7 +1036,7 @@ Proof.
         pose (n1 := n0 X'_in_env (unshift_var 0 1 x)).
         lapply n1.
          unfold unshift_var.
-         break; omega.
+         break; lia.
         assert (x_free_in_Z': set_In x (set_map eq_nat_dec (shift_var 0 1) (freevars X'))).
          pose (H2 := freevars_shift X' 0 1).
          unfold eq_sets, incl_sets in H2.
@@ -1047,11 +1054,11 @@ Proof.
         rewrite unshift_var_shift_var.
         solve [trivial]...
 
-       solve[map_omega].
+       solve[map_lia].
       rewrite map_map; solve [trivial]...
      intro.
      rewrite shift_subst_commute_lo; [auto|].
-     solve [omega]...
+     solve [lia]...
  (* Case TmApp. *)
     rewrite IHN1, IHN2; auto.
  (* Case TmNull. *)
@@ -1065,8 +1072,8 @@ Proof.
   apply IHN1; auto.
 
  (* copy and paste of TmAbs case :-( *)
- replace (S m) with (m + 1) by omega.
- replace (S n) with (n + 1) by omega.
+ replace (S m) with (m + 1) by lia.
+ replace (S n) with (n + 1) by lia.
  rewrite map_map.
  rewrite map_ext with (g := fun x => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x)).
   replace (map (fun x : Term => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x)) env')
@@ -1085,7 +1092,7 @@ Proof.
     pose (n1 := n0 X'_in_env (unshift_var 0 1 x)).
     lapply n1.
      unfold unshift_var.
-     break; omega.
+     break; lia.
     assert (x_free_in_Z': set_In x (set_map eq_nat_dec (shift_var 0 1) (freevars X'))).
      pose (H2 := freevars_shift X' 0 1).
      unfold eq_sets, incl_sets in H2.
@@ -1098,11 +1105,11 @@ Proof.
     rewrite unshift_var_shift_var.
     solve [trivial]...
 
-   solve[map_omega].
+   solve[map_lia].
   rewrite map_map; solve [trivial]...
  intro.
  rewrite shift_subst_commute_lo; [auto|].
- solve [omega]...
+ solve [lia]...
  (* Case TmUnion. *)
  rewrite IHN1, IHN2, IHN3; auto.
 

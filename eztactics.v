@@ -1,9 +1,9 @@
-Require Import Omega.
+Require Import Lia.
 
 Ltac refute := elimtype False.
 
 Ltac easy := solve [discriminate | contradiction | auto | f_equal; auto |
-                    try omega | try (refute; omega)].
+                    try lia | try (refute; lia)].
 
 (* Notation "f ∘ g" := (fun x => f(g(x))) (at level 100). *)
 
@@ -18,7 +18,7 @@ Ltac careful_case_names t names :=
   generalize (refl_equal t); pattern t at -1; case t; intro names.
 
 Ltac absurd_omega stmt :=
-  absurd stmt; [solve [omega] | trivial].
+  absurd stmt; [solve [lia] | trivial].
 
 Ltac eabsurd stmt lemma :=
   (absurd stmt; auto);
@@ -32,11 +32,11 @@ Ltac choose_equal_refl e :=
 
 Ltac choose_equal d e :=
   destruct (Peano_dec.eq_nat_dec d e);
-  [idtac | absurd (d = e); omega].
+  [idtac | absurd (d = e); lia].
 
 Ltac choose_unequal d e :=
   destruct (Peano_dec.eq_nat_dec d e);
-  [absurd (d = e); omega | idtac].
+  [absurd (d = e); lia | idtac].
 
 Ltac say_impl nm stmt :=
   assert (nm : stmt); [solve [auto] | idtac].
@@ -190,10 +190,10 @@ Ltac extro H :=
   let t := type of H in
     cut t; [clear H | auto].
 
-Ltac breakauto := break; try omega; try auto.
+Ltac breakauto := break; try lia; try auto.
 
-Ltac finish := solve [auto | omega].
-Ltac efinish := solve [simpl;eauto | simpl;omega].
+Ltac finish := solve [auto | lia].
+Ltac efinish := solve [simpl;eauto | simpl; lia].
 
 Ltac sauto := solve [auto].
 Ltac seauto := solve [eauto].
