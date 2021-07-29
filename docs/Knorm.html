@@ -28,10 +28,10 @@
 
 <br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Continuation.html#"><span class="id" title="library">Continuation</span></a>.<br/>
-<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Rewrites.html#"><span class="id" title="library">Rewrites</span></a>.<br/>
-<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Norm.html#"><span class="id" title="library">Norm</span></a>.<br/>
-<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Term.html#"><span class="id" title="library">Term</span></a>.<br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.0/stdlib//Coq.Lists.List.html#"><span class="id" title="library">List</span></a>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Norm.html#"><span class="id" title="library">Norm</span></a>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Rewrites.html#"><span class="id" title="library">Rewrites</span></a>.<br/>
+<span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="Term.html#"><span class="id" title="library">Term</span></a>.<br/>
 
 <br/>
 </div>
@@ -115,7 +115,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Norm.html#SN"><span class="id" title="definition">SN</span></a> (<a class="idref" href="Continuation.html#plug"><span class="id" title="definition">plug</span></a> <a class="idref" href="Term.html#TmNull"><span class="id" title="constructor">TmNull</span></a> <a class="idref" href="Knorm.html#K:41"><span class="id" title="variable">K</span></a>).<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Unfold</span> <a class="idref" href="Norm.html#SN"><span class="id" title="definition">SN</span></a>.<br/>
+#[<span class="id" title="var">local</span>] <span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Unfold</span> <a class="idref" href="Norm.html#SN"><span class="id" title="definition">SN</span></a> : <span class="id" title="var">Knorm</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <a id="Krw_rt_relK_rt" class="idref" href="#Krw_rt_relK_rt"><span class="id" title="lemma">Krw_rt_relK_rt</span></a>:<br/>

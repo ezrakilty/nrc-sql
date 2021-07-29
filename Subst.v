@@ -474,9 +474,6 @@ Proof.
  discriminate.
 Qed.
 
-Require Import Listkit.Sets.
-Require Import Listkit.AllType.
-
 Definition set_remove := Listkit.Sets.set_remove.
 
 (** [unshift q k] commutes with subst, if we offset the environment by
@@ -589,7 +586,6 @@ Proof.
   lia.
  (* replace (fun x => Outside_Range (S q) (k + S q) x) *)
  (*   with (fun y => (fun x => Outside_Range q (k + q) x) ((fun z => z - 1) y)). *)
- Require Import Listkit.AllType.
  apply all_Type_map_fwd in a0.
   unfold all_Type.
   unfold all_Type in a0.
@@ -806,8 +802,6 @@ Proof.
  sauto.
 Qed.
 
-Require Import Listkit.listkit.
-
 Lemma subst_unused_noop:
   forall M env n,
     all nat (fun x => not (in_env_domain n env x)) (freevars M)
@@ -893,8 +887,6 @@ Proof.
  (* Case TmTable *)
  sauto.
 Qed.
-
-Require Import Listkit.Map.
 
 Lemma subst_factor :
   forall N m n env env',
@@ -1140,3 +1132,5 @@ Proof.
  intros.
  apply subst_env_preserves_typing with (env' := ts); simpl; auto.
 Qed.
+
+(*End Subst.*)
