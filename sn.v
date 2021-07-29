@@ -1350,7 +1350,7 @@ Proof.
  (* Case TmSingle *)
  * simpl.
    split.
-   { eauto. }
+   { eauto with Subst. }
    intros.
    eauto.
 

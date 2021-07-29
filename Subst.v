@@ -143,7 +143,8 @@ Proof.
    erewrite env_typing_shift_noop; eauto.
 Qed.
 
-Hint Resolve subst_env_preserves_typing.
+(* Note: Used only in one place, in sn.v! *)
+#[export] Hint Resolve subst_env_preserves_typing : Subst.
 
 Lemma subst_nil :
   forall N k, subst_env k nil N = N.
