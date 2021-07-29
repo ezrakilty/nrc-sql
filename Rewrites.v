@@ -677,7 +677,6 @@ Proof.
    rewrite shift_shift_commute.
    auto.
    lia.
-   auto.
    descrim N3.
    auto.
 Qed.

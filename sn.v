@@ -145,18 +145,18 @@ Lemma Rw_preserves_Reducible :
  forall T M, Reducible M T -> forall M', (M ~> M') -> Reducible M' T.
 Proof.
  induction T; simpl.
-    firstorder using Rw_preserves_types.
-    inversion b; auto.
-   solve [firstorder using Rw_preserves_types].
-  solve [firstorder using Rw_preserves_types].
- intros.
- split; eauto using Rw_preserves_types with Reducible.
- intros.
- assert (H2 : SN (plug M K)) by firstorder.
- inversion H2 as [H3].
- apply (H3 (plug M' K)).
- apply Rw_under_K.
- auto.
+ - firstorder using Rw_preserves_types.
+   inversion b; solve [auto with Norm].
+ - firstorder using Rw_preserves_types.
+ - firstorder using Rw_preserves_types.
+ - intros.
+   split; eauto using Rw_preserves_types with Reducible.
+   intros.
+   assert (H2 : SN (plug M K)) by firstorder.
+   inversion H2 as [H3].
+   apply (H3 (plug M' K)).
+   apply Rw_under_K.
+   auto.
 Qed.
 
 (** The reflexive-transitive Rewrites relation preserves reducibility,
