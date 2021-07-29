@@ -142,8 +142,8 @@ Proof.
  induction T; simpl.
  - firstorder using Rw_preserves_types.
    inversion b; solve [auto with Norm].
- - solve [firstorder using Rw_preserves_types].
- - solve [firstorder using Rw_preserves_types].
+ - firstorder using Rw_preserves_types.
+ - firstorder using Rw_preserves_types.
  - intros.
    split; eauto using Rw_preserves_types with Reducible.
    intros.

@@ -123,10 +123,10 @@ Proof.
  destruct a.
  simpl in H.
  pose (s := IHK (TmBind M t) H).
- eapply SN_embedding with (f := fun x => TmBind x t) (Q := TmBind M t); sauto.
+ eapply SN_embedding with (f := fun x => TmBind x t) (Q := TmBind M t); solve [auto].
  simpl in H.
  pose (s := IHK (TmUnion M t) H).
- eapply SN_embedding with (f := fun x => TmUnion x t) (Q := TmUnion M t); sauto.
+ eapply SN_embedding with (f := fun x => TmUnion x t) (Q := TmUnion M t); solve [auto].
 Qed.
 
 #[export] Hint Constructors Neutral : Continuation.
