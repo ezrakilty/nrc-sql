@@ -3,7 +3,8 @@ COQC = coqc
 %.vo: %.v
 	$(COQC) $< -R Listkit Listkit
 
-all: sn.vo Sql.vo index.html
+#all: sn.vo Sql.vo index.html
+all: sn.vo index.html
 
 Sql.vo: Term.vo Rewrites.vo
 

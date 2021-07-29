@@ -49,7 +49,7 @@ Proof.
   intros; destruct a; simpl; auto.
 Qed.
 
-Hint Resolve Rw_under_K.
+#[export] Hint Resolve Rw_under_K : Continuation.
 
 Lemma plug_SN_rw:
   forall K M M',
@@ -58,7 +58,7 @@ Proof.
  intros.
  inversion H0.
  apply H1.
- auto.
+ auto with Continuation.
 Qed.
 
 Definition HoleType K T :=
@@ -73,7 +73,7 @@ Inductive Krw_rt : Continuation -> Continuation -> Type :=
 | Krw_rt_trans : forall l m n, Krw_rt l m -> Krw_rt m n
                 -> Krw_rt l n.
 
-Hint Constructors Krw_rt.
+#[export] Hint Constructors Krw_rt : Continuation.
 
 Lemma iterate_reduce K K' :
   Krw K K' ->
@@ -98,7 +98,7 @@ Proof.
  eauto.
 Qed.
 
-Hint Resolve iterate_reduce rw_in_K_body.
+#[export] Hint Resolve iterate_reduce rw_in_K_body : Continuation.
 
 Lemma plug_SN_rw_rt:
   forall (K : Continuation) (M M' : Term),
@@ -129,7 +129,7 @@ Proof.
  eapply SN_embedding with (f := fun x => TmUnion x t) (Q := TmUnion M t); sauto.
 Qed.
 
-Hint Constructors Neutral.
+#[export] Hint Constructors Neutral : Continuation.
 
 Definition appendK := app (A:=Frame) : Continuation -> Continuation -> Continuation.
 
@@ -156,7 +156,7 @@ Proof.
  unfold Krw.
  simpl.
  intros.
- auto.
+ auto with Continuation.
 Qed.
 
 Definition NotBind M := forall a b, M <> TmBind a b.
@@ -205,9 +205,9 @@ Proof.
       { admit. }
       { subst. left; left; left. eauto. }
       { subst. right. eauto. }
-      { subst. left; left; left; right. exists (Iterate n' :: K); auto. }
+      { subst. left; left; left; right. exists (Iterate n' :: K); auto with Continuation. }
     * left; left; left; right.
-      exists (Iterate t :: K'); auto.
+      exists (Iterate t :: K'); auto with Continuation.
     * destruct H1 as [u H1 H2].
       exfalso. unfold NotBind, not in H2. eauto using H2.
     * subst.
@@ -300,11 +300,11 @@ Proof.
      ** admit.
      ** solve [inversion H2].
      ** right.
-        exists (Iterate n' :: K); auto.
+        exists (Iterate n' :: K); auto with Continuation.
    - right.
      subst.
      exists (Iterate t :: K').
-     eauto.
+     { eauto with Continuation. }
      auto.
    - refute.
      intuition.
@@ -512,7 +512,7 @@ Proof.
  congruence.
 Qed.
 
-Hint Resolve unique_plug_null.
+#[local] Hint Resolve unique_plug_null : Continuation.
 
 Lemma Rw_conserves_Ksize:
   forall K K',
@@ -614,7 +614,7 @@ Inductive prefix : Continuation -> Continuation -> Set :=
     prefix K' K ->
     prefix K' (f :: K).
 
-Hint Constructors prefix.
+#[export] Hint Constructors prefix : Continuation.
 
 Lemma prefix_breakdown :
   forall K' K,
@@ -661,7 +661,7 @@ Inductive relK_rt  : Continuation -> Continuation -> Set :=
 | step : forall K K', relK K K' -> relK_rt K K'
 | trans : forall K K' K'', relK_rt K K' -> relK_rt K' K'' -> relK_rt K K''.
 
-Hint Constructors relK relK_rt.
+#[export] Hint Constructors relK relK_rt : Continuation.
 
 Lemma magic:
 forall K K',
@@ -677,7 +677,7 @@ Proof.
    pose (k M).
    exists M.
    inversion sn.
-   seauto.
+   solve [eauto with Norm].
   lapply (reexamine K' (f :: K')).
    intros H.
    subst.
@@ -699,13 +699,13 @@ Lemma relK_rt_appendK:
   forall K K',
     relK_rt (appendK K K') K'.
 Proof.
-  induction K; simpl; intros.
-  auto.
-  eapply trans.
-  apply step.
-  apply strip with a.
-  eauto.
-  auto.
+ induction K; simpl; intros.
+ - auto with Continuation.
+ - eapply trans.
+   * apply step.
+     apply strip with a.
+     eauto.
+   * auto.
 Qed.
 
 Lemma K_TmNull_relK:
@@ -721,7 +721,7 @@ Proof.
    apply relK_rt_appendK.
  - apply unique_plug_null in H1b.
    subst.
-   auto.
+   auto with Continuation.
 Qed.
 
 Definition is_K_null M := {K : Continuation & M = plug TmNull K}.
@@ -742,7 +742,7 @@ Proof.
    lia.
  - eexists; [eauto|].
    apply Krw_rt_conserves_Ksize.
-   eauto.
+   eauto with Continuation.
 Qed.
 
 (* Lemma K_TmNull_rw_abstract *)
@@ -786,10 +786,10 @@ Proof.
    apply relK_rt_appendK.
   assert (x0 = K') by (apply unique_plug_null; auto).
   subst.
-  auto.
+  solve [auto with Continuation].
  assert (is_K_null (plug TmNull x)).
   unfold is_K_null.
-  eauto.
+  eauto with Continuation.
  specialize (IHRewritesTo_rt1 H1).
  assert (is_K_null m).
   apply K_TmNull_rw_rt with (A := plug TmNull x); auto.
@@ -798,7 +798,7 @@ Proof.
   apply trans with (gimme_K m H2); auto.
   assert (H3 : is_K_null (plug TmNull x0)).
    unfold is_K_null.
-   eauto.
+   solve [eauto].
   specialize (IHRewritesTo_rt2 H2 H3).
   replace (gimme_K (plug TmNull x0) H3) with x0 in IHRewritesTo_rt2.
    exact IHRewritesTo_rt2.
@@ -908,7 +908,7 @@ Lemma curtailment:
   forall K' K M,
     plug M (appendK K (Iterate TmNull :: K')) ~> plug TmNull K'.
 Proof.
-  induction K; simpl; intros; auto.
+  induction K; simpl; intros; auto with Continuation.
 Qed.
 
 Lemma Krw_cons:
@@ -937,5 +937,5 @@ Lemma prefix_appendK:
     prefix K0 K' ->
     prefix K0 (appendK K K').
 Proof.
- induction K; simpl; auto.
+ induction K; simpl; auto with Continuation.
 Qed.

@@ -37,9 +37,9 @@ Lemma triple_induction_via_TripleSN_scoped P:
 Proof.
  intros K0 M0 N0 IH SN_K0_M0_N0.
  induction SN_K0_M0_N0.
- apply IH; auto.
+ apply IH; auto with Continuation.
  intros; apply X; auto.
- intros; apply IH; eauto.
+ intros; apply IH; eauto with Continuation.
  intros; apply X0; auto.
  intros; apply IH; eauto.
  intros; apply X1; auto.
@@ -55,7 +55,7 @@ Proof.
  induction SN_M.
  intros N SN_N.
  induction SN_N.
- constructor; sauto.
+ constructor; auto with Norm.
 Qed.
 
 Lemma triple_induction_scoped P:
@@ -145,7 +145,7 @@ Proof.
  firstorder.
 Qed.
 
-Hint Unfold SN.
+#[local] Hint Unfold SN : Knorm.
 
 Lemma Krw_rt_relK_rt:
   forall K K', Krw_rt K K' -> relK_rt K K'.
@@ -198,9 +198,9 @@ Proof.
        (* To do: Krw_rt_Rw_rt and plug_rw_rt are very similar, but with very different names. *)
        assert (plug M (Iterate TmNull :: K0) ~> plug TmNull K0).
        simpl.
-       auto.
+       solve [auto with Continuation].
        assert (plug M K ~>> plug TmNull K0).
-       eauto.
+       seauto.
        eapply Rw_trans_preserves_SN.
        exact H0.
        auto.
@@ -235,7 +235,7 @@ Proof.
    (* Case: rw is within K *)
    * subst.
      change (SN (plug (TmUnion M0 N0) (Iterate t :: K'))).
-     apply H8; auto.
+     apply H8; auto with Continuation.
    * (* Case: M is not a bind but it consumes a K frame. *)
      refute.
      unfold not in *; eauto using H_bogus.
@@ -255,8 +255,8 @@ Proof.
                    apply step; eapply strip; eauto.
                    assert (relK_rt (appendK K'' (Iterate TmNull :: K')) (Iterate TmNull :: K')).
                    eapply relK_rt_appendK.
-                   eauto.
-           --- eauto.
+                   eauto with Continuation.
+           --- eauto with Continuation.
      -- destruct (magic _ _ H11 M H0).
         apply SN_K_M_SN_K_Null with x.
         auto.
@@ -300,7 +300,7 @@ Proof.
   pose (H _ H3).
   apply k.
   apply prefix_appendK.
-  auto.
+  auto with Continuation.
 Qed.
 
 Lemma Krw_norm_SN:
@@ -319,14 +319,14 @@ Proof.
       rewrite Ksize_appendK.
       lia.
       apply prefix_Krw_norm with (appendK x1 x0).
-      apply prefix_appendK.
-      auto.
-      auto.
+      -- apply prefix_appendK.
+         auto with Continuation.
+      -- auto with Continuation.
     * apply H0; auto.
       (* seems silly *)
       assert (Ksize x0 <= Ksize x).
       apply Krw_rt_conserves_Ksize.
-      eauto.
+      eauto with Continuation.
       intros.
       apply H.
       lia.

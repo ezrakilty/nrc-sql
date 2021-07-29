@@ -10,7 +10,7 @@ Require Import Rewrites.
 Inductive StrongNorm A R (x:A) :=
   reducts_SN : (forall x', R x x' -> StrongNorm _ R x') -> StrongNorm _ R x.
 
-Hint Constructors StrongNorm.
+#[local] Hint Constructors StrongNorm : Norm.
 
 (** Strong normalization: a term is strongly normalizing if all its
     reducts are strongly normalizing.
@@ -21,10 +21,9 @@ Hint Constructors StrongNorm.
 
 Definition SN := StrongNorm _ RewritesTo.
 
-Hint Unfold SN.
+#[export] Hint Unfold SN : Norm.
 
-(* Hint Constructors SN. *)
-Hint Resolve reducts_SN.
+#[export] Hint Resolve reducts_SN : Norm.
 
 Lemma SN_Const : SN TmConst.
  apply reducts_SN.
@@ -46,7 +45,7 @@ Lemma SN_Abs : forall n, SN n -> SN (TmAbs n).
 Qed.
 *)
 
-Hint Resolve SN_Const SN_Var (*SN_Abs*).
+#[export] Hint Resolve SN_Const SN_Var (*SN_Abs*) : Norm.
 
 (** If a property is preserved by reduction, then it holds for all
     strongly normalizing terms. *)
@@ -78,7 +77,7 @@ Proof.
  intros N SN_N.
  induction SN_N.
  rename x into M, x0 into N.
- apply both_reducts_sn; auto.
+ apply both_reducts_sn; auto with Norm.
 Qed.
 
 Lemma Double_SN_induction P:
@@ -142,12 +141,12 @@ Lemma Rw_trans_preserves_SN :
 Proof.
  intros M M' H red.
  induction red.
-   congruence.
-  inversion_clear H; auto.
- auto.
+ - congruence.
+ - inversion_clear H; auto with Norm.
+ - auto with Norm.
 Qed.
 
-Hint Resolve Rw_trans_preserves_SN.
+#[export] Hint Resolve Rw_trans_preserves_SN : Norm.
 
 (* (        ~>          )      (               )
    (   M ---------> M'  )      (            N  )
@@ -175,7 +174,7 @@ Proof.
  intros.
  apply reducts_SN.
  assert (H2 : SN (f M)).
-  apply Rw_trans_preserves_SN with (M := q); auto.
+  apply Rw_trans_preserves_SN with (M := q); auto with Norm.
  inversion H2.
  intros m' H4.
  lapply (last_step_first_step_lemma _ _ H1 (f m')); [| auto].
@@ -213,7 +212,7 @@ Proof.
  rename x into q.
  intros M Q_def Q'_def.
  apply reducts_SN.
- assert (H2 : SN (f M)) by eauto.
+ assert (H2 : SN (f M)) by eauto with Norm.
  inversion H2 as [H3].
  intros m' H4.
  copy (g M ~> m').

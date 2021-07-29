@@ -75,7 +75,7 @@ Proof.
  apply reducts_SN.
  intros.
  assert (SN (f K M N)).
-  eauto.
+  eauto with Norm.
  inversion H3.
  pose (H6 := Hz _ _ _ _ H1).
  inversion H6 as [[K' [M' [N' def_m']]] | SN_m']; auto.
@@ -140,18 +140,18 @@ Lemma Rw_preserves_Reducible :
  forall T M, Reducible M T -> forall M', (M ~> M') -> Reducible M' T.
 Proof.
  induction T; simpl.
-    firstorder using Rw_preserves_types.
-    inversion b; auto.
-   solve [firstorder using Rw_preserves_types].
-  solve [firstorder using Rw_preserves_types].
- intros.
- split; eauto using Rw_preserves_types with Reducible.
- intros.
- assert (H2 : SN (plug M K)) by firstorder.
- inversion H2 as [H3].
- apply (H3 (plug M' K)).
- apply Rw_under_K.
- auto.
+ - firstorder using Rw_preserves_types.
+   inversion b; solve [auto with Norm].
+ - solve [firstorder using Rw_preserves_types].
+ - solve [firstorder using Rw_preserves_types].
+ - intros.
+   split; eauto using Rw_preserves_types with Reducible.
+   intros.
+   assert (H2 : SN (plug M K)) by firstorder.
+   inversion H2 as [H3].
+   apply (H3 (plug M' K)).
+   apply Rw_under_K.
+   auto.
 Qed.
 
 (** The reflexive-transitive Rewrites relation preserves reducibility,
@@ -172,7 +172,7 @@ Proof.
  unfold ReducibleK.
  intros.
  destruct (X M X0).
- auto.
+ auto with Norm.
 Qed.
 
 (* TODO: This seems to be a cheesy way of helping the Reducible_properties.
@@ -214,7 +214,7 @@ Proof.
  (* Case TyBase *)
     splitN 3.
     (* Exists a Reducible term at TyBase *)
-      simpl; seauto.
+      simpl; solve [eauto with Norm].
     (* Reducible -> SN *)
      simpl.
      tauto.
@@ -442,13 +442,13 @@ Proof.
    assert (Krw_norm K').
    eapply prefix_Krw_norm.
    assert (prefix K' (appendK K'' K')).
-   apply prefix_appendK; auto.
+   apply prefix_appendK; auto with Continuation.
    apply H2.
    unfold Krw_norm.
    constructor.
-   auto.
+   sauto.
    apply Krw_norm_SN.
-   auto.
+   sauto.
 Qed.
 
 (** Now we extract the three lemmas in their separate, useful form. *)
@@ -1090,7 +1090,7 @@ Proof.
     apply Rw_rt_step.
     apply curtailment.
     subst.
-    eauto using plug_SN_rw_rt.
+    eauto using plug_SN_rw_rt with Norm.
   * (* The the interface, and body is a Bind term. *)
     destruct s as [L1 [L1' H8 [K'' [N1 H9 H10]]]].
     inversion H8.
@@ -1099,7 +1099,7 @@ Proof.
     { apply Krw_rt_conserves_Ksize in H2.
       simpl in H2.
       lia. }
-    { eauto. }
+    { eauto with Norm. }
     assert (SN (plug (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)) (Iterate N1 :: K''))).
      assert (plug (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) K
                 ~>> plug (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)) (Iterate N1 :: K'')).
@@ -1198,7 +1198,7 @@ Proof.
     right.
     exists K'; auto.
     apply prefix_appendK.
-    auto.
+    auto with Continuation.
   - firstorder.
     discriminate.
 Qed.
