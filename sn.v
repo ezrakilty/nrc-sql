@@ -330,7 +330,7 @@ Proof.
     exists (TmAbs (shift 0 1 N)).
     split.
     (* The dummy abstraction has the appropriate type. *)
-     solve [auto with Reducible].
+     solve [auto with Reducible Shift].
     (* It is reducible at -> type; it applied to any reducible term gives
        a reducible application. *)
     intros M M_tp M_Red.
@@ -342,7 +342,7 @@ Proof.
     double_induction_SN_intro M N.
     (* We'll show that all reducts are reducible. *)
     apply IHT2_Red_neutral_withdraw; eauto.
-     apply TApp with T1; solve [eauto with Reducible].
+     apply TApp with T1; solve [eauto with Reducible Shift].
     intros M'' red.
     (* Take cases on the reductions. *)
     inversion red as [ | ? Z ? redn_Z | | | | | | | | | | | | | | | | | | | | | | |] ; subst.
@@ -546,7 +546,7 @@ Proof.
 
  simpl.
  replace (map (shift 0 1) Vs) with Vs
-   by (symmetry; eauto).
+   by (symmetry; eauto with Shift).
 
  assert (SN P) by eauto with SN.
  set (N'' := subst_env 1 Vs N).
@@ -583,7 +583,7 @@ Proof.
 
  (* Case: beta reduction. *)
    subst V M0 N0.
-   replace (shift 0 1 P') with P' in M'_eq by (symmetry; eauto).
+   replace (shift 0 1 P') with P' in M'_eq by (symmetry; eauto with Shift).
    simpl in M'_eq.
    replace (unshift 0 1 (subst_env 0 (P' :: nil) N'''))
       with (subst_env 0 (P' :: nil) N''') in M'_eq.
@@ -593,17 +593,17 @@ Proof.
      replace (subst_env 0 (P'::Vs) N)
         with (subst_env 0 (P'::nil) (subst_env 1 Vs N)).
       auto.
-     eapply subst_env_concat; simpl; solve [eauto].
+     eapply subst_env_concat; simpl; solve [eauto with Term].
     assert (Reducible (subst_env 0 (P'::Vs) N) T) by auto.
     solve [eauto with Reducible].
    (* To show that unshift 0 1 has no effect on (subst_env 0 [P'] N'''). *)
    (* First, N, after substitution of P'::Vs, is closed: *)
    assert (Typing nil (subst_env 0 (P'::Vs) N) T).
-    apply subst_env_preserves_typing with (S::Ts); solve [auto].
+    apply subst_env_preserves_typing with (S::Ts); solve [auto with Term].
    (* Next, N''', after substitution of [P'], is closed: *)
    assert (Typing nil (subst_env 0 (P'::nil) N''') T).
     assert (Typing nil (subst_env 0 (P'::nil) (subst_env 1 Vs N)) T).
-     erewrite subst_env_concat; simpl; solve [eauto].
+     erewrite subst_env_concat; simpl; solve [eauto with Term].
      (* Rw_rt_preserves_types is automatic *)
     eapply Rw_rt_preserves_types; solve [eauto].
    symmetry; apply unshift_closed_noop with T; solve [auto].
@@ -1315,12 +1315,13 @@ Proof.
    tauto.
 
  (* Case TmAbs *)
- * replace (map (shift 0 1) Vs) with Vs by (symmetry; eauto).
+ * (* TODO: Should be a simpler way to autorewrite this *)
+   replace (map (shift 0 1) Vs) with Vs by (symmetry; eauto with Shift).
    replace (TmAbs (subst_env 1 Vs M)) with (subst_env 0 Vs (TmAbs M)).
    (* proof of reducibility of the lambda. *)
    - apply lambda_reducibility with tyEnv; auto.
      intros V V_red.
-     eapply IHM; eauto with Reducible.
+     eapply IHM; eauto with Reducible Term.
      simpl.
      intuition.
 
@@ -1373,7 +1374,7 @@ Proof.
      intros.
      pose (Reducible_welltyped_closed _ _ X).
      assert (Typing nil (subst_env 0 (L :: Vs) M2) (TyList t)).
-     { eapply closing_subst_closes; seauto. }
+     { eapply closing_subst_closes; eauto with Term. }
 
      erewrite shift_closed_noop; eauto.
      erewrite shift_closed_noop_map; eauto.
@@ -1381,9 +1382,9 @@ Proof.
      (* TO DO: The env_typing oblig. of subst_env_concat seems unnecessary. *)
      ** unfold app.
         erewrite unshift_closed_noop (* with (T:=TyList t) *); eauto.
-        eapply IHM2; eauto.
+        eapply IHM2; eauto with Term.
         simpl.
-        sauto.
+        auto.
      ** apply env_typing_cons; sauto.
  * simpl.
    split.
