@@ -4,7 +4,7 @@
  *)
 
 Require Import List.
-Require Import Omega.
+Require Import Lia.
 
 Require Import Coq.Lists.List.
 Require Export Coq.Lists.ListSet.
@@ -671,15 +671,15 @@ Proof.
     auto.
    simpl.
    intros.
-   omega.
+   lia.
   simpl.
   intros.
-  omega.
+  lia.
  unfold foreach2.
  simpl in *.
  intuition.
  assert (length x = length y).
-  omega.
+  lia.
  apply union_eq_mor. (* Note: I should be able to do this with rewrite, but Coq complains some instances don't exist... *)
   auto.
  apply IHx.

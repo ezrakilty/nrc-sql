@@ -8,7 +8,7 @@ Add LoadPath ".." as e.
 Load "eztactics.v".
 
 Require Import List.
-Require Import Omega.
+Require Import Lia.
 
 Add LoadPath "../Listkit" as Listkit.
 
@@ -18,10 +18,10 @@ Lemma nth_error_ok A :
   forall n (xs : list A), length xs > n ->
     exists v, nth_error xs n = value v.
 Proof.
- induction n; destruct xs; simpl; intros; try (elimtype False; omega).
+ induction n; destruct xs; simpl; intros; try (elimtype False; lia).
   eauto.
  assert (H0 : (length xs) > n).
- omega.
+ lia.
  apply (IHn xs H0).
 Qed.
 
@@ -30,14 +30,14 @@ Lemma nth_error_overflow :
 Proof.
  induction l; induction n; simpl; firstorder.
  - simpl.
-   omega.
- - omega.
+   lia.
+ - lia.
  - discriminate.
  - simpl in H0 |- *.
    simpl in *.
    apply IHl.
-   omega.
- - cut (length l <= n); try omega.
+   lia.
+ - cut (length l <= n); try lia.
    apply IHl.
    auto.
 Qed.
@@ -56,8 +56,8 @@ Lemma nth_error_app_strong A :
 Proof.
 Unset Ltac Debug.
  induction xs; simpl; intros ys n H.
-  replace (n-0) with n by omega.
-  left; split; [omega|auto].
+  replace (n-0) with n by lia.
+  left; split; [lia|auto].
  destruct n; simpl in * |- *.
   right.
   intuition.
@@ -75,10 +75,10 @@ Proof.
   destruct n;
     discriminate.
  destruct n; simpl in H.
-  omega.
+  lia.
  assert (n < length xs).
   auto.
- omega.
+ lia.
 Qed.
 
 Lemma nth_error_nil A : forall x, nth_error (nil: list A) x = error.
@@ -97,11 +97,11 @@ Lemma nth_error_ext_length:
     n < length a ->
     nth_error (a++b) n = nth_error a n.
  induction a; simpl; intros b n H.
- - omega.
+ - lia.
  - destruct n; simpl.
    * auto.
    * apply IHa.
-     omega.
+     lia.
 Qed.
 
 Lemma nth_error_ext:
@@ -120,11 +120,11 @@ Lemma nth_error_app A :
     value x = nth_error ys (n - length xs).
 Proof.
  induction xs; simpl; intros ys n n_big H.
-  replace (n-0) with n; [trivial|omega].
+  replace (n-0) with n; [trivial|lia].
  destruct n; simpl in * |- *.
-  elimtype False; omega.
+  elimtype False; lia.
  apply IHxs; trivial.
-  omega.
+  lia.
 Qed.
 
 Lemma rewrite_nth_error_app A :
@@ -134,11 +134,11 @@ Lemma rewrite_nth_error_app A :
     nth_error ys (n - length xs).
 Proof.
  induction xs; simpl; intros ys n n_big.
-  replace (n-0) with n; [trivial|omega].
+  replace (n-0) with n; [trivial|lia].
  destruct n; simpl in * |- *.
-  elimtype False; omega.
+  elimtype False; lia.
  apply IHxs; trivial.
- omega.
+ lia.
 Qed.
 
 Hint Resolve nth_error_ext nth_error_ext_length nth_error_app.
@@ -169,7 +169,7 @@ Proof.
  intros A xs ys n n_lb n_ub.
  pose (H:=nth_error_ok A n (xs++ys)).
  destruct H.
- omega.
+ lia.
  transitivity (value x); trivial.
  apply nth_error_app; auto.
 Qed.
@@ -184,10 +184,10 @@ Proof.
  intros ys n v H;
    simpl in H |- *.
  - right; intuition; eauto.
-   replace (n-0) with n; auto; omega.
+   replace (n-0) with n; auto; lia.
  - destruct n; simpl in *; firstorder.
-   * left; firstorder; omega.
-   * destruct (IHxs ys n v H); [left|right]; firstorder; omega.
+   * left; firstorder; lia.
+   * destruct (IHxs ys n v H); [left|right]; firstorder; lia.
 Qed.
 
 Lemma nth_error_app_split_error :
@@ -200,12 +200,12 @@ Proof.
  intros ys n H;
   simpl in *.
   intuition; eauto.
-   cut (length ys <= n); [omega|apply <- nth_error_overflow]; trivial.
-   replace (n-0) with n; auto; omega.
+   cut (length ys <= n); [lia|apply <- nth_error_overflow]; trivial.
+   replace (n-0) with n; auto; lia.
  destruct n; try discriminate; simpl in *; firstorder.
  destruct (IHxs ys n H).
  destruct H1.
- omega.
+ lia.
 Qed.
 
 (** When two lists are equally long, we can take the same index into
@@ -220,8 +220,8 @@ Proof.
 (* intros A.*)
  induction xs as [|x xs]; destruct ys as [|y ys]; destruct n; simpl;
     intuition; try discriminate.
- left; split; [omega|]; exists x; exists y; auto.
- destruct (IHxs ys n); [omega| |];
+ left; split; [lia|]; exists x; exists y; auto.
+ destruct (IHxs ys n); [lia| |];
  try (solve[right; intuition]); try (solve[left; intuition]).
 Qed.
 
@@ -230,7 +230,7 @@ Lemma nth_error_exists:
   n < length xs -> exists x, nth_error xs n = value x.
 Proof.
  induction xs; destruct n; simpl; intros H;
- try (elimtype False; omega); eauto; (apply IHxs; omega).
+ try (elimtype False; lia); eauto; (apply IHxs; lia).
 Qed.
 
 Lemma nth_error_to_length :
@@ -239,7 +239,7 @@ Proof.
  induction xs; simpl; intros n H.
   destruct n; simpl in H; discriminate.
  destruct n; simpl in H.
-  omega.
+  lia.
  apply lt_n_S.
  apply IHxs; trivial.
 Qed.
@@ -252,11 +252,11 @@ Proof.
  induction xs; destruct n; simpl.
     left; auto.
    left; split.
-    omega.
+    lia.
    auto.
   right.
   split.
-   omega.
+   lia.
   eauto.
  destruct (IHxs n).
   left; intuition.
@@ -276,13 +276,13 @@ Lemma nth_error_rewrite_app_right:
     length xs <= n ->
     nth_error (xs ++ ys) n = nth_error ys (n-length xs).
  induction xs; simpl; intros.
-  replace (n-0) with (n) by omega.
+  replace (n-0) with (n) by lia.
   auto.
  destruct n.
   easy.
  simpl.
  apply IHxs.
- omega.
+ lia.
 Qed.
 
 Lemma nth_error_rewrite_app_left:
@@ -296,7 +296,7 @@ Proof.
   auto.
  simpl.
  apply IHxs.
- omega.
+ lia.
 Qed.
 
 Hint Resolve nth_error_ok nth_error_overflow nth_error_overflow_errors
