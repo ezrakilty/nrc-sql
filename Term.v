@@ -5,6 +5,8 @@ Add Rec LoadPath "Listkit" as Listkit.
 
 Require Import Listkit.Foreach.
 
+Create HintDb Term.
+
 (** Definitions *)
 Inductive Ty : Set :=
   TyBase
@@ -122,7 +124,7 @@ Proof.
  unfold foreach2_ty; simpl; intuition.
 Qed.
 
-Hint Resolve env_typing_cons.
+Hint Resolve env_typing_cons : Term.
 
 Require Import Coq.Lists.ListSet.
 

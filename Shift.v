@@ -49,8 +49,7 @@ Fixpoint unshift k n tm {struct tm} :=
 | TmTable ty => TmTable ty
 end.
 
-Hint Unfold unshift_var shift_var.
-Hint Transparent unshift_var shift_var.
+#[local] Hint Transparent unshift_var shift_var : Shift.
 
 Lemma unshift_var_shift_var :
   forall x k n,
@@ -122,11 +121,7 @@ Proof.
  simpl; apply le_O_n.
 Qed.
 
-Hint Resolve shift_closed_noop.
-Hint Rewrite shift_closed_noop : terms.
-
-Hint Resolve shift_nonfree_noop.
-Hint Rewrite shift_nonfree_noop : terms.
+#[export] Hint Resolve shift_closed_noop : Shift.
 
 Lemma shift_var_nth_error:
   forall A (x:A) n env2 env1 env',
@@ -160,7 +155,7 @@ Proof.
  induction M; intros k n env1 env2 env env' T env_split k_def n_def M_tp;
    inversion M_tp as [| ? ? T_is_env_x| | | | | | | | | |]; simpl.
  (* TmConst *)
-            auto.
+            solve [auto].
  (* TmVar *)
            subst x0 ty env n k.
            apply TVar.
@@ -205,7 +200,7 @@ Proof.
  apply shift_preserves_typing with env; auto.
 Qed.
 
-Hint Resolve shift1_preserves_typing.
+#[export] Hint Resolve shift1_preserves_typing : Shift.
 
 (** For a closed list of terms (as indicated when env_typing applies
 to the list), shifting by any amount is a noop. *)
@@ -220,17 +215,13 @@ Proof.
  destruct env; [refute; simpl in *; lia| ].
  unfold foreach2_ty in tps.
  simpl in tps.
+ inversion tps.
  f_equal.
-  inversion tps.
-  eapply shift_nonfree_noop; eauto.
-  simpl; lia.
- rewrite IHVs with env n k; auto.
- intuition.
+ - eauto using shift_closed_noop.
+ - rewrite IHVs with env n k; auto.
 Qed.
 
-Hint Resolve env_typing_shift_noop.
-
-Hint Rewrite env_typing_shift_noop : typing.
+#[export] Hint Resolve env_typing_shift_noop : Shift.
 
 (** Applying [unshift k _] to a variable _smaller_ than [k] as no effect. *)
 Lemma unshift_var_lo :
@@ -373,14 +364,24 @@ Require Import Listkit.Sets.
 
 Import Setoid.
 
-Lemma S_monomorphism : (monomorphism _ _ S).
-  firstorder.
+Lemma not_in_union_elim: forall x A B, ~ (x ∈ A ∪ B) -> ~ (x ∈ A) /\ ~ (x ∈ B).
+Proof.
+  intros. split; contrapose H; apply set_union_intro; auto.
 Qed.
 
-Hint Resolve S_monomorphism.
-
-Lemma not_in_union_elim: forall x A B, ~ (x ∈ A ∪ B) -> ~ (x ∈ A) /\ ~ (x ∈ B).
-Proof. intros. split; contrapose H; apply set_union_intro; auto.
+Lemma remove_0_pred_preserves_nonzero_membership:
+  forall x xs,
+  (S x ∈ xs) ->
+  (x ∈ set_map Nat.eq_dec Init.Nat.pred (Term.set_remove nat Nat.eq_dec 0 xs)).
+Proof.
+  intros.
+  rewrite map_monomorphism with (f := S).
+  2: { firstorder. }
+  rewrite set_map_map by auto.
+  apply set_map_idy_ext; [ |easy].
+  intros.
+  apply set_remove_elim in H0.
+  lia.
 Qed.
 
 Lemma shift_unshift_commute :
@@ -420,12 +421,7 @@ Proof.
       simpl in *.
       rewrite IHM; [auto | | lia].
       contrapose k'_not_free; rename k'_not_free into S_k'_free_in_M.
-      rewrite map_monomorphism with (f := S) by auto.
-      rewrite set_map_map by auto.
-      apply set_map_idy_ext; [ |easy].
-      intros.
-      apply set_remove_elim in H.
-      lia.
+      apply remove_0_pred_preserves_nonzero_membership; easy.
 
  (* Case TmApp *)
      simpl in *.
@@ -454,12 +450,7 @@ Proof.
  contrapose k'_not_free.
  rename k'_not_free into S_k'_in_fvs_M2.
  apply set_union_intro2.
- rewrite map_monomorphism with (f:=S) by auto.
- rewrite set_map_map.
- apply set_map_idy_ext; [| easy].
- intros.
- apply set_remove_elim in H.
- lia.
+ apply remove_0_pred_preserves_nonzero_membership; easy.
 
  (* Case TmIf *)
  simpl in *.
