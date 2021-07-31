@@ -10,10 +10,10 @@ Add LoadPath "Listkit" as Listkit.
 
 Require Import Listkit.NthError.
 
-Require Import Term.
+Require Import Lia.
 Require Import Shift.
 Require Import Subst.
-Require Import Lia.
+Require Import Term.
 
 (** Let's make [N */ L] a notation for the result of a beta-reduction
     (including all the de Bruijn monkeying). Makes the lemmas a lot easier to read.
