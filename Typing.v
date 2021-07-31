@@ -20,7 +20,7 @@ Lemma Weakening :
   forall env' tm ty env, Typing env tm ty ->
     Typing (env++env') tm ty.
 Proof.
- induction tm; intros ty env tp; inversion tp; eauto.
+ induction tm; intros ty env tp; inversion tp; eauto with NthError.
   apply TAbs.
   autorewrite with list.
   seauto.

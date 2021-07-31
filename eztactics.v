@@ -200,6 +200,8 @@ Ltac breakauto := break; try lia; try auto.
 Ltac finish := solve [auto | lia].
 Ltac efinish := solve [simpl;eauto | simpl; lia].
 
+Ltac efinish_new db := solve [simpl; eauto with db | simpl; lia].
+
 Ltac sauto := solve [auto].
 Ltac seauto := solve [eauto].
 

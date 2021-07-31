@@ -104,8 +104,9 @@ Proof.
      try (f_equal; eauto).
    unfold unshift_var.
    break; trivial.
-   absurd (x < length env); efinish.
-  eapply IHM with (s :: env) t; auto; simpl; lia.
+   (* TODO: Need to parameterize efinish on hint databases? *)
+   absurd (x < length env); solve [easy | eauto with NthError].
+   eapply IHM with (s :: env) t; auto; simpl; lia.
  eapply IHM2 with (s :: env) (TyList t); auto; simpl; lia.
 Qed.
 
@@ -137,13 +138,13 @@ Proof.
  unfold shift_var.
  intros ? x n env2 env1 env' H.
  destruct (le_gt_dec (length env1) n).
-  assert (n < length (env1 ++ env2)) by eauto.
+  assert (n < length (env1 ++ env2)) by eauto with NthError.
   rewrite app_length in H0.
   rewrite nth_error_app_eq; repeat (rewrite app_length); try finish.
   rewrite nth_error_app_eq; repeat (rewrite app_length); try finish.
   replace (n + length env' - length env1 - length env')
      with (n - length env1) by lia.
-  sauto.
+  solve [auto with NthError].
  rewrite nth_error_ext_length; auto.
  rewrite nth_error_ext_length in H by auto.
  auto.

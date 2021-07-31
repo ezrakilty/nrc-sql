@@ -90,7 +90,7 @@ Qed.
 
 Hint Resolve nth_error_nil nth_error_ok nth_error_ok_rev
         nth_error_overflow_errors
-        nth_error_overflow.
+        nth_error_overflow : NthError.
 
 Lemma nth_error_ext_length:
   forall A (a b: list A) n,
@@ -110,7 +110,7 @@ Lemma nth_error_ext:
     value v = nth_error (a++b) n.
 Proof.
  intros; rewrite nth_error_ext_length; auto.
- eauto.
+ eauto with NthError.
 Qed.
 
 Lemma nth_error_app A :
@@ -141,7 +141,7 @@ Proof.
  lia.
 Qed.
 
-Hint Resolve nth_error_ext nth_error_ext_length nth_error_app.
+Hint Resolve nth_error_ext nth_error_ext_length nth_error_app : NthError.
 
 Lemma nth_error_map:
   forall A B (f:A->B) xs n,

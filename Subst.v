@@ -69,8 +69,8 @@ Proof.
   subst.
   case_eq (nth_error Vs (x - n)); [ | sauto].
   absurd (x < length env).
-   efinish.
-  efinish.
+    efinish.
+   efinish_new NthError.
  (* Case TmAbs *)
  eapply IHN; efinish.
  (* Case TmBind *)
@@ -111,6 +111,7 @@ Proof.
     apply nth_error_app in H0; auto.
    apply nth_error_ok_rev in H0.
    apply <- nth_error_overflow in H_v.
+   rewrite app_length in H0.
    lia.
  - (* Case of x in env. *)
   apply TVar.

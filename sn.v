@@ -1282,7 +1282,7 @@ Proof.
     eapply Reducible_env_value; eauto.
    absurd (length Vs <= x).
     cut (length tyEnv > x); [lia|]. (* todo: sufficient ... by lia. *)
-    seauto.
+    solve [eauto with NthError].
    apply <- nth_error_overflow; sauto.
 
  (* Case TmPair *)
