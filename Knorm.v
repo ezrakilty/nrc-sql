@@ -8,10 +8,10 @@ Add LoadPath "Listkit" as Listkit.
 Require Import Lia.
 
 Require Import Continuation.
-Require Import Rewrites.
-Require Import Norm.
-Require Import Term.
 Require Import List.
+Require Import Norm.
+Require Import Rewrites.
+Require Import Term.
 
 (** * More Induction Principles on Reduction Sequences *)
 

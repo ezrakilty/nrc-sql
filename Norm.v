@@ -9,8 +9,8 @@ Add LoadPath "Listkit" as Listkit.
 
 Require Import Coq.Sets.Image.
 
-Require Import Term.
 Require Import Rewrites.
+Require Import Term.
 
 Inductive StrongNorm A R (x:A) :=
   reducts_SN : (forall x', R x x' -> StrongNorm _ R x') -> StrongNorm _ R x.

@@ -8,12 +8,11 @@ Add LoadPath "Listkit" as Listkit.
 Require Import Coq.Sets.Image.
 
 Require Import Arith.
+Require Import Lia.
 Require Import Norm.
 Require Import Rewrites.
-Require Import Term.
-Require Import Lia.
 Require Import Shift.
-Require Import Arith.
+Require Import Term.
 
 Inductive Frame :=
   Iterate : Term -> Frame

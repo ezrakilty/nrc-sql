@@ -10,8 +10,8 @@ Require Import List.
 
 Add Rec LoadPath "Listkit" as Listkit.
 
-Require Import Listkit.NthError.
 Require Import Listkit.Foreach.
+Require Import Listkit.NthError.
 
 Require Import Term.
 

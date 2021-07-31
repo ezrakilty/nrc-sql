@@ -11,28 +11,29 @@ Require Import Arith.
 Require Import Lia.
 Require Import List.
 
-Require Import Listkit.logickit.
-Require Import Listkit.NthError.
-Require Import Listkit.Foreach.
-Require Import Listkit.Sets.
 Require Import Listkit.AllType.
+Require Import Listkit.Foreach.
+Require Import Listkit.NthError.
+Require Import Listkit.Sets.
 Require Import Listkit.listkit.
+Require Import Listkit.logickit.
 
 (* Add LoadPath ".". *)
 
-Require Import Term.
-Require Import Shift.
-Require Import Subst.
-Require Import Rewrites.
-Require Import Norm.
-Require Import Typing.
-Require Import Monomorphism.
-Require Import OutsideRange.
 Require Import Continuation.
 Require Import Knorm.
+Require Import Monomorphism.
+Require Import Norm.
+Require Import OutsideRange.
+Require Import Rewrites.
+Require Import Shift.
+Require Import Subst.
+Require Import Term.
+Require Import Typing.
 
 Require Import Coq.Lists.List.
 Require Import Coq.Lists.ListSet.
+
 Import Setoid.
 Require Import Coq.Program.Basics. (* TODO: What's this for?? *)
 Require Import Bool.

@@ -5,8 +5,8 @@
 
 Add Rec LoadPath "Listkit" as Listkit.
 
-Require Import Term.
 Require Import List.
+Require Import Term.
 
 Load "eztactics.v".
 

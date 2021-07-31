@@ -5,9 +5,9 @@
 
 Add LoadPath "Listkit" as Listkit.
 
+Require Import Norm.
 Require Import Rewrites.
 Require Import Term.
-Require Import Norm.
 
 Definition reduces M :=
   {M' : Term & M ~> M'}.

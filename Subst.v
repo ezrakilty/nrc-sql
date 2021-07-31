@@ -10,20 +10,18 @@ Require Import List.
 
 Add LoadPath "Listkit" as Listkit.
 
-Require Import Listkit.NthError.
+Require Import Listkit.AllType.
+Require Import Listkit.AllType.
 Require Import Listkit.Foreach.
-
-Require Import Term.
-Require Import Shift.
-Require Import Typing.
+Require Import Listkit.Map.
+Require Import Listkit.NthError.
+Require Import Listkit.Sets.
+Require Import Listkit.listkit.
 
 Require Import OutsideRange.
-
-Require Import Listkit.Sets.
-Require Import Listkit.AllType.
-Require Import Listkit.AllType.
-Require Import Listkit.listkit.
-Require Import Listkit.Map.
+Require Import Shift.
+Require Import Term.
+Require Import Typing.
 
 Hint Rewrite map_length: map.
 
