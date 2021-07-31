@@ -171,9 +171,10 @@ Inductive RewritesTo : Term -> Term -> Type :=
     V = (n */ x) -> RewritesTo (TmBind (TmSingle x) n) V
 | Rw_Bind_union : forall n xs ys,
     RewritesTo (TmBind (TmUnion xs ys) n) (TmUnion (TmBind xs n) (TmBind ys n))
-| Rw_Bind_union_body : forall m xs ys,
-    RewritesTo (TmBind m (TmUnion xs ys)) (TmUnion (TmBind m xs) (TmBind m ys))
-| Rw_Bind_subject : forall m n m',
+(* TODO: The Union-Body rule does not yet work. More sophisticated Continuation representations are needed to handle it. See the git branch union-body for the first attempt. *)
+(* | Rw_Bind_union_body : forall m xs ys, *)
+(*     RewritesTo (TmBind m (TmUnion xs ys)) (TmUnion (TmBind m xs) (TmBind m ys)) *)
+| Rw_Bind_sesubject : forall m n m',
     RewritesTo m m' -> RewritesTo (TmBind m n) (TmBind m' n)
 | Rw_Bind_assoc : forall l m n,
     RewritesTo (TmBind (TmBind l m) n) (TmBind l (TmBind m (shift 1 1 n)))
@@ -310,10 +311,6 @@ Proof.
    eauto using beta_reduct_typing.
  (* Case TmUnion/TmBind *)
  - inversion H.
-   subst.
-   eauto.
- - (* Case TmUnion in body of TmBind*)
-   inversion H0.
    subst.
    eauto.
  (* Case TmBind_assoc *)
@@ -468,7 +465,7 @@ Proof.
                   | M
                   | M N
                   | M N
-                  |
+                  (* | *)
                   | M N
                   | L M N
                   | M N
@@ -634,12 +631,6 @@ Proof.
    subst.
    descrim N1.
    inversion H0; subst.
-   simpl in red.
-   econstructor; eauto; simpl; auto.
-
- - subst.
-   descrim N2.
-   inversion H1; subst.
    simpl in red.
    econstructor; eauto; simpl; auto.
 

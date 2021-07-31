@@ -15,8 +15,7 @@ Require Import Shift.
 Require Import Arith.
 
 Inductive Frame :=
-  Iterate : Term -> Frame
-| Include : Term -> Frame.
+  Iterate : Term -> Frame.
 
 Definition Continuation := list Frame.
 
@@ -27,7 +26,6 @@ Require Import List.
 Definition plugframe M f : Term :=
   match f with
   | Iterate N => TmBind M N
-  | Include N => TmUnion M N
   end.
 
 Fixpoint plug (M : Term) (K : Continuation) : Term :=
@@ -126,12 +124,9 @@ Proof.
   auto.
  intros.
  destruct a.
- simpl in H.
- pose (s := IHK (TmBind M t) H).
- eapply SN_embedding with (f := fun x => TmBind x t) (Q := TmBind M t); solve [auto].
- simpl in H.
- pose (s := IHK (TmUnion M t) H).
- eapply SN_embedding with (f := fun x => TmUnion x t) (Q := TmUnion M t); solve [auto].
+ - simpl in H.
+   pose (s := IHK (TmBind M t) H).
+   eapply SN_embedding with (f := fun x => TmBind x t) (Q := TmBind M t); solve [auto].
 Qed.
 
 #[export] Hint Constructors Neutral : Continuation.
@@ -207,7 +202,6 @@ Proof.
         exists K, (t */ x); auto. exists t; easy. }
       { subst. left; left; right. split; [introversion | ].
         exists K, (TmUnion (TmBind xs t) (TmBind ys t)); auto. exists t; easy. }
-      { admit. }
       { subst. left; left; left. eauto. }
       { subst. right. eauto. }
       { subst. left; left; left; right. exists (Iterate n' :: K); auto with Continuation. }
@@ -226,7 +220,7 @@ Proof.
       simpl.
       auto.
       apply assoc_in_K.
-Admitted.
+Qed.
 
 Lemma appendK_assoc :
   forall K0 K1 K2,
@@ -302,7 +296,6 @@ Proof.
         exists (Iterate t :: nil); auto.
      ** left. exists K; auto.
         exists (Iterate TmNull :: nil); auto.
-     ** admit.
      ** solve [inversion H2].
      ** right.
         exists (Iterate n' :: K); auto with Continuation.
@@ -328,7 +321,7 @@ Proof.
      rewrite reverse_plug_defn.
      right.
      eauto using assoc_in_K.
-Admitted.
+Qed.
 
 Lemma Ksize_induction P :
   (forall K, Ksize K = 0 -> P K) ->
@@ -388,30 +381,12 @@ Fixpoint deepest_K M :=
   | TmBind M' N' =>
     let (body, K) := deepest_K M' in
     (body, K ++ Iterate N' :: nil)
-  | TmUnion M' N' =>
-    let (body, K) := deepest_K M' in
-    (body, K ++ Include N' :: nil)
   | _ => (M, nil)
   end.
-
-(* Fixpoint drop_outermost K := *)
-(* match K with *)
-(* | ConsFrame (Iterate t) Empty => (t, Empty) *)
-(* | ConsFrame (Iterate t) K' => let (f, K'') := drop_outermost K' in *)
-(*                   (f, ConsFrame (Iterate t) K'') *)
-(* | Empty => (TmNull, Empty) *)
-(* end. *)
 
 Lemma plug_appendK_weird_Iterate:
   forall K M M',
     plug M' (appendK K (Iterate M :: nil)) = TmBind (plug M' K) M.
-Proof.
- induction K; try (destruct a); simpl; auto.
-Qed.
-
-Lemma plug_appendK_weird_Include:
-  forall K M M',
-    plug M' (appendK K (Include M :: nil)) = TmUnion (plug M' K) M.
 Proof.
  induction K; try (destruct a); simpl; auto.
 Qed.
@@ -422,16 +397,6 @@ Lemma deepest_K_spec:
     plug M'  K'  = M.
 Proof.
  induction M; simpl; intros; inversion H; auto.
- - pose (X := deepest_K M1).
-   assert (X = deepest_K M1) by auto.
-   destruct X.
-   rewrite <- H0 in H.
-   inversion H.
-   subst.
-   pose (IHM1 l t).
-   rewrite <- e; auto.
-   apply plug_appendK_weird_Include.
-
  - pose (X := deepest_K M1).
    assert (X = deepest_K M1) by auto.
    destruct X.
@@ -542,7 +507,6 @@ Proof.
         apply unique_plug_null; auto.
         rewrite H.
         lia.
-     -- admit.
      -- inversion H2.
      -- assert (K' = Iterate n' :: K).
         { apply unique_plug_null.
@@ -582,7 +546,7 @@ Proof.
      subst.
      simpl.
      lia.
-Admitted.
+Qed.
 
 Lemma Krw_rt_conserves_Ksize:
   forall K K',
@@ -749,16 +713,6 @@ Proof.
    apply Krw_rt_conserves_Ksize.
    eauto with Continuation.
 Qed.
-
-(* Lemma K_TmNull_rw_abstract *)
-(*      : forall (K : Continuation) (Z : Term), *)
-(*        (plug K TmNull ~> Z) -> *)
-(*        {K' : Continuation & Z = plug K' TmNull}. *)
-(* Proof. *)
-(*  intros. *)
-(*  apply K_TmNull_rw in H. *)
-(*  destruct H; firstorder. *)
-(* Qed. *)
 
 Lemma K_TmNull_rw_rt:
   forall A Z,
