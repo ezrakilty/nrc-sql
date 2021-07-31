@@ -1,3 +1,7 @@
+(*
+ * Listkit: A library for working with lists in Coq.
+ * Copyright Ezra Cooper, 2008-2020.
+ *)
 
 Ltac exfalso := elimtype False. (* Coq 8.3 feature. *)
 

@@ -1,3 +1,8 @@
+(*
+ * Strong Normalization for Nested Relational Calculus.
+ * Copyright Ezra Cooper, 2008-2020.
+ *)
+
 Load "eztactics.v".
 
 Add LoadPath "Listkit" as Listkit.
