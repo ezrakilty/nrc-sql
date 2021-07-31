@@ -146,7 +146,7 @@ Lemma Rw_preserves_Reducible :
 Proof.
  induction T; simpl.
  - firstorder using Rw_preserves_types.
-   inversion b; solve [auto with Norm].
+   inversion b; solve [auto].
  - firstorder using Rw_preserves_types.
  - firstorder using Rw_preserves_types.
  - intros.
@@ -1105,7 +1105,6 @@ Proof.
     eapply all_cut; [| apply a]; simpl.
     intros; lia.
 Unshelve.
-exact O. (* what? *)
 Admitted.
 
 Lemma Bind_Reducible_core:
@@ -1403,7 +1402,7 @@ Proof.
  intros M T tp.
 
  assert (Reducible M T).
-  replace M with (subst_env 0 nil M) by seauto.
+  replace M with (subst_env 0 nil M) by solve [eauto with Subst].
   eapply reducibility; eauto; solve [firstorder].
  (* With reducibility comes strong normalization. *)
  solve [eauto with SN].

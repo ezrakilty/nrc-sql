@@ -14,13 +14,11 @@ Listkit/All.vo: eztactics.v Listkit/Sets.vo Listkit/logickit.vo
 
 Listkit/AllType.vo: Listkit/Sets.vo
 
-Listkit/Subseteq.vo: eztactics.v Listkit/Sets.vo
-
 Listkit/Map.vo: Listkit/Sets.vo
 
 Listkit/listkit.vo: Listkit/logickit.vo Listkit/NthError.vo \
                     Listkit/Foreach.vo \
                     Listkit/All.vo Listkit/AllType.vo Listkit/Map.vo \
-                    Listkit/Sets.vo Listkit/Subseteq.vo
+                    Listkit/Sets.vo
 
 # Listkit/RangeSet.vo

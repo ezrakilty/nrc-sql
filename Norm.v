@@ -15,7 +15,7 @@ Require Import Rewrites.
 Inductive StrongNorm A R (x:A) :=
   reducts_SN : (forall x', R x x' -> StrongNorm _ R x') -> StrongNorm _ R x.
 
-Hint Constructors StrongNorm.
+Hint Constructors StrongNorm : Norm.
 
 (** Strong normalization: a term is strongly normalizing if all its
     reducts are strongly normalizing.
