@@ -1081,7 +1081,7 @@ Proof.
     apply IHK.
     { apply Krw_rt_conserves_Ksize in H2.
       simpl in H2.
-      omega. }
+      lia. }
     { eauto. }
     assert (SN (plug (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)) (Iterate N1 :: K''))).
      assert (plug (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) K
@@ -1100,7 +1100,7 @@ Proof.
     unfold in_env_domain.
     simpl in a |- *.
     eapply all_cut; [| apply a]; simpl.
-    intros; omega.
+    intros; lia.
 Unshelve.
 exact O. (* what? *)
 Admitted.
@@ -1252,8 +1252,8 @@ Proof.
       assert (Ksize K' > Ksize K'').
       { subst K'.
         rewrite Ksize_appendK; simpl.
-        omega. }
-      omega. }
+        lia. }
+      lia. }
     apply H with TmNull; auto.
     apply Rw_trans_preserves_SN with (plug x K); auto.
     assert (plug x K' ~> plug TmNull K'').
@@ -1279,11 +1279,11 @@ Proof.
    intuition.
 
  (* Case TmVar *)
- * replace (x - 0) with x by omega.
+ * replace (x - 0) with x by lia.
    case_eq (nth_error Vs x); [intros V V_H | intro H_bogus].
     eapply Reducible_env_value; eauto.
    absurd (length Vs <= x).
-    cut (length tyEnv > x); [omega|]. (* todo: sufficient ... by omega. *)
+    cut (length tyEnv > x); [lia|]. (* todo: sufficient ... by lia. *)
     seauto.
    apply <- nth_error_overflow; sauto.
 

@@ -63,7 +63,7 @@ Lemma unshift_var_shift_var :
 Proof.
  intros x k n.
  unfold unshift_var, shift_var.
- break; break; omega.
+ break; break; lia.
 Qed.
 
 Lemma unshift_shift :
@@ -88,11 +88,11 @@ Proof.
    unfold shift_var.
    break; trivial.
    pose (nth_error_to_length _ _ _ _ T_is_env_x).
-   omega.
+   lia.
  (* Case TmAbs *)
-  apply IHM with (s :: env) t; simpl; auto; omega.
+  apply IHM with (s :: env) t; simpl; auto; lia.
  (* Case TmBind *)
- apply IHM2 with (s :: env) (TyList t); simpl; auto; omega.
+ apply IHM2 with (s :: env) (TyList t); simpl; auto; lia.
 Qed.
 
 Lemma unshift_nonfree_noop :
@@ -106,8 +106,8 @@ Proof.
    unfold unshift_var.
    break; trivial.
    absurd (x < length env); efinish.
-  eapply IHM with (s :: env) t; auto; simpl; omega.
- eapply IHM2 with (s :: env) (TyList t); auto; simpl; omega.
+  eapply IHM with (s :: env) t; auto; simpl; lia.
+ eapply IHM2 with (s :: env) (TyList t); auto; simpl; lia.
 Qed.
 
 (** (Un)Shifting a closed term is a no-op. *)
@@ -147,7 +147,7 @@ Proof.
   rewrite nth_error_app_eq; repeat (rewrite app_length); try finish.
   rewrite nth_error_app_eq; repeat (rewrite app_length); try finish.
   replace (n + length env' - length env1 - length env')
-     with (n - length env1) by omega.
+     with (n - length env1) by lia.
   sauto.
  rewrite nth_error_ext_length; auto.
  rewrite nth_error_ext_length in H by auto.
@@ -222,13 +222,13 @@ Proof.
  induction Vs; simpl; intros env H; auto.
  intros n k.
  inversion H as [len tps].
- destruct env; [refute; simpl in *; omega| ].
+ destruct env; [refute; simpl in *; lia| ].
  unfold foreach2_ty in tps.
  simpl in tps.
  f_equal.
   inversion tps.
   eapply shift_nonfree_noop; eauto.
-  simpl; omega.
+  simpl; lia.
  rewrite IHVs with env n k; auto.
  intuition.
 Qed.
@@ -246,7 +246,7 @@ Proof.
  intros x k n H.
  unfold unshift_var.
  destruct (le_gt_dec (n + k) x);
-   [solve[omega]|solve[auto]].
+   [solve[lia]|solve[auto]].
 Qed.
 
 (** Composing one [shift] with another, at the same [k], can be
@@ -260,8 +260,8 @@ Proof.
  f_equal.
  unfold shift_var.
  destruct (le_gt_dec k x).
-  destruct (le_gt_dec k (x + n')); omega.
- destruct (le_gt_dec k x); omega.
+  destruct (le_gt_dec k (x + n')); lia.
+ destruct (le_gt_dec k x); lia.
 Qed.
 
 (** Composing one [shift] with another, where the later [k] falls in the
@@ -275,14 +275,14 @@ Proof.
 (* Case TmVar *)
  f_equal.
  unfold shift_var.
- break; break; omega.
+ break; break; lia.
  (* Csae TmAbs *)
  f_equal.
- apply IHM; omega.
+ apply IHM; lia.
  (* Csae TmBind *)
  f_equal.
- apply IHM1; omega.
- apply IHM2; omega.
+ apply IHM1; lia.
+ apply IHM2; lia.
 Qed.
 
 (** Composing [unshift] with [shift], given certain conditions (TODO)
@@ -297,12 +297,12 @@ Proof.
  (* Case TmVar *)
   unfold unshift_var, shift_var.
   destruct (le_gt_dec j x).
-   break; omega.
-  break; omega.
+   break; lia.
+  break; lia.
  (* Case TmAbs *)
-  apply IHM; omega.
+  apply IHM; lia.
  (* Case TmBind *)
- apply IHM2; omega.
+ apply IHM2; lia.
 Qed.
 
 Lemma shift_var_shift_var_commute:
@@ -315,13 +315,13 @@ Proof.
  unfold shift_var at 2 4.
  break; break.
     unfold shift, shift_var.
-    break; break; omega.
+    break; break; lia.
    unfold shift, shift_var.
-   break; break; omega.
+   break; break; lia.
   unfold shift, shift_var.
-  break; break; omega.
+  break; break; lia.
  unfold shift, shift_var.
- break; break; omega.
+ break; break; lia.
 Qed.
 
 (** "Shifting by one" commutes with "shifting by [k]" for appropriate
@@ -340,12 +340,12 @@ Proof.
   apply shift_var_shift_var_commute; auto.
  (* TmAbs *)
  simpl; f_equal.
- assert (S k' <= S k) by omega.
+ assert (S k' <= S k) by lia.
  eauto.
  simpl; f_equal.
   apply IHM1; auto.
  apply IHM2; auto.
- omega.
+ lia.
 Qed.
 
 Require Import Listkit.logickit.
@@ -363,7 +363,7 @@ Proof.
  replace (pred (if le_gt_dec (S k) x then x + n else x))
     with (if le_gt_dec (S k) x then pred (x + n) else pred x).
   unfold pred.
-  break; break; omega.
+  break; break; lia.
  symmetry; apply if_cc.
 Qed.
 
@@ -406,7 +406,7 @@ Proof.
          intuition.
          unfold shift_var, unshift_var.
          f_equal.
-         break; break; break; break; omega.
+         break; break; break; break; lia.
 
  (* Case TmPair *)
         simpl.
@@ -423,14 +423,14 @@ Proof.
 
  (* Case TmAbs *)
       simpl in *.
-      rewrite IHM; [auto | | omega].
+      rewrite IHM; [auto | | lia].
       contrapose k'_not_free; rename k'_not_free into S_k'_free_in_M.
       rewrite map_monomorphism with (f := S) by auto.
       rewrite set_map_map by auto.
       apply set_map_idy_ext; [ |easy].
       intros.
       apply set_remove_elim in H.
-      omega.
+      lia.
 
  (* Case TmApp *)
      simpl in *.
@@ -455,7 +455,7 @@ Proof.
  (* Case TmBind *)
  simpl in *.
  rewrite IHM1; [ | sauto | sauto].
- rewrite IHM2; [sauto | | omega].
+ rewrite IHM2; [sauto | | lia].
  contrapose k'_not_free.
  rename k'_not_free into S_k'_in_fvs_M2.
  apply set_union_intro2.
@@ -464,7 +464,7 @@ Proof.
  apply set_map_idy_ext; [| easy].
  intros.
  apply set_remove_elim in H.
- omega.
+ lia.
 
  (* Case TmIf *)
  simpl in *.
@@ -513,7 +513,7 @@ Proof.
        apply set_remove_elim in H; tauto.
       intros x y.
       unfold shift_var.
-      break; break; omega.
+      break; break; lia.
 
  (* Case TmApp *)
      apply eq_sets_symm.
@@ -553,7 +553,7 @@ Proof.
   apply set_remove_elim in H; tauto.
  intros x y.
  unfold shift_var.
- break; break; omega.
+ break; break; lia.
 
  (* Case TmIf *)
  rewrite IHM1.
@@ -574,7 +574,7 @@ Proof.
  intros.
  unfold shift_var.
  simpl.
- omega.
+ lia.
 Qed.
 
 Lemma pred_freevars_shift :
@@ -598,7 +598,7 @@ Lemma shift_var_range:
     (fun x => x < k \/ k + 1 <= x) (shift_var k 1 x).
 Proof.
  unfold shift_var.
- intros; break; omega.
+ intros; break; lia.
 Qed.
 
 (* TODO: Use outside_range? *)
@@ -626,7 +626,7 @@ Proof.
  apply set_remove_intro.
  intuition.
  apply shift_freevars_range in H.
- omega.
+ lia.
 Qed.
 
 Lemma unshift_var_unshift_var_commute:
@@ -637,7 +637,7 @@ Lemma unshift_var_unshift_var_commute:
 Proof.
  intros x k k' n H.
  unfold unshift_var at 2 4.
- break; break; unfold unshift_var; break; break; omega.
+ break; break; unfold unshift_var; break; break; lia.
 Qed.
 
 Lemma unshift_unshift_commute:
@@ -652,12 +652,12 @@ Proof.
           rewrite IHM1, IHM2; sauto.
          rewrite IHM; sauto.
         rewrite IHM; auto.
-        omega.
+        lia.
        rewrite IHM1, IHM2; sauto.
       auto.
      rewrite IHM; sauto.
     rewrite IHM1, IHM2; sauto.
-   rewrite IHM1, IHM2; solve [auto|omega].
+   rewrite IHM1, IHM2; solve [auto|lia].
   rewrite IHM1, IHM2, IHM3; sauto.
  auto.
 Qed.
@@ -670,7 +670,7 @@ Lemma shift_var_unshift_var_commute:
 Proof.
  intros x k k' n H.
  unfold unshift_var, shift_var.
- break; break; break; break; omega.
+ break; break; break; break; lia.
 Qed.
 
 Lemma unshift_shift_commute:
@@ -684,12 +684,12 @@ Proof.
            rewrite shift_var_unshift_var_commute; sauto.
           rewrite IHM1, IHM2; sauto.
          rewrite IHM; sauto.
-        rewrite IHM; solve [auto|omega].
+        rewrite IHM; solve [auto|lia].
        rewrite IHM1, IHM2; sauto.
       auto.
      rewrite IHM; sauto.
     rewrite IHM1, IHM2; sauto.
-   rewrite IHM1, IHM2; solve [auto|omega].
+   rewrite IHM1, IHM2; solve [auto|lia].
   rewrite IHM1, IHM2, IHM3; sauto.
  auto.
 Qed.

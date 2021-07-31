@@ -4,7 +4,7 @@
  *)
 
 Require Import Arith.
-Require Import Omega.
+Require Import Lia.
 Require Import List.
 
 Add Rec LoadPath "Listkit" as Listkit.

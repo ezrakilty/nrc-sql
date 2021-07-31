@@ -13,7 +13,7 @@ Require Import Listkit.NthError.
 Require Import Term.
 Require Import Shift.
 Require Import Subst.
-Require Import Omega.
+Require Import Lia.
 
 (** Let's make [N */ L] a notation for the result of a beta-reduction
     (including all the de Bruijn monkeying). Makes the lemmas a lot easier to read.
@@ -40,39 +40,39 @@ Proof.
   destruct (eq_nat_dec x (length env)).
    (* 'x' points to the type 'S' *)
    subst x.
-   replace (length env - length env) with 0 by omega.
+   replace (length env - length env) with 0 by lia.
    simpl.
-   rewrite fancy_unshift_shift; auto; [|omega].
-   replace (length env+1-1) with (length env); auto; [|omega].
+   rewrite fancy_unshift_shift; auto; [|lia].
+   replace (length env+1-1) with (length env); auto; [|lia].
    replace (env++env') with (nil++env++env'); auto.
    eapply shift_preserves_typing with env'; auto.
    apply nth_error_app in H0; auto.
-   replace (length env - length env) with 0 in H0 by omega.
+   replace (length env - length env) with 0 in H0 by lia.
    simpl in H0.
    inversion H0.
    auto.
   (* 'x' is in the second environment. *)
-  assert (length env < x) by omega.
-  assert (0 < x-length env) by omega.
+  assert (length env < x) by lia.
+  assert (0 < x-length env) by lia.
   replace (nth_error (shift 0 (length env + 1) M::nil) (x-length env))
     with (error : option Term).
    simpl.
    apply TVar.
    unfold unshift_var.
-   destruct (le_gt_dec (1 + length env) x); [ | omega].
+   destruct (le_gt_dec (1 + length env) x); [ | lia].
    apply nth_error_app in H0; auto.
    replace (S::env') with ((S::nil)++env') in H0; auto.
    apply nth_error_app in H0; auto.
    simpl in H0.
    rewrite rewrite_nth_error_app.
-    replace (x - 1 - length env) with (x - length env - 1) by omega.
+    replace (x - 1 - length env) with (x - length env - 1) by lia.
     auto.
-   omega.
+   lia.
 
   (* Prove that nth_error (_::nil) z = error when z > 0. *)
   symmetry; apply nth_error_overflow.
   simpl.
-  omega.
+  lia.
 
  (* x is in the first environment *)
  apply TVar.
@@ -367,7 +367,7 @@ Proof.
 
  (* Push subst_env inside unshift. *)
  rewrite subst_unshift (*if this used outside_range, how would it be different? *);
-   [ | omega | ].
+   [ | lia | ].
   f_equal.
 
   (* From here on we're just working with the left-hand square of the above diagram,
@@ -384,15 +384,15 @@ Proof.
 
    *)
 
-  replace (n+1) with (S n) by omega.
+  replace (n+1) with (S n) by lia.
 
   remember (shift 0 1 M) as M'.
   remember (shift 0 1 (subst_env n env M)) as M''.
   remember (map (shift 0 1) env) as env'.
 
   (* Push shift inside subst_env in M''. *)
-  rewrite shift_subst_commute_lo in HeqM'' by omega.
-  replace (n+1) with (S n) in HeqM'' by omega.
+  rewrite shift_subst_commute_lo in HeqM'' by lia.
+  replace (n+1) with (S n) in HeqM'' by lia.
 
   (* We have reduced the problem to subst_factor and some obligations. *)
   rewrite <- subst_factor. (* with m:= 0, n:= S n *)
@@ -408,12 +408,12 @@ Proof.
    intros X.
    pose (shift_freevars_range X 0).
    eapply all_cut; [|apply a].
-   firstorder omega.
+   firstorder lia.
 
   (* Obl 2: Substitutions do not overlap:
        (0, [_]) does not overlap (S n, _). *)
   simpl.
-  solve [omega].
+  solve [lia].
 
  (* Obligations of subst_unshift: *)
  (* Obl 1: That fvs of N{[shift 0 1 M]/0} are all outside [0,1). *)
@@ -442,7 +442,7 @@ Proof.
  split.
   subst fvs_M.
   pose (shift_freevars_range M 0). (* only need another step because all /= all_Type. *)
-  firstorder omega.
+  firstorder lia.
  apply all_Type_filter.
  apply outside_range_elim.
 Qed.
@@ -493,19 +493,19 @@ Proof.
    replace (subst_env (S (S n)) (map (shift 0 1) (map (shift 0 1) env)) (shift 1 1 N))
       with (shift 1 1 (subst_env (S n) (map (shift 0 1) env) N)).
    { auto. }
-   rewrite shift_subst_commute_lo by omega.
-   replace (S n + 1) with (S (S n)) by omega.
+   rewrite shift_subst_commute_lo by lia.
+   replace (S n + 1) with (S (S n)) by lia.
    rewrite 2 map_map.
    f_equal.
    apply map_ext.
    intros.
-   rewrite shift_shift' by omega.
-   rewrite shift_shift' by omega.
+   rewrite shift_shift' by lia.
+   rewrite shift_shift' by lia.
    simpl.
    auto.
  - (* Case: TmBind/TmIf commutation. *)
-   replace (S n) with (n + 1) by omega.
-   rewrite <- shift_subst_commute_lo by omega.
+   replace (S n) with (n + 1) by lia.
+   rewrite <- shift_subst_commute_lo by lia.
    auto.
 Qed.
 
@@ -526,10 +526,10 @@ Lemma commute_shift_beta_reduct :
     (shift (S k) 1 N1 */ shift k 1 N2) = shift k 1 (N1 */ N2).
 Proof.
  intros.
- rewrite shift_unshift_commute; [ | | omega].
- { rewrite shift_subst_commute_hi by (simpl; omega).
+ rewrite shift_unshift_commute; [ | | lia].
+ { rewrite shift_subst_commute_hi by (simpl; lia).
    simpl.
-   rewrite shift_shift_commute by omega.
+   rewrite shift_shift_commute by lia.
    trivial. }
  rewrite subst_Freevars by auto.
  intro H0.
@@ -653,7 +653,7 @@ Proof.
    inversion H0; subst.
    exists (TmBind N1_1 (TmBind N1_2 (shift 1 1 N2))).
    simpl.
-   { rewrite <- shift_shift_commute by omega; auto. }
+   { rewrite <- shift_shift_commute by lia; auto. }
    auto.
 
  - (* Case: reduction in body of TmBind. *)
@@ -676,7 +676,7 @@ Proof.
    simpl.
    rewrite shift_shift_commute.
    auto.
-   omega.
+   lia.
    auto.
    descrim N3.
    auto.
@@ -799,7 +799,7 @@ Proof.
 (*  intros. *)
 (* rewrite unshift_unshift_commute by auto. *)
 (* f_equal. *)
-(* rewrite <- unshift_shift_commute by omega. *)
+(* rewrite <- unshift_shift_commute by lia. *)
 (* Search unshift. *)
 (* replace (shift 0 1 M :: nil) with (map (shift 0 1) (M :: nil)) by auto. *)
 (* Check subst_unshift. *)
@@ -811,40 +811,40 @@ Proof.
  nth_error_dichotomize H1 H2 V H2; simpl in *.
   nth_error_dichotomize H3 H4 V H4; simpl in *.
    rewrite 2 Listkit.logickit.if_irrelevant.
-   rewrite unshift_unshift_commute; solve [auto | omega].
+   rewrite unshift_unshift_commute; solve [auto | lia].
   exfalso.
-  assert (H0 : unshift_var (S n) k x - n' = 0) by omega.
+  assert (H0 : unshift_var (S n) k x - n' = 0) by lia.
   unfold unshift_var in H0.
-  destruct (le_gt_dec (k + S n) x) in H0; solve [omega].
+  destruct (le_gt_dec (k + S n) x) in H0; solve [lia].
  nth_error_dichotomize H3 H4 W H4; simpl in *.
   exfalso.
   unfold unshift_var in H3.
-  destruct (le_gt_dec (k + S n) x); solve [omega].
-(* rewrite unshift_unshift_commute by omega. *)
+  destruct (le_gt_dec (k + S n) x); solve [lia].
+(* rewrite unshift_unshift_commute by lia. *)
 (* rewrite unshift_shift_commute. *)
 (* f_equal. *)
 (* rewrite Listkit.logickit.if_cc with (f := unshift (S n) k). *)
  break; break.
-    assert (x < S n) by omega.
+    assert (x < S n) by lia.
     assert (unshift_var (S n) k x = x).
      unfold unshift_var.
-     destruct (le_gt_dec (k + S n) x); solve [omega].
+     destruct (le_gt_dec (k + S n) x); solve [lia].
     replace (unshift_var (S n) k x) with x in * by auto.
-    replace (x - n') with 0 in * by omega.
+    replace (x - n') with 0 in * by lia.
     simpl in *.
     inversion H2.
     inversion H4.
-    rewrite unshift_unshift_commute by omega.
-    rewrite unshift_shift_commute by omega.
+    rewrite unshift_unshift_commute by lia.
+    rewrite unshift_shift_commute by lia.
     auto.
    exfalso.
    unfold unshift_var in g.
-   destruct (le_gt_dec (k + S n) x); solve [omega].
+   destruct (le_gt_dec (k + S n) x); solve [lia].
   exfalso.
   unfold unshift_var in l.
-  destruct (le_gt_dec (k + S n) x); solve [omega].
+  destruct (le_gt_dec (k + S n) x); solve [lia].
  unfold unshift, unshift_var.
- break; break; break; break; solve [omega | auto].
+ break; break; break; break; solve [lia | auto].
 Qed.
 
 Lemma beta_with_unshift:
@@ -864,7 +864,7 @@ Proof.
  (* TmProj *)
  - rewrite IHN; auto.
  (* TmAbs *)
- - rewrite IHN by omega.
+ - rewrite IHN by lia.
    rewrite unshift_shift_commute; easy.
  (* TmApp *)
  - rewrite IHN1, IHN2; auto.
@@ -875,7 +875,7 @@ Proof.
  (* TmUnion *)
  - rewrite IHN1, IHN2; auto.
  (* TmBind *)
- - rewrite IHN1, IHN2 by omega.
+ - rewrite IHN1, IHN2 by lia.
    rewrite unshift_shift_commute; easy.
  (* TmUnion *)
  - rewrite IHN1, IHN2, IHN3; auto.
@@ -893,13 +893,13 @@ Proof.
 
  - apply Rw_beta.
    apply beta_with_unshift.
-   omega.
+   lia.
  - apply Rw_Bind_beta.
    apply beta_with_unshift.
-   omega.
- - rewrite unshift_shift_commute by omega.
+   lia.
+ - rewrite unshift_shift_commute by lia.
    apply Rw_Bind_assoc.
- - rewrite unshift_shift_commute by omega.
+ - rewrite unshift_shift_commute by lia.
    apply Rw_If_Bind.
 Qed.
 
@@ -913,9 +913,9 @@ Proof.
    rewrite commute_shift_beta_reduct; auto.
  - apply Rw_Bind_beta.
    rewrite commute_shift_beta_reduct; auto.
- - rewrite shift_shift_commute by omega.
+ - rewrite shift_shift_commute by lia.
    auto.
- - rewrite shift_shift_commute by omega.
+ - rewrite shift_shift_commute by lia.
    auto.
 Qed.
 

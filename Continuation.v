@@ -7,10 +7,11 @@ Add LoadPath "Listkit" as Listkit.
 
 Require Import Coq.Sets.Image.
 
+Require Import Arith.
 Require Import Norm.
 Require Import Rewrites.
 Require Import Term.
-Require Import Omega.
+Require Import Lia.
 Require Import Shift.
 
 Inductive Frame :=
@@ -317,7 +318,7 @@ Proof.
      left.
      exists K'; auto.
      exists (Iterate t :: (appendK K'' (Iterate TmNull :: nil))); simpl; auto.
-     { omega. }
+     { lia. }
      rewrite appendK_assoc.
      simpl.
      auto.
@@ -365,9 +366,9 @@ Proof.
    simpl.
    intros.
    let T := type of H in absurd T.
-   omega.
+   lia.
    auto.
-   simpl in H; exfalso; omega.
+   simpl in H; exfalso; lia.
  - intros.
    apply X.
    intros.
@@ -375,8 +376,8 @@ Proof.
    * apply IHn; auto.
    * apply X.
      intros.
-     assert (Ksize K'0 = S n) by omega.
-     assert (Ksize K'1 <= n) by omega.
+     assert (Ksize K'0 = S n) by lia.
+     assert (Ksize K'1 <= n) by lia.
      apply IHn.
      auto.
 (* Seems like the above is dodgy; proving it twice? *)
@@ -536,11 +537,11 @@ Proof.
      -- assert (K' = K).
         { apply unique_plug_null; auto. }
         subst.
-        omega.
+        lia.
      -- assert (K = K').
         apply unique_plug_null; auto.
         rewrite H.
-        omega.
+        lia.
      -- admit.
      -- inversion H2.
      -- assert (K' = Iterate n' :: K).
@@ -548,7 +549,7 @@ Proof.
           simpl in *; sauto. }
         subst.
         simpl.
-        omega.
+        lia.
 
    * assert (K' = Iterate t :: K0).
      { apply unique_plug_null.
@@ -558,7 +559,7 @@ Proof.
      simpl.
      assert (plug TmNull K ~> plug TmNull K0) by auto.
      apply IHK in H.
-     omega.
+     lia.
 
    * refute.
      apply (H2 TmNull t); auto.
@@ -569,7 +570,7 @@ Proof.
      rewrite H0.
      rewrite Ksize_appendK.
      simpl.
-     omega.
+     lia.
    * destruct s as [L [L' H0 [K0 [N H1 H2]]]].
      subst.
      simpl.
@@ -580,7 +581,7 @@ Proof.
        simpl in *; sauto. }
      subst.
      simpl.
-     omega.
+     lia.
 Admitted.
 
 Lemma Krw_rt_conserves_Ksize:
@@ -592,7 +593,7 @@ Proof.
    subst; sauto.
   specialize (k TmNull).
   apply Rw_conserves_Ksize; sauto.
- omega.
+ lia.
 Qed.
 
 Lemma rw_rt_preserves_plug_TmNull:
@@ -743,7 +744,7 @@ Proof.
  - eexists.
    eauto.
    rewrite Ksize_appendK.
-   omega.
+   lia.
  - eexists; [eauto|].
    apply Krw_rt_conserves_Ksize.
    eauto.
@@ -881,7 +882,7 @@ Proof.
    subst.
    auto.
  - eauto.
- - intros; omega.
+ - intros; lia.
  - unfold injective.
    apply unique_plug_null.
  - intros.
