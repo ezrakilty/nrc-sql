@@ -540,7 +540,7 @@ Proof.
  split.
 
  (* Typing *)
-  solve [eauto].
+  solve [eauto with Subst].
 
  (* Reducibility *)
  intros P P_tp P_red.
@@ -577,7 +577,7 @@ Proof.
 
  assert (Typing nil P' S) by (eauto with Reducible).
  assert (Reducible P' S) by (eauto with Reducible).
- apply Neutral_Reducible_withdraw; [sauto | seauto |].
+ apply Neutral_Reducible_withdraw; [sauto | solve [eauto with Subst] |].
  intros M' redn.
 
  inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | | | | | | | |].
