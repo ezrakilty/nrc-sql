@@ -532,7 +532,7 @@ Proof.
  intro H0.
  apply set_union_elim in H0.
  destruct H0.
- - apply shift_freevars_range in H; intuition.
+ - apply shift_freevars_range in H; intuition (easy).
  - apply set_filter_elim in H; intuition.
 Qed.
 

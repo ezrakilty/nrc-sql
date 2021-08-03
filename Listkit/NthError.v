@@ -3,7 +3,7 @@
  * Copyright Ezra Cooper, 2008-2020.
  *)
 
-Add LoadPath ".." as e.
+(* Add LoadPath ".." as e. *)
 
 Load "eztactics.v".
 
@@ -88,6 +88,7 @@ Proof.
  simpl; apply le_O_n.
 Qed.
 
+#[export]
 Hint Resolve nth_error_nil nth_error_ok nth_error_ok_rev
         nth_error_overflow_errors
         nth_error_overflow : NthError.
@@ -141,6 +142,7 @@ Proof.
  lia.
 Qed.
 
+#[export]
 Hint Resolve nth_error_ext nth_error_ext_length nth_error_app : NthError.
 
 Lemma nth_error_map:
@@ -299,6 +301,7 @@ Proof.
  lia.
 Qed.
 
+#[export]
 Hint Resolve nth_error_ok nth_error_overflow nth_error_overflow_errors
         nth_error_app_strong nth_error_ok_rev nth_error_nil
         nth_error_ext_length nth_error_ext nth_error_app rewrite_nth_error_app

@@ -82,7 +82,7 @@ Lemma set_map_idy_ext :
     -> eq_sets _ (set_map eq_dec f xs) xs.
 Proof.
  induction xs.
-  auto.
+  solve [auto with Listkit].
  simpl.
  intros.
  pose (H0 := H a).
@@ -93,7 +93,7 @@ Proof.
  intuition.
  replace (f a) with a.
  rewrite IHxs.
-  sauto.
+  solve [auto with Listkit].
  intuition.
 Qed.
 
@@ -102,10 +102,10 @@ Lemma set_map_idy :
     eq_sets _ (set_map eq_dec (idy A) xs) xs.
 Proof.
  induction xs; simpl.
-  auto.
+  solve [auto with Listkit].
  unfold idy at 1.
  rewrite IHxs.
- auto.
+ auto with Listkit.
 Qed.
 
 Lemma set_map_map :
@@ -115,13 +115,13 @@ Lemma set_map_map :
       (set_map eq_dec (fun x => f (g x)) xs).
 Proof.
  induction xs; simpl; intros.
-  auto.
+  solve [auto with Listkit].
  unfold eq_sets in IHxs |- *.
  destruct IHxs as [IHxs1 IHxs2].
  split.
   rewrite map_add_comm.
-  rewrite IHxs1; auto.
+  rewrite IHxs1; solve [auto with Listkit].
 (* Check (flip Basics.impl). *)
  rewrite map_add_comm.
- rewrite IHxs2; auto.
+ rewrite IHxs2; auto with Listkit.
 Qed.

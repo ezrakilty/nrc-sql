@@ -74,6 +74,7 @@ Inductive Typing env : Term -> Ty -> Set :=
 | TTable : forall r, Typing env (TmTable r) (TyList r)
 .
 
+#[export]
 Hint Constructors Typing.
 
 (** [env_typing] relates a value environment to its typing. It asserts
@@ -88,6 +89,7 @@ Definition env_typing_env env Vs Ts :=
   ((length Vs = length Ts) *
   foreach2_ty _ _ Vs Ts (fun x y => (Typing env x y)))%type.
 
+#[export]
 Hint Unfold env_typing.
 
 (** [env_typing_env] environments can be extended, one term-type pair at a time. *)
@@ -124,11 +126,13 @@ Lemma env_typing_cons :
   forall V T Vs env,
     Typing nil V T -> env_typing Vs env -> env_typing (V::Vs) (T::env).
 Proof.
+ (* Could use foreach2_ty_cons, to maintain that abstraction. *)
  intros.
  simpl;  firstorder.
  unfold foreach2_ty; simpl; intuition.
 Qed.
 
+#[export]
 Hint Resolve env_typing_cons : Term.
 
 Require Import Coq.Lists.ListSet.
@@ -191,7 +195,10 @@ Inductive Neutral : Term -> Type :=
   | Neutral_Proj : forall b M, Neutral (TmProj b M)
   | Neutral_Table : forall t, Neutral (TmTable t).
 
+#[export]
 Hint Constructors Neutral.
 
+#[export]
 Hint Resolve Neutral_App.
+#[export]
 Hint Resolve Neutral_Proj.

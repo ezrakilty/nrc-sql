@@ -30,14 +30,13 @@ Proof.
  apply IHtm2; sauto.
 Qed.
 
-Hint Immediate Weakening.
-
 (** Special case of weakening for closed terms. *)
 Lemma Weakening_closed :
   forall tm ty env, Typing nil tm ty -> Typing env tm ty.
 Proof.
  intros tm ty env H.
- replace env with (nil ++ env); auto.
+ replace env with (nil ++ env); auto using Weakening.
 Qed.
 
+#[export]
 Hint Resolve Weakening_closed.

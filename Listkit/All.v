@@ -150,7 +150,7 @@ Proof.
  split.
   intros.
   unfold all in *.
-  auto.
+  solve [auto with Listkit].
 
  unfold all.
  intros.

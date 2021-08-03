@@ -3,17 +3,17 @@
  * Copyright Ezra Cooper, 2008-2020.
  *)
 
+Load "eztactics.v".
+
 Require Import List.
 Require Import Lia.
 
 Require Import Coq.Lists.List.
 Require Export Coq.Lists.ListSet.
 
-(* Add LoadPath "../Listkit" as Listkit. *)
+Add LoadPath "../Listkit" as Listkit.
 
 (* Add LoadPath "." as e. *)
-
-Load "eztactics.v".
 
 Require Import Listkit.logickit.
 Require Import Listkit.Foreach.
@@ -33,7 +33,8 @@ Proof.
  auto.
 Qed.
 
-Hint Resolve incl_sets_refl.
+#[export]
+Hint Resolve incl_sets_refl : Listkit.
 
 Lemma incl_sets_trans:
   forall A X Y Z,
@@ -71,7 +72,8 @@ Proof.
  intuition.
 Qed.
 
-Hint Resolve eq_sets_refl eq_sets_symm.
+#[export]
+Hint Resolve eq_sets_refl eq_sets_symm : Listkit.
 
 Require Import Setoid.
 
@@ -190,7 +192,8 @@ Proof.
  intuition.
 Qed.
 
-Hint Resolve set_remove_intro set_remove_elim.
+#[export]
+Hint Resolve set_remove_intro set_remove_elim : Listkit.
 
 Add Parametric Morphism A x eq_dec : (set_remove A eq_dec x) with
   signature (incl_sets A) ==> (incl_sets A) as set_remove_incl_mor.
@@ -231,9 +234,9 @@ Proof.
  intros.
  split.
  destruct H.
- apply union_mor; auto.
+ apply union_mor; auto with Listkit.
  destruct H.
- apply union_mor; auto.
+ apply union_mor; auto with Listkit.
 Qed.
 
 Add Parametric Morphism A : (incl_sets A) with
@@ -389,9 +392,11 @@ Proof.
  intuition.
 Qed.
 
-Hint Resolve set_union_intro.
+#[export]
+Hint Resolve set_union_intro : Listkit.
 
-Hint Resolve set_add_intro set_add_elim : set_add_lib.
+#[export]
+Hint Resolve set_add_intro set_add_elim : Listkit.
 
 Lemma union_remove:
   forall A eq_dec (x:A) X Y,
@@ -408,14 +413,14 @@ Proof.
   destruct H.
   apply set_union_elim in H.
   apply set_union_intro.
-  destruct H; [left|right]; auto.
+  destruct H; [left|right]; solve [auto with Listkit].
 
  apply set_remove_intro.
  apply set_union_elim in H.
  destruct H;
   apply set_remove_elim in H; destruct H.
-  auto.
- auto.
+  solve [auto with Listkit].
+ solve [auto with Listkit].
 Qed.
 
 Lemma set_add_remove_incl:
@@ -574,9 +579,9 @@ Proof.
  intuition.
   apply incl_sets_trans with (Y:=set_union eq_dec X nil).
    apply union_comm.
-  auto.
+  solve [auto with Listkit].
  apply incl_sets_trans with (Y:=set_union eq_dec X nil).
-  auto.
+  solve [auto with Listkit].
  apply union_comm.
 Qed.
 
@@ -668,7 +673,7 @@ Proof.
  unfold compwise_eq_sets.
  induction x; destruct y.
     simpl.
-    auto.
+    solve [auto with Listkit].
    simpl.
    intros.
    lia.
@@ -681,7 +686,7 @@ Proof.
  assert (length x = length y).
   lia.
  apply union_eq_mor. (* Note: I should be able to do this with rewrite, but Coq complains some instances don't exist... *)
-  auto.
+  solve [auto].
  apply IHx.
  intuition.
 Qed.
@@ -699,19 +704,19 @@ Lemma filter_add_true :
       (set_add eq_dec x (set_filter A p X)).
 Proof.
  induction X; simpl; intros.
-  replace (p x) with true; auto.
+  replace (p x) with true; solve [auto with Listkit].
  destruct (eq_dec x a).
   subst a.
   replace (p x) with true.
   simpl.
   destruct (eq_dec x x); [|congruence].
   replace (p x) with true.
-  auto.
+  solve [auto with Listkit].
  case_eq (p a); intro H0; simpl; rewrite H0.
   destruct (eq_dec x a).
    contradiction.
-  rewrite IHX; auto.
- auto.
+  rewrite IHX; solve [auto with Listkit].
+ auto with Listkit.
 Qed.
 
 Lemma filter_add_false :
@@ -740,13 +745,13 @@ Lemma set_filter_map :
     (set_map eq_dec f (set_filter A (fun x => p (f x)) X)).
 Proof.
  induction X; simpl; intros.
-  auto.
+  solve [auto with Listkit].
  case_eq (p (f a)); intro H.
   simpl.
   rewrite <- IHX.
-  rewrite filter_add_true; auto.
+  rewrite filter_add_true; solve [auto with Listkit].
  rewrite <- IHX.
- rewrite filter_add_false; auto.
+ rewrite filter_add_false; solve [auto with Listkit].
 Qed.
 
 Lemma filter_remove :
@@ -809,6 +814,7 @@ Proof.
  firstorder.
 Qed.
 
+#[export]
 Hint Resolve set_filter_intro set_union_elim set_filter_elim set_union_intro : filter_union.
 
 Lemma set_filter_union :
@@ -870,10 +876,10 @@ Lemma set_unions_map:
       (set_unions B eq_dec_B (map (set_map eq_dec_B f) Xs)).
 Proof.
  induction Xs; simpl; intros.
-  auto.
+  solve [auto with Listkit].
  setoid_rewrite map_union.
  setoid_rewrite IHXs.
- auto.
+ solve [auto with Listkit].
 Qed.
 
 Lemma add_cons_incl A eq_dec:
@@ -882,7 +888,7 @@ Lemma add_cons_incl A eq_dec:
 Proof.
  induction xs; simpl.
   simpl.
-  auto.
+  solve [auto with Listkit].
  destruct (eq_dec a a0).
   unfold incl_sets.
   simpl.
@@ -899,7 +905,7 @@ Lemma add_cons_incl_bwd A eq_dec:
 Proof.
  induction xs; simpl.
   simpl.
-  auto.
+  solve [auto with Listkit].
  destruct (eq_dec a a0).
   unfold incl_sets.
   simpl.
@@ -911,17 +917,19 @@ Proof.
  intuition.
 Qed.
 
-Hint Resolve add_cons_incl add_cons_incl_bwd.
+#[export]
+Hint Resolve add_cons_incl add_cons_incl_bwd : Listkit.
 
 Lemma add_cons_eq A eq_dec:
   forall a xs,
  eq_sets A (set_add eq_dec a xs) (a::xs).
 Proof.
  unfold eq_sets.
- split; auto.
+ split; solve [auto with Listkit].
 Qed.
 
-Hint Resolve add_cons_eq.
+#[export]
+Hint Resolve add_cons_eq : Listkit.
 
 Lemma empty_incl:
   forall A X, incl_sets _ (empty_set A) X.
@@ -930,7 +938,8 @@ Lemma empty_incl:
  easy.
 Qed.
 
-Hint Resolve empty_incl.
+#[export]
+Hint Resolve empty_incl : Listkit.
 
 Lemma singleton_incl:
   forall A (x:A) X,
@@ -968,11 +977,11 @@ Qed.
 Lemma set_map_idy : forall A eq_dec xs, eq_sets _ (set_map eq_dec (idy A) xs) xs.
 Proof.
  induction xs.
-  auto.
+  solve [auto with Listkit].
  simpl.
  unfold idy at 1.
  rewrite IHxs.
- split; auto.
+ split; auto with Listkit.
 Qed.
 
 Lemma union_idem:
@@ -1041,8 +1050,8 @@ Ltac solve_set_union_inclusion :=
   let x := fresh "x" in
   let H := fresh "H" in
     unfold incl_sets; intros x H;
-    firstorder;
-      repeat ((apply set_union_intro || apply set_union_elim in H); firstorder).
+    firstorder (auto with Listkit);
+      repeat ((apply set_union_intro || apply set_union_elim in H); firstorder (auto with Listkit)).
 
 Ltac solve_set_union_equality :=
   unfold eq_sets; split; solve_set_union_inclusion.
@@ -1057,7 +1066,7 @@ Proof.
  intros.
  setoid_replace X with X' using relation (incl_sets A) by auto.
  setoid_replace Y with Y' using relation (incl_sets A) by auto.
- auto.
+ auto with Listkit.
 Qed.
 
 Lemma unions_remove:
@@ -1067,11 +1076,11 @@ Lemma unions_remove:
 Proof.
  induction xs. (* Would be better if set_unions used foldr so we could fuse it. *)
   simpl.
-  auto.
+  solve [auto with Listkit].
  simpl.
  rewrite union_remove.
  rewrite IHxs.
- auto.
+ solve [auto with Listkit].
 Qed.
 
 Lemma compwise_eq_sets_map:
@@ -1102,7 +1111,7 @@ Proof.
  apply incl_sets_trans with (set_union eq_dec X Z).
   apply incl_sets_union1.
  rewrite H.
- sauto.
+ solve [auto with Listkit].
 Qed.
 
 Lemma incl_union_right:
@@ -1113,5 +1122,5 @@ Proof.
  apply incl_sets_trans with (set_union eq_dec Y X).
   apply incl_sets_union2.
  rewrite H.
- sauto.
+ solve [auto with Listkit].
 Qed.

@@ -208,6 +208,7 @@ Proof.
  auto.
 Qed.
 
+(* unused: remove? *)
 Lemma all_Type_nil:
   forall A eq_dec P, all_Type A eq_dec P nil.
 Proof.
@@ -215,8 +216,6 @@ Proof.
  simpl.
  easy.
 Qed.
-
-Hint Resolve all_Type_nil.
 
 Lemma Interesting_Lemma:
   forall A (eq_dec : DecidableEquality A) (x:A) xs,
@@ -262,7 +261,7 @@ Proof.
  intros ? ? ? ? ? H.
  suff (forall x, (set_In x xs \/ set_In x ys) -> pred x).
  intros.
- auto.
+ auto with Listkit.
 Qed.
 
 (* Lemma all_Type_union: *)

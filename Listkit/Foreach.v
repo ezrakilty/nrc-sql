@@ -110,6 +110,7 @@ Proof.
  apply in_cons; auto.
 Qed.
 
+(* Unused: remove? *)
 Lemma foreach2_ty_cons :
   forall A B x xs y ys R,
   foreach2_ty A B (x::xs) (y::ys) R =
@@ -117,8 +118,6 @@ Lemma foreach2_ty_cons :
 Proof.
  intuition.
 Qed.
-
-Hint Resolve foreach2_ty_cons.
 
 (* Unused: remove? *)
 Lemma foreach2_ty_cut A B (P Q : A -> B -> Type):

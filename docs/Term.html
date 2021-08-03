@@ -114,7 +114,8 @@ Typing derivations
 .<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Constructors</span> <a class="idref" href="Term.html#Typing"><span class="id" title="inductive">Typing</span></a>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Constructors</span> <a class="idref" href="Term.html#Typing"><span class="id" title="inductive">Typing</span></a>.<br/>
 
 <br/>
 </div>
@@ -141,7 +142,8 @@ Typing derivations
 &nbsp;&nbsp;<span class="id" title="definition">foreach2_ty</span> <span class="id" title="var">_</span> <span class="id" title="var">_</span> <a class="idref" href="Term.html#Vs:44"><span class="id" title="variable">Vs</span></a> <a class="idref" href="Term.html#Ts:45"><span class="id" title="variable">Ts</span></a> (<span class="id" title="keyword">fun</span> <a id="x:46" class="idref" href="#x:46"><span class="id" title="binder">x</span></a> <a id="y:47" class="idref" href="#y:47"><span class="id" title="binder">y</span></a> ⇒ (<a class="idref" href="Term.html#Typing"><span class="id" title="inductive">Typing</span></a> <a class="idref" href="Term.html#env:43"><span class="id" title="variable">env</span></a> <a class="idref" href="Term.html#x:46"><span class="id" title="variable">x</span></a> <a class="idref" href="Term.html#y:47"><span class="id" title="variable">y</span></a>)))%<span class="id" title="keyword">type</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Unfold</span> <a class="idref" href="Term.html#env_typing"><span class="id" title="definition">env_typing</span></a>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Unfold</span> <a class="idref" href="Term.html#env_typing"><span class="id" title="definition">env_typing</span></a>.<br/>
 
 <br/>
 </div>
@@ -176,7 +178,8 @@ pair and a remaining <span class="inlinecode"><span class="id" title="var">env_t
 &nbsp;&nbsp;&nbsp;&nbsp;<a class="idref" href="Term.html#Typing"><span class="id" title="inductive">Typing</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.0/stdlib//Coq.Init.Datatypes.html#nil"><span class="id" title="constructor">nil</span></a> <a class="idref" href="Term.html#V:58"><span class="id" title="variable">V</span></a> <a class="idref" href="Term.html#T:59"><span class="id" title="variable">T</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.0/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">→</span></a> <a class="idref" href="Term.html#env_typing"><span class="id" title="definition">env_typing</span></a> <a class="idref" href="Term.html#Vs:60"><span class="id" title="variable">Vs</span></a> <a class="idref" href="Term.html#env:61"><span class="id" title="variable">env</span></a> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.0/stdlib//Coq.Init.Logic.html#::type_scope:x_'-&gt;'_x"><span class="id" title="notation">→</span></a> <a class="idref" href="Term.html#env_typing"><span class="id" title="definition">env_typing</span></a> (<a class="idref" href="Term.html#V:58"><span class="id" title="variable">V</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.0/stdlib//Coq.Init.Datatypes.html#::list_scope:x_'::'_x"><span class="id" title="notation">::</span></a><a class="idref" href="Term.html#Vs:60"><span class="id" title="variable">Vs</span></a>) (<a class="idref" href="Term.html#T:59"><span class="id" title="variable">T</span></a><a class="idref" href="http://coq.inria.fr/distrib/V8.13.0/stdlib//Coq.Init.Datatypes.html#::list_scope:x_'::'_x"><span class="id" title="notation">::</span></a><a class="idref" href="Term.html#env:61"><span class="id" title="variable">env</span></a>).<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">env_typing_cons</span> : <span class="id" title="var">Term</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">env_typing_cons</span> : <span class="id" title="var">Term</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <a class="idref" href="http://coq.inria.fr/distrib/V8.13.0/stdlib//Coq.Lists.ListSet.html#"><span class="id" title="library">Coq.Lists.ListSet</span></a>.<br/>
@@ -249,11 +252,14 @@ A term <span class="inlinecode"><span class="id" title="var">M</span></span> is 
 &nbsp;&nbsp;| <a id="Neutral_Table" class="idref" href="#Neutral_Table"><span class="id" title="constructor">Neutral_Table</span></a> : <span class="id" title="keyword">∀</span> <a id="t:79" class="idref" href="#t:79"><span class="id" title="binder">t</span></a>, <a class="idref" href="Term.html#Neutral:73"><span class="id" title="inductive">Neutral</span></a> (<a class="idref" href="Term.html#TmTable"><span class="id" title="constructor">TmTable</span></a> <a class="idref" href="Term.html#t:79"><span class="id" title="variable">t</span></a>).<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Constructors</span> <a class="idref" href="Term.html#Neutral"><span class="id" title="inductive">Neutral</span></a>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Constructors</span> <a class="idref" href="Term.html#Neutral"><span class="id" title="inductive">Neutral</span></a>.<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">Neutral_App</span>.<br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">Neutral_Proj</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">Neutral_App</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">Neutral_Proj</span>.<br/>
 </div>
 </div>
 

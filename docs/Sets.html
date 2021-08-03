@@ -21,6 +21,9 @@
 <div class="code">
 
 <br/>
+<span class="id" title="keyword">Load</span> "eztactics.v".<br/>
+
+<br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">List</span>.<br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Lia</span>.<br/>
 
@@ -29,11 +32,9 @@
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Export</span> <span class="id" title="var">Coq.Lists.ListSet</span>.<br/>
 
 <br/>
+<span class="id" title="keyword">Add</span> <span class="id" title="var">LoadPath</span> "../Listkit" <span class="id" title="keyword">as</span> <span class="id" title="var">Listkit</span>.<br/>
 
 <br/>
-
-<br/>
-<span class="id" title="keyword">Load</span> "eztactics.v".<br/>
 
 <br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Listkit.logickit</span>.<br/>
@@ -52,7 +53,8 @@
 <span class="id" title="keyword">∀</span> <span class="id" title="var">A</span> <span class="id" title="var">X</span>, <span class="id" title="var">incl_sets</span> <span class="id" title="var">A</span> <span class="id" title="var">X</span> <span class="id" title="var">X</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">incl_sets_refl</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">incl_sets_refl</span> : <span class="id" title="var">Listkit</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">incl_sets_trans</span>:<br/>
@@ -80,7 +82,8 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">eq_sets</span> <span class="id" title="var">A</span> <span class="id" title="var">X</span> <span class="id" title="var">Y</span> → <span class="id" title="var">eq_sets</span> <span class="id" title="var">A</span> <span class="id" title="var">Y</span> <span class="id" title="var">X</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">eq_sets_refl</span> <span class="id" title="var">eq_sets_symm</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">eq_sets_refl</span> <span class="id" title="var">eq_sets_symm</span> : <span class="id" title="var">Listkit</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Require</span> <span class="id" title="keyword">Import</span> <span class="id" title="var">Setoid</span>.<br/>
@@ -148,7 +151,8 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">set_In</span> <span class="id" title="var">a</span> (<span class="id" title="var">set_remove</span> <span class="id" title="var">_</span> <span class="id" title="var">eq_dec</span> <span class="id" title="var">b</span> <span class="id" title="var">xs</span>) → <span class="id" title="var">set_In</span> <span class="id" title="var">a</span> <span class="id" title="var">xs</span> ∧ <span class="id" title="var">a</span> ≠ <span class="id" title="var">b</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">set_remove_intro</span> <span class="id" title="var">set_remove_elim</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">set_remove_intro</span> <span class="id" title="var">set_remove_elim</span> : <span class="id" title="var">Listkit</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Add</span> <span class="id" title="var">Parametric</span> <span class="id" title="var">Morphism</span> <span class="id" title="var">A</span> <span class="id" title="var">x</span> <span class="id" title="var">eq_dec</span> : (<span class="id" title="var">set_remove</span> <span class="id" title="var">A</span> <span class="id" title="var">eq_dec</span> <span class="id" title="var">x</span>) <span class="id" title="keyword">with</span><br/>
@@ -217,10 +221,12 @@
 &nbsp;&nbsp;<span class="id" title="var">signature</span> (<span class="id" title="var">incl_sets</span> <span class="id" title="var">A</span>) ==&gt; (<span class="id" title="var">Basics.impl</span>) <span class="id" title="keyword">as</span> <span class="id" title="var">set_In_mor_incl</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">set_union_intro</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">set_union_intro</span> : <span class="id" title="var">Listkit</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">set_add_intro</span> <span class="id" title="var">set_add_elim</span> : <span class="id" title="var">set_add_lib</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">set_add_intro</span> <span class="id" title="var">set_add_elim</span> : <span class="id" title="var">Listkit</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">union_remove</span>:<br/>
@@ -386,7 +392,8 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">set_In</span> <span class="id" title="var">x</span> (<span class="id" title="var">set_filter</span> <span class="id" title="var">_</span> <span class="id" title="var">P</span> <span class="id" title="var">X</span>) → (<span class="id" title="var">set_In</span> <span class="id" title="var">x</span> <span class="id" title="var">X</span> ∧ <span class="id" title="var">true</span> = <span class="id" title="var">P</span> <span class="id" title="var">x</span>).<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">set_filter_intro</span> <span class="id" title="var">set_union_elim</span> <span class="id" title="var">set_filter_elim</span> <span class="id" title="var">set_union_intro</span> : <span class="id" title="var">filter_union</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">set_filter_intro</span> <span class="id" title="var">set_union_elim</span> <span class="id" title="var">set_filter_elim</span> <span class="id" title="var">set_union_intro</span> : <span class="id" title="var">filter_union</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">set_filter_union</span> :<br/>
@@ -421,7 +428,8 @@
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="var">incl_sets</span> <span class="id" title="var">A</span> (<span class="id" title="var">a</span>::<span class="id" title="var">xs</span>) (<span class="id" title="var">set_add</span> <span class="id" title="var">eq_dec</span> <span class="id" title="var">a</span> <span class="id" title="var">xs</span>).<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">add_cons_incl</span> <span class="id" title="var">add_cons_incl_bwd</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">add_cons_incl</span> <span class="id" title="var">add_cons_incl_bwd</span> : <span class="id" title="var">Listkit</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">add_cons_eq</span> <span class="id" title="var">A</span> <span class="id" title="var">eq_dec</span>:<br/>
@@ -429,14 +437,16 @@
 &nbsp;<span class="id" title="var">eq_sets</span> <span class="id" title="var">A</span> (<span class="id" title="var">set_add</span> <span class="id" title="var">eq_dec</span> <span class="id" title="var">a</span> <span class="id" title="var">xs</span>) (<span class="id" title="var">a</span>::<span class="id" title="var">xs</span>).<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">add_cons_eq</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">add_cons_eq</span> : <span class="id" title="var">Listkit</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">empty_incl</span>:<br/>
 &nbsp;&nbsp;<span class="id" title="keyword">∀</span> <span class="id" title="var">A</span> <span class="id" title="var">X</span>, <span class="id" title="var">incl_sets</span> <span class="id" title="var">_</span> (<span class="id" title="var">empty_set</span> <span class="id" title="var">A</span>) <span class="id" title="var">X</span>.<br/>
 
 <br/>
-<span class="id" title="keyword">Hint Resolve</span> <span class="id" title="var">empty_incl</span>.<br/>
+#[<span class="id" title="var">export</span>]<br/>
+<span class="id" title="keyword">Hint</span> <span class="id" title="keyword">Resolve</span> <span class="id" title="var">empty_incl</span> : <span class="id" title="var">Listkit</span>.<br/>
 
 <br/>
 <span class="id" title="keyword">Lemma</span> <span class="id" title="var">singleton_incl</span>:<br/>
@@ -488,8 +498,8 @@
 &nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">x</span> := <span class="id" title="tactic">fresh</span> "x" <span class="id" title="tactic">in</span><br/>
 &nbsp;&nbsp;<span class="id" title="keyword">let</span> <span class="id" title="var">H</span> := <span class="id" title="tactic">fresh</span> "H" <span class="id" title="tactic">in</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">unfold</span> <span class="id" title="var">incl_sets</span>; <span class="id" title="tactic">intros</span> <span class="id" title="var">x</span> <span class="id" title="var">H</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">firstorder</span>;<br/>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> ((<span class="id" title="tactic">apply</span> <span class="id" title="var">set_union_intro</span> || <span class="id" title="tactic">apply</span> <span class="id" title="var">set_union_elim</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>); <span class="id" title="tactic">firstorder</span>).<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">firstorder</span> (<span class="id" title="tactic">auto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">Listkit</span>);<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="id" title="tactic">repeat</span> ((<span class="id" title="tactic">apply</span> <span class="id" title="var">set_union_intro</span> || <span class="id" title="tactic">apply</span> <span class="id" title="var">set_union_elim</span> <span class="id" title="tactic">in</span> <span class="id" title="var">H</span>); <span class="id" title="tactic">firstorder</span> (<span class="id" title="tactic">auto</span> <span class="id" title="keyword">with</span> <span class="id" title="var">Listkit</span>)).<br/>
 
 <br/>
 <span class="id" title="keyword">Ltac</span> <span class="id" title="var">solve_set_union_equality</span> :=<br/>

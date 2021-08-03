@@ -383,8 +383,8 @@ Proof.
   intros.
   rewrite map_monomorphism with (f := S).
   2: { firstorder. }
-  rewrite set_map_map by auto.
-  apply set_map_idy_ext; [ |easy].
+  rewrite set_map_map by solve [auto with Listkit].
+  apply set_map_idy_ext; [ | solve [auto with Listkit]].
   intros.
   apply set_remove_elim in H0.
   lia.
@@ -416,12 +416,12 @@ Proof.
 
         (* TODO: Would be nice to just throw set_union_intro at k'_not_free. *)
         (* I have H: A->B  and a lemma foo_intro: C->A and I want H': C->B*)
-        assert (~(set_In k' (freevars M1) \/ set_In k' (freevars M2))) by auto.
-        f_equal; eauto.
+        assert (~(set_In k' (freevars M1) \/ set_In k' (freevars M2))) by auto with Listkit.
+        f_equal; seauto.
 
  (* Case TmProj *)
        simpl.
-       f_equal; eauto.
+       f_equal; seauto.
 
  (* Case TmAbs *)
       simpl in *.
@@ -431,27 +431,27 @@ Proof.
 
  (* Case TmApp *)
      simpl in *.
-     rewrite IHM1; [ | auto | auto].
-     rewrite IHM2; [auto | | auto].
-     auto.
+     rewrite IHM1; [ | solve [auto with Listkit] | sauto].
+     rewrite IHM2; [sauto | | sauto].
+     solve [auto with Listkit].
 
  (* Case TmNull *)
     simpl in *.
-    trivial.
+    sauto.
 
  (* Case TmSingle *)
    simpl in *.
-   rewrite IHM; auto.
+   rewrite IHM; solve [auto].
 
  (* Case TmUnion *)
   simpl in *.
-  rewrite IHM1; [ | auto | auto].
-  rewrite IHM2; [auto | | auto].
-  auto.
+  rewrite IHM1; [ | solve [auto with Listkit] | sauto].
+  rewrite IHM2; [sauto | | sauto].
+  solve [auto with Listkit].
 
  (* Case TmBind *)
  simpl in *.
- rewrite IHM1; [ | sauto | sauto].
+ rewrite IHM1; [ | solve [auto with Listkit] | sauto].
  rewrite IHM2; [sauto | | lia].
  contrapose k'_not_free.
  rename k'_not_free into S_k'_in_fvs_M2.
@@ -478,28 +478,28 @@ Lemma freevars_shift :
 Proof.
  induction M; simpl; intros k n.
  (* Case TmConst *)
-          sauto.
+          solve [auto with Listkit].
 
  (* Case TmVar *)
-          sauto.
+          solve [auto with Listkit].
 
  (* Case TmPair *)
         rewrite IHM1.
         rewrite IHM2.
         rewrite map_union.
-        trivial.
+        solve [auto with Listkit].
 
  (* Case TmProj *)
-       simpl; f_equal; eauto.
+       simpl; f_equal; solve [eauto with Listkit].
 
  (* Case TmAbs *)
       rewrite IHM.
-      replace 0 with (shift_var (S k) n 0) at 1 by auto.
+      replace 0 with (shift_var (S k) n 0) at 1 by solve [auto with Listkit].
       rewrite <- map_remove.
        rewrite set_map_map.
        rewrite set_map_map.
        rewrite set_map_extensionality with (g := (fun x => shift_var k n (pred x))).
-        sauto.
+        solve [auto with Listkit].
        intros.
        apply shift_var_S_pred.
        apply set_remove_elim in H; tauto.
@@ -516,22 +516,22 @@ Proof.
      apply map_union.
 
  (* Case TmNull *)
-    trivial.
+    solve [trivial with Listkit].
 
  (* Case TmSingle *)
-   auto.
+   solve [auto with Listkit].
 
  (* Case TmUnion *)
   rewrite IHM1.
   rewrite IHM2.
   rewrite map_union.
-  trivial.
+  solve [trivial with Listkit].
 
  (* Case TmBind *)
  rewrite IHM1.
  rewrite map_union.
  apply union_eq_mor.
-  auto.
+  solve [auto with Listkit].
 
  rewrite IHM2.
  replace 0 with (shift_var (S k) n 0) at 1 by auto.
@@ -539,7 +539,7 @@ Proof.
   rewrite set_map_map.
   rewrite set_map_map.
   rewrite set_map_extensionality with (g := (fun x => shift_var k n (pred x))).
-   sauto.
+   solve [auto with Listkit].
   intros.
   apply shift_var_S_pred.
   apply set_remove_elim in H; tauto.
@@ -553,10 +553,10 @@ Proof.
  rewrite IHM3.
  rewrite map_union.
  rewrite map_union.
- trivial.
+ solve [trivial with Listkit].
 
  (* Case TmTable *)
- sauto.
+ solve [auto with Listkit].
 Qed.
 
 Lemma pred_shift :

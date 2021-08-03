@@ -545,7 +545,7 @@ Proof.
   unfold Outside_Range; firstorder lia.
   replace x with (pred (S x)) by lia.
   apply set_map_intro.
-  sauto.
+  solve [auto with Listkit].
 
  (* Case TmApp *)
  simpl in *.
@@ -639,7 +639,7 @@ Lemma subst_Freevars:
 Proof.
  induction M; intros env q.
  (* Case TmConst *)
-         simpl; auto.
+         simpl; solve [auto with Listkit].
 
  (* Case TmVar *)
         case_eq (outside_range q (length env + q) x); intro H.
@@ -700,7 +700,7 @@ Proof.
       rewrite <- filter_remove.
       set (f := fun x : nat => outside_range (S q) (length env + S q) x).
       set (g := fun x : nat => outside_range q (length env + q) (pred x)).
-      setoid_rewrite filter_extensionality with (g:=g); [sauto|].
+      setoid_rewrite filter_extensionality with (g:=g); [solve [auto with Listkit]|].
       intros.
       assert (x <> 0).
        apply set_remove_elim in H.
@@ -714,7 +714,7 @@ Proof.
      intros x.
      setoid_replace (set_remove nat eq_nat_dec 0 (freevars (shift 0 1 x)))
                with (freevars (shift 0 1 x)).
-     rewrite pred_freevars_shift; sauto.
+     rewrite pred_freevars_shift; solve [auto with Listkit].
      solve[apply remove_0_shift_0_1].
 
  (* Case TmApp *)
@@ -726,11 +726,11 @@ Proof.
 
  (* Case TmNull*)
    simpl.
-   auto.
+   solve [auto with Listkit].
  (* Case TmSingle*)
   simpl.
   rewrite IHM.
-  auto.
+  solve [auto with Listkit].
  (* Case TmUnion*)
  simpl.
  rewrite IHM1 by auto.
@@ -751,7 +751,7 @@ Proof.
               (set_map eq_nat_dec pred (freevars M2 % 0))).
  setoid_replace (s ∪ (l ∪ l0)) with ((s ∪ l) ∪ (s ∪ l0)) by (apply union_distrib).
 
- apply incl_sets_union; [| sauto].
+ apply incl_sets_union; [| solve [auto with Listkit]].
  subst s l l0.
 
  rewrite IHM2.
@@ -769,7 +769,7 @@ Proof.
   rewrite map_length.
   set (f := fun x : nat => outside_range (S q) (length env + S q) x).
   set (g := fun x : nat => outside_range q (length env + q) (pred x)).
-  setoid_rewrite filter_extensionality with (g:=g); [sauto|].
+  setoid_rewrite filter_extensionality with (g:=g); [solve [auto with Listkit]|].
   intros.
   assert (x <> 0).
    apply set_remove_elim in H.
@@ -787,7 +787,7 @@ Proof.
  intros x.
  setoid_replace (set_remove nat eq_nat_dec 0 (freevars (shift 0 1 x)))
            with (freevars (shift 0 1 x)).
-  rewrite pred_freevars_shift; sauto.
+  rewrite pred_freevars_shift; solve [auto with Listkit].
  solve[apply remove_0_shift_0_1].
 
  (* Case TmIf *)
@@ -799,7 +799,7 @@ Proof.
 
  (* Case TmTable *)
  simpl.
- sauto.
+ solve [auto with Listkit].
 Qed.
 
 Lemma subst_unused_noop:
