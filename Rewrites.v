@@ -196,6 +196,7 @@ Inductive RewritesTo : Term -> Term -> Type :=
                (TmBind m (TmIf (shift 0 1 b) n TmNull))
 .
 
+#[export]
 Hint Constructors RewritesTo.
 
 Notation "M ~> M'" := (RewritesTo M M') (at level 100).
@@ -209,6 +210,7 @@ Inductive RewritesTo_rt : Term -> Term -> Type :=
 
 Notation "M ~>> M'" := (RewritesTo_rt M M') (at level 100).
 
+#[export]
 Hint Constructors RewritesTo_rt.
 
 (** Recognizes an empty reduction sequence. *)
@@ -331,6 +333,7 @@ Proof.
  induction M_red_M'; eauto using Rw_preserves_types; try congruence.
 Qed.
 
+#[export]
 Hint Resolve Rw_rt_preserves_types.
 
 Require Import Listkit.All.
@@ -772,6 +775,7 @@ Proof.
  induction H; subst; eauto.
 Qed.
 
+#[export]
 Hint Resolve Rw_rt_Pair_left Rw_rt_Pair_right Rw_rt_App_left Rw_rt_App_right
      Rw_rt_Proj Rw_rt_Abs Rw_rt_Single Rw_rt_Union_left Rw_rt_Union_right
      Rw_rt_Bind_left Rw_rt_Bind_right Rw_rt_If_cond Rw_rt_If_left Rw_rt_If_right.
