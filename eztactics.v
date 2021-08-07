@@ -43,22 +43,6 @@ Ltac choose_unequal d e :=
   destruct (Peano_dec.eq_nat_dec d e);
   [absurd (d = e); lia | idtac].
 
-Ltac say_impl nm stmt :=
-  assert (nm : stmt); [solve [auto] | idtac].
-
-Ltac say_anon stmt :=
-  let H := fresh "H" "H" in
-  assert (stmt); [solve [auto] | idtac].
-
-Tactic Notation "say" constr(prop) := say_anon prop.
-
-Tactic Notation "say" ident(nm) ":" constr(stmt) := say_impl nm stmt.
-
-(* (* use "say stmt" instead *)
-Ltac say_anon stmt :=
-  assert (stmt); [solve [auto] | idtac].
-*)
-
 Ltac all_cases_equal t :=
   destruct t as [p|q]; try (destruct p); simplify_eq.
 
@@ -183,17 +167,6 @@ Ltac break_in H :=
   | H : context C [eq_nat_dec ?x ?y] |- _ =>
     destruct (eq_nat_dec x y)
   end.
-
-Ltac suff H tac :=   (* TODO: replaced by Coq's 'enough' *)
-  cut H; [solve[tac] | ].
-
-Tactic Notation "sufficient" reference(H) "by" tactic(tac) := suff H tac.
-Tactic Notation "sufficient" reference(H) := suff H auto.
-
-(** Moves a hypothesis back into the conclusion as a premise--the inverse of intro H. *)
-Ltac extro H :=
-  let t := type of H in
-    cut t; [clear H | auto].
 
 Ltac breakauto := break; try lia; try auto.
 

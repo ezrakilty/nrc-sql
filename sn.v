@@ -1281,7 +1281,7 @@ Proof.
    case_eq (nth_error Vs x); [intros V V_H | intro H_bogus].
     eapply Reducible_env_value; eauto.
    absurd (length Vs <= x).
-    cut (length tyEnv > x); [lia|]. (* todo: sufficient ... by lia. *)
+    enough (length tyEnv > x) by lia.
     solve [eauto with NthError].
    apply <- nth_error_overflow; sauto.
 
