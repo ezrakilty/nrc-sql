@@ -686,12 +686,6 @@ Proof.
  unfold foreach2.
  simpl in *.
  intuition.
- (* assert (length x = length y).
-  lia.
- apply union_eq_mor. (* Note: I should be able to do this with rewrite, but Coq complains some instances don't exist... *)
-  solve [auto].
- apply IHx.
- intuition. *)
 Qed.
 
 Fixpoint set_filter A (f : A -> bool) (xs: set A) :=
