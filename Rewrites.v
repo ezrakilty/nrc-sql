@@ -526,7 +526,7 @@ Lemma commute_shift_beta_reduct :
     (shift (S k) 1 N1 */ shift k 1 N2) = shift k 1 (N1 */ N2).
 Proof.
  intros.
- rewrite shift_unshift_commute; [ | | lia].
+ rewrite shift_unshift_commute; try lia.
  { rewrite shift_subst_commute_hi by (simpl; lia).
    simpl.
    rewrite shift_shift_commute by lia.

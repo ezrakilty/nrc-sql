@@ -105,7 +105,9 @@ Proof.
    unfold unshift_var.
    break; trivial.
    (* TODO: Need to parameterize efinish on hint databases? *)
-   absurd (x < length env); solve [easy | eauto with NthError].
+   exfalso.
+   apply nth_error_to_length in T_is_env_x.
+   lia.
    eapply IHM with (s :: env) t; auto; simpl; lia.
  eapply IHM2 with (s :: env) (TyList t); auto; simpl; lia.
 Qed.
@@ -324,7 +326,7 @@ Lemma shift_shift_commute:
     shift (S k) n (shift k' 1 M) =
     shift k' 1 (shift k n M).
 Proof.
- induction M; intros k k' n H; try (solve [simpl;f_equal;eauto]).
+ induction M; intros k k' n H; try (solve [simpl; f_equal; eauto]).
  (* TmVar *)
   unfold shift at 2 4.
   unfold shift.
@@ -390,6 +392,20 @@ Proof.
   lia.
 Qed.
 
+(* TODO: The asymetry between this and shift_var_unshift_var_commute is upsetting. *)
+Lemma shift_var_unshift_var_commute1:
+  forall k k' x,
+    x <> k' ->
+    k' <= k ->
+    shift_var k 1 (unshift_var k' 1 x) =
+    unshift_var k' 1 (shift_var (S k) 1 x).
+Proof.
+  unfold not in *.
+  intuition.
+  unfold shift_var, unshift_var.
+  break; break; break; break; lia.
+Qed.
+
 Lemma shift_unshift_commute :
   forall M k k',
     ~ set_In k' (freevars M) ->
@@ -397,77 +413,79 @@ Lemma shift_unshift_commute :
     shift k 1 (unshift k' 1 M) =
     unshift k' 1 (shift (S k) 1 M).
 Proof.
- induction M; intros k k' k'_not_free k'_le_k.
+ induction M; intros k k' k'_not_free k'_le_k; simpl in k'_not_free |- *.
 
  (* Case TmConst *)
           sauto.
 
  (* Case TmVar *)
-         simpl in *.
-         unfold not in *.
-         intuition.
-         unfold shift_var, unshift_var.
          f_equal.
-         break; break; break; break; lia.
+         apply shift_var_unshift_var_commute1; auto.
 
  (* Case TmPair *)
-        simpl.
-        simpl in k'_not_free.
-
-        (* TODO: Would be nice to just throw set_union_intro at k'_not_free. *)
-        (* I have H: A->B  and a lemma foo_intro: C->A and I want H': C->B*)
-        assert (~(set_In k' (freevars M1) \/ set_In k' (freevars M2))) by auto with Listkit.
-        f_equal; seauto.
+        rewrite IHM1, IHM2; auto with Listkit.
 
  (* Case TmProj *)
-       simpl.
        f_equal; seauto.
 
  (* Case TmAbs *)
-      simpl in *.
       rewrite IHM; [auto | | lia].
       contrapose k'_not_free; rename k'_not_free into S_k'_free_in_M.
       apply remove_0_pred_preserves_nonzero_membership; easy.
 
  (* Case TmApp *)
-     simpl in *.
-     rewrite IHM1; [ | solve [auto with Listkit] | sauto].
-     rewrite IHM2; [sauto | | sauto].
-     solve [auto with Listkit].
+     rewrite IHM1, IHM2; auto with Listkit.
 
  (* Case TmNull *)
-    simpl in *.
     sauto.
 
  (* Case TmSingle *)
-   simpl in *.
    rewrite IHM; solve [auto].
 
  (* Case TmUnion *)
-  simpl in *.
-  rewrite IHM1; [ | solve [auto with Listkit] | sauto].
-  rewrite IHM2; [sauto | | sauto].
-  solve [auto with Listkit].
+  rewrite IHM1, IHM2; auto with Listkit.
 
  (* Case TmBind *)
- simpl in *.
- rewrite IHM1; [ | solve [auto with Listkit] | sauto].
- rewrite IHM2; [sauto | | lia].
- contrapose k'_not_free.
+ rewrite IHM1; auto with Listkit.
+ rewrite IHM2; auto with Listkit; try lia.
+ contrapose k'_not_free. (* TODO: contrapose should take a name for the new hypothesis. *)
  rename k'_not_free into S_k'_in_fvs_M2.
  apply set_union_intro2.
  apply remove_0_pred_preserves_nonzero_membership; easy.
 
  (* Case TmIf *)
- simpl in *.
+ (* NB: Listkit doesn't know what to do with a three-way union, so we have to hold its hand. *)
  apply not_in_union_elim in k'_not_free.
  destruct k'_not_free.
- apply not_in_union_elim in H0.
- destruct H0.
- rewrite IHM1; auto; rewrite IHM2; auto; rewrite IHM3; auto.
+ rewrite IHM1, IHM2, IHM3; auto with Listkit.
 
  (* Case TmTable *)
  sauto.
+Qed.
+
+Lemma shift_up_remove_0_pred:
+  forall k n xs,
+    eq_sets nat
+      (set_map Nat.eq_dec pred
+        (set_remove nat Nat.eq_dec 0
+          (set_map Nat.eq_dec (shift_var (S k) n) xs)))
+      (set_map Nat.eq_dec (shift_var k n)
+        (set_map Nat.eq_dec pred
+          (set_remove nat Nat.eq_dec 0 xs))).
+Proof.
+  intros.
+  replace 0 with (shift_var (S k) n 0) at 1 by solve [auto with Listkit].
+  rewrite <- map_remove.
+   rewrite set_map_map.
+   rewrite set_map_map.
+   rewrite set_map_extensionality with (g := (fun x => shift_var k n (pred x))).
+    solve [auto with Listkit].
+   intros.
+   apply shift_var_S_pred.
+   apply set_remove_elim in H; tauto.
+  intros x y.
+  unfold shift_var.
+  break; break; lia.
 Qed.
 
 Lemma freevars_shift :
@@ -484,36 +502,21 @@ Proof.
           solve [auto with Listkit].
 
  (* Case TmPair *)
-        rewrite IHM1.
-        rewrite IHM2.
+        rewrite IHM1, IHM2.
         rewrite map_union.
         solve [auto with Listkit].
 
  (* Case TmProj *)
-       simpl; f_equal; solve [eauto with Listkit].
+       solve [eauto with Listkit].
 
  (* Case TmAbs *)
       rewrite IHM.
-      replace 0 with (shift_var (S k) n 0) at 1 by solve [auto with Listkit].
-      rewrite <- map_remove.
-       rewrite set_map_map.
-       rewrite set_map_map.
-       rewrite set_map_extensionality with (g := (fun x => shift_var k n (pred x))).
-        solve [auto with Listkit].
-       intros.
-       apply shift_var_S_pred.
-       apply set_remove_elim in H; tauto.
-      intros x y.
-      unfold shift_var.
-      break; break; lia.
+      apply shift_up_remove_0_pred.
 
  (* Case TmApp *)
-     apply eq_sets_symm.
-     setoid_replace (freevars (shift k n M1))
-         with (set_map eq_nat_dec (shift_var k n) (freevars M1)) by auto.
-     setoid_replace (freevars (shift k n M2))
-         with (set_map eq_nat_dec (shift_var k n) (freevars M2)) by auto.
-     apply map_union.
+     rewrite IHM1, IHM2.
+     rewrite map_union.
+     solve [auto with Listkit].
 
  (* Case TmNull *)
     solve [trivial with Listkit].
@@ -522,35 +525,17 @@ Proof.
    solve [auto with Listkit].
 
  (* Case TmUnion *)
-  rewrite IHM1.
-  rewrite IHM2.
+  rewrite IHM1, IHM2.
   rewrite map_union.
   solve [trivial with Listkit].
 
  (* Case TmBind *)
- rewrite IHM1.
+ rewrite IHM1, IHM2.
  rewrite map_union.
- apply union_eq_mor.
-  solve [auto with Listkit].
-
- rewrite IHM2.
- replace 0 with (shift_var (S k) n 0) at 1 by auto.
- rewrite <- map_remove.
-  rewrite set_map_map.
-  rewrite set_map_map.
-  rewrite set_map_extensionality with (g := (fun x => shift_var k n (pred x))).
-   solve [auto with Listkit].
-  intros.
-  apply shift_var_S_pred.
-  apply set_remove_elim in H; tauto.
- intros x y.
- unfold shift_var.
- break; break; lia.
+ auto using shift_up_remove_0_pred with Listkit.
 
  (* Case TmIf *)
- rewrite IHM1.
- rewrite IHM2.
- rewrite IHM3.
+ rewrite IHM1, IHM2, IHM3.
  rewrite map_union.
  rewrite map_union.
  solve [trivial with Listkit].
@@ -638,20 +623,12 @@ Lemma unshift_unshift_commute:
     unshift k n (unshift k' 1 M) =
     unshift k' 1 (unshift (S k) n M).
 Proof.
- induction M; simpl; intros.
-            auto.
-           rewrite unshift_var_unshift_var_commute; sauto.
-          rewrite IHM1, IHM2; sauto.
-         rewrite IHM; sauto.
-        rewrite IHM; auto.
-        lia.
-       rewrite IHM1, IHM2; sauto.
-      auto.
-     rewrite IHM; sauto.
-    rewrite IHM1, IHM2; sauto.
-   rewrite IHM1, IHM2; solve [auto|lia].
-  rewrite IHM1, IHM2, IHM3; sauto.
- auto.
+ induction M; simpl; intros; try (f_equal; auto).
+ - rewrite unshift_var_unshift_var_commute; sauto.
+ - apply IHM.
+   lia.
+ - apply IHM2.
+   lia.
 Qed.
 
 Lemma shift_var_unshift_var_commute:
@@ -671,19 +648,12 @@ Lemma unshift_shift_commute:
     unshift (S k) n (shift k' 1 M) =
     shift k' 1 (unshift k n M).
 Proof.
- induction M; simpl; intros.
-            auto.
-           rewrite shift_var_unshift_var_commute; sauto.
-          rewrite IHM1, IHM2; sauto.
-         rewrite IHM; sauto.
-        rewrite IHM; solve [auto|lia].
-       rewrite IHM1, IHM2; sauto.
-      auto.
-     rewrite IHM; sauto.
-    rewrite IHM1, IHM2; sauto.
-   rewrite IHM1, IHM2; solve [auto|lia].
-  rewrite IHM1, IHM2, IHM3; sauto.
- auto.
+ induction M; simpl; intros; try (f_equal; auto).
+ - rewrite shift_var_unshift_var_commute; sauto.
+ - apply IHM.
+   lia.
+ - apply IHM2.
+   lia.
 Qed.
 
 Lemma shift_closed_noop_map:

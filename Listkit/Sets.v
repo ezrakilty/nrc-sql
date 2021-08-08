@@ -11,7 +11,7 @@ Require Import Lia.
 Require Import Coq.Lists.List.
 Require Export Coq.Lists.ListSet.
 
-Add LoadPath "../Listkit" as Listkit.
+Add LoadPath "./Listkit" as Listkit.
 
 (* Add LoadPath "." as e. *)
 
@@ -111,6 +111,8 @@ Proof.
  destruct H.
  apply union_mor; auto.
 Qed.
+
+Hint Resolve union_eq_mor : Listkit.
 
 Add Parametric Morphism A x : (cons x) with
   signature (incl_sets A) ==> (incl_sets A) as set_cons_mor.
@@ -463,6 +465,7 @@ Qed.
 (* Program Instance eq_sets_Setoid A : Setoid (set A) := *)
 (*   { equiv := eq_sets A ; setoid_equiv := eq_sets_equivalence A }. *)
 
+(* TODO: switch the orientation of this equation, basd on use. *)
 Lemma map_remove:
   forall A X eq_dec f (x:A),
     (forall y z, y <> x -> f y = f z -> y = z) ->
@@ -683,12 +686,12 @@ Proof.
  unfold foreach2.
  simpl in *.
  intuition.
- assert (length x = length y).
+ (* assert (length x = length y).
   lia.
  apply union_eq_mor. (* Note: I should be able to do this with rewrite, but Coq complains some instances don't exist... *)
   solve [auto].
  apply IHx.
- intuition.
+ intuition. *)
 Qed.
 
 Fixpoint set_filter A (f : A -> bool) (xs: set A) :=
