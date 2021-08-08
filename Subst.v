@@ -103,12 +103,13 @@ Proof.
  destruct (le_gt_dec (length env) x).
  - (* Case x is beyond [length env] *)
    case_eq (nth_error Vs (x - length env));
-     [intros v H_v | intros H_v; refute]; auto.
+     [intros v H_v | intros H_v]; auto.
    (* Obtained value v for x - length env in Vs. *)
     apply Weakening_closed.
     eapply foreach2_ty_member; eauto.
-    (* Bogus case of no value for x - length env. *)
-    apply nth_error_app in H0; auto.
+    auto with NthError.
+   (* Bogus case of no value for x - length env. *)
+   refute.
    apply nth_error_ok_rev in H0.
    apply <- nth_error_overflow in H_v.
    rewrite app_length in H0.
@@ -172,45 +173,45 @@ Proof.
  finish.
 Qed.
 
+Lemma shift_subst_commute_hi_var:
+  forall (x : nat) (env : list Term) (k q n : nat),
+    q + length env <= k ->
+    shift k n (subst_env q env (TmVar x)) =
+    subst_env q (map (shift k n) env) (shift k n (TmVar x)).
+Proof.
+  intros.
+  unfold shift at 3.
+  unfold shift_var.
+  destruct (le_gt_dec k x) ; [ | ].
+   rewrite subst_env_big_var by lia.
+   rewrite subst_env_big_var.
+    simpl; unfold shift_var.
+    break; finish.
+   solve[map_lia].
+  simpl.
+  break.
+   rewrite nth_error_map.
+   nth_error_dichotomize bounds is_error v v_def.
+    unfold shift_var.
+    break; finish.
+   sauto.
+  simpl; unfold shift_var.
+  break; finish.
+Qed.
+
 Lemma shift_subst_commute_hi:
   forall M env k q n,
     q + length env <= k ->
     shift k n (subst_env q env M) =
       subst_env q (map (shift k n) env) (shift k n M).
 Proof.
- induction M; intros env k q n k_overbounds_subst.
- (* Case TmConst *)
-         sauto.
+ induction M; intros env k q n k_overbounds_subst; simpl; try (f_equal; eauto).
 
  (* Case TmVar *)
-        unfold shift at 3.
-        unfold shift_var.
-        destruct (le_gt_dec k x) ; [ | ].
-         rewrite subst_env_big_var by lia.
-         rewrite subst_env_big_var.
-          simpl; unfold shift_var.
-          break; finish.
-         solve[map_lia].
-        simpl.
-        break.
-         rewrite nth_error_map.
-         nth_error_dichotomize bounds is_error v v_def.
-          unfold shift_var.
-          break; finish.
-         sauto.
-        simpl; unfold shift_var.
-        break; finish.
-
- (* Case TmPair *)
-       simpl; f_equal; seauto.
-
- (* Case TmProj *)
-      simpl; f_equal; seauto.
+        apply shift_subst_commute_hi_var; auto.
 
  (* Case TmAbs *)
-     simpl.
      rewrite IHM by map_lia.
-     f_equal.
      f_equal.
      rewrite map_map.
      rewrite map_map.
@@ -218,37 +219,14 @@ Proof.
      apply shift_shift_commute.
      lia.
 
- (* Case TmApp *)
-    simpl; f_equal; seauto.
-
- (* Case TmNull *)
-   auto.
-
- (* Case TmSingle *)
-  simpl; f_equal; seauto.
-
- (* Case TmUnion *)
- simpl; f_equal; seauto.
-
  (* Case TmBind *)
- simpl.
- rewrite IHM2.
+ rewrite IHM2 by map_lia.
  f_equal.
-  seauto.
-  f_equal.
-  rewrite map_map.
-  rewrite map_map.
-  apply map_ext; intros M'.
-  apply shift_shift_commute.
-  lia.
- rewrite map_length.
+ rewrite map_map.
+ rewrite map_map.
+ apply map_ext; intros M'.
+ apply shift_shift_commute.
  lia.
-
- (* Case TmIf *)
- simpl; f_equal; seauto.
-
- (* Case TmTable *)
- sauto.
 Qed.
 
 Lemma shift_subst_commute_lo:
