@@ -11,7 +11,7 @@ Require Import Lia.
 Require Import Coq.Lists.List.
 Require Export Coq.Lists.ListSet.
 
-Add LoadPath "./Listkit" as Listkit.
+Add LoadPath "../Listkit" as Listkit.
 
 (* Add LoadPath "." as e. *)
 

@@ -375,7 +375,7 @@ Proof.
   apply subst_env_big_var; lia.
 
  (* Case k > x *)
- break; try easy.
+ break; [exfalso; lia| ].
  simpl.
  rewrite H; easy.
 Qed.

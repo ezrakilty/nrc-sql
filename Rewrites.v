@@ -814,10 +814,6 @@ Proof.
   exfalso.
   unfold unshift_var in H3.
   destruct (le_gt_dec (k + S n) x); solve [lia].
-(* rewrite unshift_unshift_commute by lia. *)
-(* rewrite unshift_shift_commute. *)
-(* f_equal. *)
-(* rewrite Listkit.logickit.if_cc with (f := unshift (S n) k). *)
  break; break.
     assert (x < S n) by lia.
     assert (unshift_var (S n) k x = x).
@@ -859,7 +855,9 @@ Proof.
  - rewrite IHN; auto.
  (* TmAbs *)
  - rewrite IHN by lia.
-   rewrite unshift_shift_commute; easy.
+   rewrite unshift_shift_commute.
+   -- easy.
+   -- lia.
  (* TmApp *)
  - rewrite IHN1, IHN2; auto.
  (* TmNull *)
@@ -870,7 +868,9 @@ Proof.
  - rewrite IHN1, IHN2; auto.
  (* TmBind *)
  - rewrite IHN1, IHN2 by lia.
-   rewrite unshift_shift_commute; easy.
+   rewrite unshift_shift_commute.
+   -- easy.
+   -- lia.
  (* TmUnion *)
  - rewrite IHN1, IHN2, IHN3; auto.
  (* TmTable *)
