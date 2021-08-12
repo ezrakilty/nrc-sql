@@ -208,25 +208,25 @@ Proof.
  induction M; intros env k q n k_overbounds_subst; simpl; try (f_equal; eauto).
 
  (* Case TmVar *)
-        apply shift_subst_commute_hi_var; auto.
+- apply shift_subst_commute_hi_var; auto.
 
  (* Case TmAbs *)
-     rewrite IHM by map_lia.
-     f_equal.
-     rewrite map_map.
-     rewrite map_map.
-     apply map_ext; intros x.
-     apply shift_shift_commute.
-     lia.
+ - rewrite IHM by map_lia.
+   f_equal.
+   rewrite map_map.
+   rewrite map_map.
+   apply map_ext; intros x.
+   apply shift_shift_commute.
+   lia.
 
  (* Case TmBind *)
- rewrite IHM2 by map_lia.
- f_equal.
- rewrite map_map.
- rewrite map_map.
- apply map_ext; intros M'.
- apply shift_shift_commute.
- lia.
+ - rewrite IHM2 by map_lia.
+   f_equal.
+   rewrite map_map.
+   rewrite map_map.
+   apply map_ext; intros M'.
+   apply shift_shift_commute.
+   lia.
 Qed.
 
 Lemma shift_subst_commute_lo:
