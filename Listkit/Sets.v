@@ -813,7 +813,7 @@ Qed.
 
 #[export]
 Hint Resolve set_filter_intro set_union_elim set_filter_elim set_union_intro : filter_union.
-
+Hint Resolve set_filter_intro set_union_elim set_filter_elim set_union_intro : Listkit.
 Lemma set_filter_union :
   forall A A_eq_dec f X Y,
     eq_sets _

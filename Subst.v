@@ -617,167 +617,171 @@ Lemma subst_Freevars:
 Proof.
  induction M; intros env q.
  (* Case TmConst *)
-         simpl; solve [auto with Listkit].
+            simpl; solve [auto with Listkit].
 
  (* Case TmVar *)
-        case_eq (outside_range q (length env + q) x); intro H.
-        (* Case x is outside [q, k + q). *)
-         rewrite subst_var_outside_range by trivial.
-         simpl.
-         rewrite H.
-         apply incl_sets_union2.
+           case_eq (outside_range q (length env + q) x); intro H.
+           (* Case x is outside [q, k + q). *)
+            rewrite subst_var_outside_range by trivial.
+           simpl.
+           rewrite H.
+           apply incl_sets_union2.
 
-        (* Case x is inside [q, k + q). *)
-        destruct (subst_var_inside_range q env x H) as [M [H0 H1]].
-        rewrite H1.
-        apply incl_union_left.
-        apply nth_error_set_unions with (n := x - q).
-        rewrite nth_error_map.
-        rewrite <- H0.
-        sauto...
+           (* Case x is inside [q, k + q). *)
+           destruct (subst_var_inside_range q env x H) as [M [H0 H1]].
+           rewrite H1.
+           apply incl_union_left.
+           apply nth_error_set_unions with (n := x - q).
+           rewrite nth_error_map.
+           rewrite <- H0.
+           sauto...
 
  (* Case TmPair *)
-       simpl.
-       rewrite IHM1 by auto.
-       rewrite IHM2 by auto.
-       rewrite set_filter_union.
-       solve_set_union_inclusion. (* TODO: Make this opaque-ify anything that doesn't contain
+          simpl.
+          rewrite IHM1 by auto.
+          rewrite IHM2 by auto.
+          rewrite set_filter_union.
+          solve_set_union_inclusion. (* TODO: Make this opaque-ify anything that doesn't contain
                                            set_union *)
 
  (* Case TmProj *)
-      simpl.
-      apply IHM; auto.
+         simpl.
+         apply IHM; auto.
 
  (* Case TmAbs *)
  (* Notation "{ q / env } M" := (subst_env q env M) (at level 100). *)
  Notation "A ⊆ B" := (incl_sets nat A B) (at level 100).
  Notation "A % x" := (Term.set_remove nat eq_nat_dec x A) (at level 100).
-      simpl.
+        simpl.
 
-     rewrite IHM by auto.
-     clear IHM.
+        rewrite IHM by auto.
+        clear IHM.
 
      (* consider that this works as well as the explicit rewrites below :-/ *)
      (* Hint Rewrite map_length map_map set_filter_map union_remove unions_remove map_union set_unions_map : idunno. *)
      (* autorewrite with idunno. *)
 
-     rewrite map_length.
-     rewrite map_map.
-     rewrite set_filter_map.
-     rewrite union_remove.
-     rewrite unions_remove.
-     rewrite map_map.
-     rewrite map_union.
-     rewrite set_unions_map.
-     rewrite map_map.
+        rewrite map_length.
+        rewrite map_map.
+        rewrite set_filter_map.
+        rewrite union_remove.
+        rewrite unions_remove.
+        rewrite map_map.
+        rewrite map_union.
+        rewrite set_unions_map.
+        rewrite map_map.
 
-     (* Corresponding sides of the union are \subseteq *)
+        (* Corresponding sides of the union are \subseteq *)
 
-     apply incl_sets_union.
-     (* Left side *)
-      rewrite <- filter_remove.
-      set (f := fun x : nat => outside_range (S q) (length env + S q) x).
-      set (g := fun x : nat => outside_range q (length env + q) (pred x)).
-      setoid_rewrite filter_extensionality with (g:=g); [solve [auto with Listkit]|].
-      intros.
-      assert (x <> 0).
-       apply set_remove_elim in H.
-       intuition.
-      unfold f, g.
-      unfold outside_range.
-      break; break; try (break; try break); auto; finish.
-     (* Right side *)
-     apply unions2_mor.
-     apply compwise_eq_sets_map.
-     intros x.
-     setoid_replace (set_remove nat eq_nat_dec 0 (freevars (shift 0 1 x)))
+        apply incl_sets_union.
+        (* Left side *)
+         rewrite <- filter_remove.
+         set (f := fun x : nat => outside_range (S q) (length env + S q) x).
+         set (g := fun x : nat => outside_range q (length env + q) (pred x)).
+         rewrite filter_extensionality with (g:=g); [solve [auto with Listkit]|].
+         intros.
+         assert (x <> 0).
+          apply set_remove_elim in H.
+          intuition.
+         unfold f, g.
+         unfold outside_range.
+         break; break; try (break; try break); auto; finish.
+        (* Right side *)
+        apply unions2_mor.
+        apply compwise_eq_sets_map.
+        intros x.
+        setoid_replace (set_remove nat eq_nat_dec 0 (freevars (shift 0 1 x)))
                with (freevars (shift 0 1 x)).
-     rewrite pred_freevars_shift; solve [auto with Listkit].
-     solve[apply remove_0_shift_0_1].
+        rewrite pred_freevars_shift; solve [auto with Listkit].
+        solve[apply remove_0_shift_0_1].
 
  (* Case TmApp *)
+       simpl.
+       rewrite IHM1 by auto.
+       rewrite IHM2 by auto.
+       setoid_rewrite set_filter_union.
+       solve_set_union_inclusion.
+
+ (* Case TmNull*)
+      simpl.
+      solve [auto with Listkit].
+
+ (* Case TmSingle*)
+     simpl.
+     rewrite IHM.
+     solve [auto with Listkit].
+
+ (* Case TmUnion*)
     simpl.
     rewrite IHM1 by auto.
     rewrite IHM2 by auto.
-    setoid_rewrite set_filter_union.
+    rewrite set_filter_union.
     solve_set_union_inclusion.
 
- (* Case TmNull*)
-   simpl.
-   solve [auto with Listkit].
- (* Case TmSingle*)
-  simpl.
-  rewrite IHM.
-  solve [auto with Listkit].
- (* Case TmUnion*)
- simpl.
- rewrite IHM1 by auto.
- rewrite IHM2 by auto.
- setoid_rewrite set_filter_union.
- solve_set_union_inclusion.
  (* Case TmBind *)
- simpl.
- rewrite IHM1 by auto.
- rewrite set_union_assoc.
- rewrite set_filter_union.
+   simpl.
+   rewrite IHM1 by auto.
+   rewrite set_union_assoc.
+   rewrite set_filter_union.
 
- rewrite <- set_union_assoc.
- remember (set_unions nat eq_nat_dec (map freevars env)).
- remember (set_filter nat (fun x : nat => outside_range q (length env + q) x)
+   rewrite <- set_union_assoc.
+   remember (set_unions nat eq_nat_dec (map freevars env)).
+   remember (set_filter nat (fun x : nat => outside_range q (length env + q) x)
             (freevars M1)).
- remember (set_filter nat (fun x : nat => outside_range q (length env + q) x)
+   remember (set_filter nat (fun x : nat => outside_range q (length env + q) x)
               (set_map eq_nat_dec pred (freevars M2 % 0))).
- setoid_replace (s ∪ (l ∪ l0)) with ((s ∪ l) ∪ (s ∪ l0)) by (apply union_distrib).
+   setoid_replace (s ∪ (l ∪ l0)) with ((s ∪ l) ∪ (s ∪ l0)) by (apply union_distrib).
 
- apply incl_sets_union; [| solve [auto with Listkit]].
- subst s l l0.
+   apply incl_sets_union; [| solve [auto with Listkit]].
+   subst s l l0.
 
- rewrite IHM2.
+   rewrite IHM2.
 
- (* From here, proof is the same as TmAbs. *)
- rewrite set_filter_map.
- rewrite filter_remove.
- rewrite union_remove.
- rewrite map_union.
- rewrite map_map.
+   (* From here, proof is the same as TmAbs. *)
+   rewrite set_filter_map.
+   rewrite filter_remove.
+   rewrite union_remove.
+   rewrite map_union.
+   rewrite map_map.
 
- apply incl_sets_union.
-  rewrite <- filter_remove.
-  rewrite <- filter_remove.
-  rewrite map_length.
-  set (f := fun x : nat => outside_range (S q) (length env + S q) x).
-  set (g := fun x : nat => outside_range q (length env + q) (pred x)).
-  setoid_rewrite filter_extensionality with (g:=g); [solve [auto with Listkit]|].
-  intros.
-  assert (x <> 0).
-   apply set_remove_elim in H.
-   intuition.
-  unfold f, g.
-  unfold outside_range.
-  break; break; try (break; try break); auto; finish.
- (* Obligation (shift 0 1 ; pred) = idy *)
- rewrite unions_remove.
- rewrite set_unions_map.
- apply unions2_mor.
- rewrite map_map.
- rewrite map_map.
- apply compwise_eq_sets_map.
- intros x.
- setoid_replace (set_remove nat eq_nat_dec 0 (freevars (shift 0 1 x)))
-           with (freevars (shift 0 1 x)).
-  rewrite pred_freevars_shift; solve [auto with Listkit].
- solve[apply remove_0_shift_0_1].
+   apply incl_sets_union.
+    rewrite <- filter_remove.
+    rewrite <- filter_remove.
+    rewrite map_length.
+    set (f := fun x : nat => outside_range (S q) (length env + S q) x).
+    set (g := fun x : nat => outside_range q (length env + q) (pred x)).
+    setoid_rewrite filter_extensionality with (g:=g); [solve [auto with Listkit]|].
+    intros.
+    assert (x <> 0).
+     apply set_remove_elim in H.
+     intuition.
+    unfold f, g.
+    unfold outside_range.
+    break; break; try (break; try break); auto; finish.
+   (* Obligation (shift 0 1 ; pred) = idy *)
+   rewrite unions_remove.
+   rewrite set_unions_map.
+   apply unions2_mor.
+   rewrite map_map.
+   rewrite map_map.
+   apply compwise_eq_sets_map.
+   intros x.
+   setoid_replace (set_remove nat eq_nat_dec 0 (freevars (shift 0 1 x)))
+             with (freevars (shift 0 1 x)).
+    rewrite pred_freevars_shift; solve [auto with Listkit].
+   solve[apply remove_0_shift_0_1].
 
  (* Case TmIf *)
- simpl.
- rewrite IHM1, IHM2, IHM3 by auto.
- rewrite set_filter_union.
- rewrite set_filter_union.
- solve_set_union_inclusion.
+  simpl.
+  rewrite IHM1, IHM2, IHM3 by auto.
+  rewrite set_filter_union.
+  rewrite set_filter_union.
+  solve_set_union_inclusion.
 
  (* Case TmTable *)
  simpl.
  solve [auto with Listkit].
+
 Qed.
 
 Lemma subst_unused_noop:
@@ -1014,11 +1018,6 @@ Proof.
          pose (H2 := freevars_shift X' 0 1).
          unfold eq_sets, incl_sets in H2.
          solve [intuition].
-   (*
-   (* Could use instead this nice lemma about inverse functions and set_In: *)
-   (forall x, g (f x) = x) ->
-    set_In x (map f xs) ->
-    set_In (g x) xs.  *)
 
         apply set_map_image in x_free_in_Z'.
         destruct x_free_in_Z' as [x' [x'_def x'_in_X'_fvs]].
@@ -1032,6 +1031,7 @@ Proof.
      intro.
      rewrite shift_subst_commute_lo; [auto|].
      solve [lia]...
+
  (* Case TmApp. *)
     rewrite IHN1, IHN2; auto.
  (* Case TmNull. *)
@@ -1083,7 +1083,8 @@ Proof.
  intro.
  rewrite shift_subst_commute_lo; [auto|].
  solve [lia]...
- (* Case TmUnion. *)
+
+ (* Case TmIf. *)
  rewrite IHN1, IHN2, IHN3; auto.
 
  (* Case TmTable *)
