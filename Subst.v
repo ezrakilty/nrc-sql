@@ -929,6 +929,116 @@ Proof.
   solve [lia]...
 Qed.
 
+Lemma subst_factor_var:
+forall x m n env env',
+(* If *)
+(* 1. All freevars of all items in env are not in the domain of env', *)
+all _ (fun z =>
+            all _ (fun x => not (in_env_domain m env' x)) (freevars z)) env ->
+(* 2. and the domain (m,env') does not contain n, and (n,env) does not contain m,
+   i.e. they are nonoverlapping: *)
+(m + length env' <= n \/ n + length env <= m) ->
+(* Then *)
+(* We can "commute" the two substitutions, with a modification to one: *)
+  subst_env m (map (subst_env n env) env') (subst_env n env (TmVar x)) =
+  subst_env n env (subst_env m env' (TmVar x)).
+Proof.
+  simpl.
+  intros x m n env env' H0 H1.
+        (* Either we are in the range of [n x env] or we are in the range of
+         [m x env'] or neither--since they don't overlap. *)
+         set (P:= m <= x < m + length env').
+         set (Q:= n <= x < n + length env).
+   
+         assert (H : not P /\ Q \/ P /\ not Q \/ not P /\ not Q).
+          subst P Q.
+   
+          intuition.
+           destruct (le_gt_dec x n);
+             destruct (le_gt_dec x m);
+             lia.
+          destruct (le_gt_dec x n);
+            destruct (le_gt_dec x m);
+            lia.
+         destruct H. (* ... as ... *)
+          destruct H.
+          subst P Q.
+          assert (H3:x - n < length env) by lia.
+          destruct (nth_error_exists _ env (x - n) H3)
+            as [v v_def].
+          set (v_fvs := freevars v).
+          pose (v_fvs_notin_m_env' := nth_error_all _ _ _ _ _ v_def H0).
+          clearbody v_fvs_notin_m_env'.
+          assert (v_subst_env'_noop: forall f, subst_env m (map f env') v = v).
+           intro f.
+           apply subst_unused_noop.
+           rewrite in_env_domain_map.
+           auto.
+   
+          breakauto; breakauto.
+           rewrite v_def.
+           nth_error_dichotomize a' b' c' d'; try (lia).
+           breakauto.
+           rewrite v_def.
+           simpl.
+           auto.
+   
+          rewrite v_def; simpl.
+          rewrite v_def; simpl.
+          breakauto.
+         destruct H; subst P Q.
+          destruct H.
+   
+          assert (H3: x - m < length env') by lia.
+          destruct (nth_error_exists _ env' (x - m) H3)
+            as [v v_def].
+          rewrite v_def; simpl.
+   
+          breakauto; breakauto.
+           nth_error_dichotomize a b c d; try (lia).
+           breakauto.
+   
+           rewrite nth_error_map.
+           rewrite v_def.
+           simpl.
+           auto.
+          simpl.
+          rewrite nth_error_map.
+          rewrite v_def.
+          simpl.
+          breakauto.
+   
+         destruct H.
+         nth_error_dichotomize a b c d;
+         nth_error_dichotomize a' b' c' d'.
+            double_case.
+            double_case.
+            simpl.
+            rewrite nth_error_map; rewrite b; rewrite b'; simpl.
+            breakauto; breakauto.
+           breakauto; breakauto.
+            simpl.
+            rewrite nth_error_map; rewrite b; rewrite d'; simpl.
+            breakauto; breakauto.
+           simpl.
+           rewrite nth_error_map; rewrite b; rewrite d'; simpl.
+           breakauto; breakauto.
+   
+         breakauto.
+         breakauto; simpl.
+           rewrite nth_error_map; rewrite b'; rewrite d; simpl.
+           double_case.
+          breakauto.
+          rewrite nth_error_map; rewrite b'; rewrite d; simpl.
+          breakauto; breakauto.
+         breakauto.
+         simpl.
+         breakauto.
+         simpl.
+         rewrite d; simpl.
+         breakauto.
+Qed.
+
 Lemma subst_factor :
   forall N m n env env',
     (* If *)
@@ -948,99 +1058,7 @@ Proof.
  (* Case TmConst *)
        trivial.
  (* Case TmVar *)
-      (* Either we are in the range of [n x env] or we are in the range of
-         [m x env'] or neither--since they don't overlap. *)
-      set (P:= m <= x < m + length env').
-      set (Q:= n <= x < n + length env).
-
-      assert (H : not P /\ Q \/ P /\ not Q \/ not P /\ not Q).
-       subst P Q.
-
-       intuition.
-        destruct (le_gt_dec x n);
-          destruct (le_gt_dec x m);
-          lia.
-       destruct (le_gt_dec x n);
-         destruct (le_gt_dec x m);
-         lia.
-      destruct H. (* ... as ... *)
-       destruct H.
-       subst P Q.
-       assert (H3:x - n < length env) by lia.
-       destruct (nth_error_exists _ env (x - n) H3)
-         as [v v_def].
-       set (v_fvs := freevars v).
-       pose (v_fvs_notin_m_env' := nth_error_all _ _ _ _ _ v_def H0).
-       clearbody v_fvs_notin_m_env'.
-       assert (v_subst_env'_noop: forall f, subst_env m (map f env') v = v).
-        intro f.
-        apply subst_unused_noop.
-        rewrite in_env_domain_map.
-        auto.
-
-       breakauto; breakauto.
-        rewrite v_def.
-        nth_error_dichotomize a' b' c' d'; try (lia).
-        breakauto.
-        rewrite v_def.
-        simpl.
-        auto.
-
-       rewrite v_def; simpl.
-       rewrite v_def; simpl.
-       breakauto.
-      destruct H; subst P Q.
-       destruct H.
-
-       assert (H3: x - m < length env') by lia.
-       destruct (nth_error_exists _ env' (x - m) H3)
-         as [v v_def].
-       rewrite v_def; simpl.
-
-       breakauto; breakauto.
-        nth_error_dichotomize a b c d; try (lia).
-        breakauto.
-
-        rewrite nth_error_map.
-        rewrite v_def.
-        simpl.
-        auto.
-       simpl.
-       rewrite nth_error_map.
-       rewrite v_def.
-       simpl.
-       breakauto.
-
-      destruct H.
-      nth_error_dichotomize a b c d;
-      nth_error_dichotomize a' b' c' d'.
-         double_case.
-         double_case.
-         simpl.
-         rewrite nth_error_map; rewrite b; rewrite b'; simpl.
-         breakauto; breakauto.
-        breakauto; breakauto.
-         simpl.
-         rewrite nth_error_map; rewrite b; rewrite d'; simpl.
-         breakauto; breakauto.
-        simpl.
-        rewrite nth_error_map; rewrite b; rewrite d'; simpl.
-        breakauto; breakauto.
-
-      breakauto.
-      breakauto; simpl.
-        rewrite nth_error_map; rewrite b'; rewrite d; simpl.
-        double_case.
-       breakauto.
-       rewrite nth_error_map; rewrite b'; rewrite d; simpl.
-       breakauto; breakauto.
-      breakauto.
-      simpl.
-      breakauto.
-      simpl.
-      rewrite d; simpl.
-      breakauto.
-
+      apply subst_factor_var; auto.
  (* Case TmPair *)
        f_equal.
         apply IHN1; auto.
