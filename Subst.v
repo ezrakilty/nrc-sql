@@ -870,6 +870,65 @@ Proof.
  sauto.
 Qed.
 
+Lemma subst_factor_binder:
+  forall N m n env env',
+  (forall (m n : nat) (env : set Term) (env' : list Term),
+      all Term
+        (fun z : Term =>
+         all nat (fun x : nat => ~ in_env_domain m env' x) (freevars z)) env ->
+      m + length env' <= n \/ n + length env <= m ->
+      subst_env m (map (subst_env n env) env') (subst_env n env N) =
+      subst_env n env (subst_env m env' N)) ->
+  all Term
+       (fun z : Term =>
+        all nat (fun x : nat => ~ in_env_domain m env' x) (freevars z)) env ->
+  m + length env' <= n \/ n + length env <= m ->
+  subst_env (S m) (map (shift 0 1) (map (subst_env n env) env'))
+    (subst_env (S n) (map (shift 0 1) env) N) =
+  subst_env (S n) (map (shift 0 1) env)
+    (subst_env (S m) (map (shift 0 1) env') N).
+Proof.
+  intros N m n env env' IHN H0 H1.
+  replace (S m) with (m + 1) by lia.
+  replace (S n) with (n + 1) by lia.
+  rewrite map_map.
+  rewrite map_ext with (g:=(fun x => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x))).
+   replace (map (fun x : Term => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x)) env')
+      with (map (subst_env (n + 1) (map (shift 0 1) env)) (map (shift 0 1) env')).
+    apply IHN.
+
+     (* Preservation of the free-variable relationship. *)
+     unfold (*all_terms,*) all in H0 |- *.
+     intros Z Z_source x x_free_in_Z.
+     destruct (map_image _ _ (shift 0 1) Z env Z_source) as [X' [X_X'_eq X'_in_env]].
+     pose (n0 := H0 (unshift 0 1 Z)).
+     subst Z.
+     rewrite unshift_shift in n0.
+     unfold in_env_domain in *.
+     rewrite map_length.
+     pose (n1 := n0 X'_in_env (unshift_var 0 1 x)).
+     lapply n1.
+      unfold unshift_var.
+      break; lia.
+     assert (x_free_in_Z': set_In x (set_map eq_nat_dec (shift_var 0 1) (freevars X'))).
+      pose (H2 := freevars_shift X' 0 1).
+      unfold eq_sets, incl_sets in H2.
+      solve [intuition].
+
+     apply set_map_image in x_free_in_Z'.
+     destruct x_free_in_Z' as [x' [x'_def x'_in_X'_fvs]].
+     subst x.
+
+     rewrite unshift_var_shift_var.
+     solve [trivial]...
+
+    solve[map_lia].
+   rewrite map_map; solve [trivial]...
+  intro.
+  rewrite shift_subst_commute_lo; [auto|].
+  solve [lia]...
+Qed.
+
 Lemma subst_factor :
   forall N m n env env',
     (* If *)
@@ -993,44 +1052,7 @@ Proof.
 
  (* Case TmAbs. *)
      f_equal.
-     replace (S m) with (m + 1) by lia.
-     replace (S n) with (n + 1) by lia.
-     rewrite map_map.
-     rewrite map_ext with (g:=(fun x => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x))).
-      replace (map (fun x : Term => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x)) env')
-         with (map (subst_env (n + 1) (map (shift 0 1) env)) (map (shift 0 1) env')).
-       apply IHN.
-
-        (* Preservation of the free-variable relationship. *)
-        unfold (*all_terms,*) all in H0 |- *.
-        intros Z Z_source x x_free_in_Z.
-        destruct (map_image _ _ (shift 0 1) Z env Z_source) as [X' [X_X'_eq X'_in_env]].
-        pose (n0 := H0 (unshift 0 1 Z)).
-        subst Z.
-        rewrite unshift_shift in n0.
-        unfold in_env_domain in *.
-        rewrite map_length.
-        pose (n1 := n0 X'_in_env (unshift_var 0 1 x)).
-        lapply n1.
-         unfold unshift_var.
-         break; lia.
-        assert (x_free_in_Z': set_In x (set_map eq_nat_dec (shift_var 0 1) (freevars X'))).
-         pose (H2 := freevars_shift X' 0 1).
-         unfold eq_sets, incl_sets in H2.
-         solve [intuition].
-
-        apply set_map_image in x_free_in_Z'.
-        destruct x_free_in_Z' as [x' [x'_def x'_in_X'_fvs]].
-        subst x.
-
-        rewrite unshift_var_shift_var.
-        solve [trivial]...
-
-       solve[map_lia].
-      rewrite map_map; solve [trivial]...
-     intro.
-     rewrite shift_subst_commute_lo; [auto|].
-     solve [lia]...
+     apply subst_factor_binder; auto.
 
  (* Case TmApp. *)
     rewrite IHN1, IHN2; auto.
@@ -1044,45 +1066,7 @@ Proof.
  f_equal.
   apply IHN1; auto.
 
- (* copy and paste of TmAbs case :-( *)
- replace (S m) with (m + 1) by lia.
- replace (S n) with (n + 1) by lia.
- rewrite map_map.
- rewrite map_ext with (g := fun x => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x)).
-  replace (map (fun x : Term => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x)) env')
-     with (map (subst_env (n + 1) (map (shift 0 1) env)) (map (shift 0 1) env')).
-   apply IHN2.
-
-    (* Preservation of the free-variable relationship. *)
-    unfold (*all_terms,*) all in H0 |- *.
-    intros Z Z_source x x_free_in_Z.
-    destruct (map_image _ _ (shift 0 1) Z env Z_source) as [X' [X_X'_eq X'_in_env]].
-    pose (n0 := H0 (unshift 0 1 Z)).
-    subst Z.
-    rewrite unshift_shift in n0.
-    unfold in_env_domain in *.
-    rewrite map_length.
-    pose (n1 := n0 X'_in_env (unshift_var 0 1 x)).
-    lapply n1.
-     unfold unshift_var.
-     break; lia.
-    assert (x_free_in_Z': set_In x (set_map eq_nat_dec (shift_var 0 1) (freevars X'))).
-     pose (H2 := freevars_shift X' 0 1).
-     unfold eq_sets, incl_sets in H2.
-     solve [intuition].
-
-    apply set_map_image in x_free_in_Z'.
-    destruct x_free_in_Z' as [x' [x'_def x'_in_X'_fvs]].
-    subst x.
-
-    rewrite unshift_var_shift_var.
-    solve [trivial]...
-
-   solve[map_lia].
-  rewrite map_map; solve [trivial]...
- intro.
- rewrite shift_subst_commute_lo; [auto|].
- solve [lia]...
+ apply subst_factor_binder; auto.
 
  (* Case TmIf. *)
  rewrite IHN1, IHN2, IHN3; auto.
