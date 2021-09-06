@@ -888,45 +888,45 @@ Lemma subst_factor_binder:
   subst_env (S n) (map (shift 0 1) env)
     (subst_env (S m) (map (shift 0 1) env') N).
 Proof.
-  intros N m n env env' IHN H0 H1.
-  replace (S m) with (m + 1) by lia.
-  replace (S n) with (n + 1) by lia.
-  rewrite map_map.
-  rewrite map_ext with (g:=(fun x => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x))).
-   replace (map (fun x : Term => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x)) env')
-      with (map (subst_env (n + 1) (map (shift 0 1) env)) (map (shift 0 1) env')).
-    apply IHN.
+ intros N m n env env' IHN H0 H1.
+ replace (S m) with (m + 1) by lia.
+ replace (S n) with (n + 1) by lia.
+ rewrite map_map.
+ rewrite map_ext with (g:=(fun x => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x))).
+  replace (map (fun x : Term => subst_env (n + 1) (map (shift 0 1) env) (shift 0 1 x)) env')
+     with (map (subst_env (n + 1) (map (shift 0 1) env)) (map (shift 0 1) env')).
+   apply IHN.
 
-     (* Preservation of the free-variable relationship. *)
-     unfold (*all_terms,*) all in H0 |- *.
-     intros Z Z_source x x_free_in_Z.
-     destruct (map_image _ _ (shift 0 1) Z env Z_source) as [X' [X_X'_eq X'_in_env]].
-     pose (n0 := H0 (unshift 0 1 Z)).
-     subst Z.
-     rewrite unshift_shift in n0.
-     unfold in_env_domain in *.
-     rewrite map_length.
-     pose (n1 := n0 X'_in_env (unshift_var 0 1 x)).
-     lapply n1.
-      unfold unshift_var.
-      break; lia.
-     assert (x_free_in_Z': set_In x (set_map eq_nat_dec (shift_var 0 1) (freevars X'))).
-      pose (H2 := freevars_shift X' 0 1).
-      unfold eq_sets, incl_sets in H2.
-      solve [intuition].
+    (* Preservation of the free-variable relationship. *)
+    unfold (*all_terms,*) all in H0 |- *.
+    intros Z Z_source x x_free_in_Z.
+    destruct (map_image _ _ (shift 0 1) Z env Z_source) as [X' [X_X'_eq X'_in_env]].
+    pose (n0 := H0 (unshift 0 1 Z)).
+    subst Z.
+    rewrite unshift_shift in n0.
+    unfold in_env_domain in *.
+    rewrite map_length.
+    pose (n1 := n0 X'_in_env (unshift_var 0 1 x)).
+    lapply n1.
+     unfold unshift_var.
+     break; lia.
+    assert (x_free_in_Z': set_In x (set_map eq_nat_dec (shift_var 0 1) (freevars X'))).
+     pose (H2 := freevars_shift X' 0 1).
+     unfold eq_sets, incl_sets in H2.
+     solve [intuition].
 
-     apply set_map_image in x_free_in_Z'.
-     destruct x_free_in_Z' as [x' [x'_def x'_in_X'_fvs]].
-     subst x.
+    apply set_map_image in x_free_in_Z'.
+    destruct x_free_in_Z' as [x' [x'_def x'_in_X'_fvs]].
+    subst x.
 
-     rewrite unshift_var_shift_var.
-     solve [trivial]...
+    rewrite unshift_var_shift_var.
+    solve [trivial]...
 
-    solve[map_lia].
-   rewrite map_map; solve [trivial]...
-  intro.
-  rewrite shift_subst_commute_lo; [auto|].
-  solve [lia]...
+   solve[map_lia].
+  rewrite map_map; solve [trivial]...
+ intro.
+ rewrite shift_subst_commute_lo; [auto|].
+ solve [lia]...
 Qed.
 
 Lemma subst_factor_var:
@@ -1056,41 +1056,33 @@ Lemma subst_factor :
 Proof.
  induction N; intros m n env env' H0 H1; simpl.
  (* Case TmConst *)
-       trivial.
+ - trivial.
  (* Case TmVar *)
-      apply subst_factor_var; auto.
+ - apply subst_factor_var; auto.
  (* Case TmPair *)
-       f_equal.
-        apply IHN1; auto.
-       apply IHN2; auto.
-
+ - rewrite IHN1, IHN2; auto.
  (* Case TmProj *)
-      f_equal.
-      apply IHN; auto.
-
+ - f_equal.
+   apply IHN; auto.
  (* Case TmAbs. *)
-     f_equal.
-     apply subst_factor_binder; auto.
-
+ - f_equal.
+   apply subst_factor_binder; auto.
  (* Case TmApp. *)
-    rewrite IHN1, IHN2; auto.
+ - rewrite IHN1, IHN2; auto.
  (* Case TmNull. *)
-   auto.
+ - auto.
  (* Case TmSingle. *)
-  rewrite IHN; auto.
+ - rewrite IHN; auto.
  (* Case TmUnion. *)
- rewrite IHN1, IHN2; auto.
+ - rewrite IHN1, IHN2; auto.
  (* Case TmBind *)
- f_equal.
-  apply IHN1; auto.
-
- apply subst_factor_binder; auto.
-
+ - f_equal.
+   * apply IHN1; auto.
+   * apply subst_factor_binder; auto.
  (* Case TmIf. *)
- rewrite IHN1, IHN2, IHN3; auto.
-
+ - rewrite IHN1, IHN2, IHN3; auto.
  (* Case TmTable *)
- sauto.
+ - auto.
 Qed.
 
 (* Some notations might be nice, but I'm not sure I've got the right ones yet.
