@@ -211,10 +211,20 @@ Proof.
     simpl; unfold shift_var.
     break; finish.
    solve[map_lia].
-  simpl.
-  break.
   repeat (magic; unfold shift_var; simpl).
-  repeat (magic; unfold shift_var; simpl).
+Qed.
+
+Lemma shift_subst_commute_helper:
+  forall M env k q n,
+    subst_env q (map (shift (S k) n) (map (shift 0 1) env)) M =
+    subst_env q (map (shift 0 1)     (map (shift k n) env)) M.
+Proof.
+  intros.
+  f_equal.
+  repeat (rewrite map_map).
+  apply map_ext; intros x.
+  apply shift_shift_commute.
+  lia.
 Qed.
 
 Lemma shift_subst_commute_hi:
@@ -230,21 +240,11 @@ Proof.
 
  (* Case TmAbs *)
  - rewrite IHM by map_lia.
-   f_equal.
-   rewrite map_map.
-   rewrite map_map.
-   apply map_ext; intros x.
-   apply shift_shift_commute.
-   lia.
+   apply shift_subst_commute_helper.
 
  (* Case TmBind *)
  - rewrite IHM2 by map_lia.
-   f_equal.
-   rewrite map_map.
-   rewrite map_map.
-   apply map_ext; intros M'.
-   apply shift_shift_commute.
-   lia.
+   apply shift_subst_commute_helper.
 Qed.
 
 Lemma shift_subst_commute_lo:
@@ -253,10 +253,7 @@ Lemma shift_subst_commute_lo:
     shift k n (subst_env q env M) =
       subst_env (q + n) (map (shift k n) env) (shift k n M).
 Proof.
- induction M; simpl; intros env k q n k_low.
- (* TmConst *)
-         sauto.
-
+ induction M; simpl; intros env k q n k_low; try (f_equal; eauto).
  (* TmVar *)
         unfold shift_var.
         (* Take cases on where x is in relation to k, q: *)
@@ -281,50 +278,13 @@ Proof.
         simpl; unfold shift_var.
         rewrite H0; sauto.
 
- (* Case TmPair *)
-       f_equal; seauto.
-
- (* Case TmProj *)
-      f_equal; seauto.
-
  (* Case TmAbs *)
      rewrite IHM by lia.
-     f_equal.
-     f_equal.
-     rewrite map_map.
-     rewrite map_map.
-     apply map_ext; intros M'.
-     apply shift_shift_commute.
-     lia.
-
- (* Case TmApp *)
-    f_equal; seauto.
-
- (* Case TmNull *)
-   auto.
-
- (* Case TmSingle *)
-  f_equal; auto.
-
- (* Case TmUnion *)
- f_equal; auto.
+     apply shift_subst_commute_helper.
 
  (* Case TmBind *)
- rewrite IHM1; auto.
- f_equal.
  rewrite IHM2 by lia.
- f_equal.
- rewrite map_map.
- rewrite map_map.
- apply map_ext; intros M'.
- apply shift_shift_commute.
- lia.
-
- (* Case TmIf *)
- f_equal; auto.
-
- (* Case TmTable *)
- sauto.
+ apply shift_subst_commute_helper.
 Qed.
 
 (** If two successive substitutions are "independent" and adjacent then we can combine
@@ -429,9 +389,9 @@ Proof.
   replace (x + 1 - k) with (S (x - k)) by lia.
   replace (nth_error (h::t1) (S (x - k))) with (nth_error t1 (x - k)) by auto.
   replace (x + 1 - (S k)) with (x - k) by lia.
-  break; break; finish.
+  repeat breakauto.
  unfold subst_env.
- break; break; finish.
+ repeat breakauto.
 Qed.
 
 Lemma subst_var_outside_range:
@@ -442,12 +402,8 @@ Proof.
  unfold outside_range.
  intros.
  simpl.
- break; [|auto].
- nth_error_dichotomize a b c d.
-  auto.
- destruct (le_gt_dec (length env + q) x).
-  exfalso; lia.
- discriminate.
+ magic.
+ break_in H; lia. (* Maybe break should explore hypotheses anyway? *)
 Qed.
 
 Lemma subst_var_inside_range:
@@ -459,15 +415,11 @@ Proof.
  unfold outside_range.
  intros.
  simpl.
- destruct (le_gt_dec q x).
-  nth_error_dichotomize a b c d.
-  destruct (le_gt_dec (length env + q) x).
-   discriminate.
-   exfalso; lia.
-   destruct (le_gt_dec (length env + q) x).
-   eauto.
-  eauto.
- discriminate.
+ break_in H. (* If break_in were done in magic, whole proof would be automated. *)
+ - magic.
+   * break_in H; easy.
+   * eauto.
+ - easy.
 Qed.
 
 Definition set_remove := Listkit.Sets.set_remove.
@@ -484,10 +436,9 @@ Lemma subst_unshift :
       subst_env n env (unshift q k M) =
       unshift q k (subst_env (n + k) (map (shift q k) env) M).
 Proof.
- induction M; simpl; intros env q k n q_le_n fvs_dichot.
- (* Case TmConst *)
-      sauto.
-
+ induction M; simpl; intros env q k n q_le_n fvs_dichot;
+   try (apply all_Type_union_rev in fvs_dichot; destruct fvs_dichot);
+   try (f_equal; eauto).
  (* Case TmVar *)
      assert (H : {x < q} + {x >= k + q}).
       unfold all_Type in fvs_dichot.
@@ -512,12 +463,6 @@ Proof.
      destruct (le_gt_dec (n + k) x); [ finish | ].
      break; finish.
 
- (* Case TmPair *)
-    apply all_Type_union_rev in fvs_dichot.
-    destruct fvs_dichot as [fvs_left fvs_right].
-    f_equal; eauto.
- (* Case TmProj *)
-   f_equal; eauto.
  (* Case TmAbs *)
   simpl in *.
   rewrite map_map.
@@ -543,73 +488,35 @@ Proof.
   apply set_map_intro.
   solve [auto with Listkit].
 
- (* Case TmApp *)
- simpl in *.
- subst.
- apply all_Type_union_rev in fvs_dichot.
- destruct fvs_dichot.
- rewrite (IHM1 _ _ _ _) by (auto || lia).
- rewrite (IHM2 _ _ _ _) by (auto || lia).
- trivial.
-
- (* Case TmNull *)
- auto.
-
- (* Case TmSingle *)
- rewrite IHM; auto.
-
- (* Case TmUnion *)
- apply all_Type_union_rev in fvs_dichot.
- destruct fvs_dichot.
- rewrite (IHM1 _ _ _ _) by (auto || lia).
- rewrite (IHM2 _ _ _ _) by (auto || lia).
- trivial.
-
  (* Case TmBind *)
- apply all_Type_union_rev in fvs_dichot.
- destruct fvs_dichot.
- rewrite IHM1; (try lia || auto).
  rewrite IHM2; (try lia || auto).
   f_equal.
-  simpl.
-  rewrite map_map.
-  rewrite map_map.
-  f_equal.
-  f_equal.
-  apply map_ext.
-  intros.
-  apply shift_shift_commute.
-  lia.
- (* replace (fun x => Outside_Range (S q) (k + S q) x) *)
- (*   with (fun y => (fun x => Outside_Range q (k + q) x) ((fun z => z - 1) y)). *)
+  apply shift_subst_commute_helper.
  apply all_Type_map_fwd in a0.
-  unfold all_Type.
-  unfold all_Type in a0.
-  intros.
-  unfold Term.set_remove in a0.
-  destruct (eq_nat_dec x 0).
-   subst x.
-   unfold Outside_Range.
+ unfold all_Type.
+ unfold all_Type in a0.
+ intros.
+ unfold Term.set_remove in a0.
+ destruct (eq_nat_dec x 0).
+  subst x.
+  unfold Outside_Range.
   left; lia.
  specialize (a0 x).
  lapply a0.
- unfold Outside_Range.
- intros H0.
- destruct H0.
+  unfold Outside_Range.
+  intros H0.
+  destruct H0.
    left; lia.
   right; lia.
  apply set_remove_intro.
  intuition.
 
  (* Case TmIf *)
- apply all_Type_union_rev in fvs_dichot as [a a0].
  apply all_Type_union_rev in a0 as [a0 a1].
- rewrite (IHM1 _ _ _ _) by (auto || lia).
  rewrite (IHM2 _ _ _ _); auto.
+ apply all_Type_union_rev in a0 as [a0 a1].
  rewrite (IHM3 _ _ _ _); auto.
 
- (* Case TmTable *)
- sauto.
 Qed.
 
 Import Setoid.
