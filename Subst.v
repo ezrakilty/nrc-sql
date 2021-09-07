@@ -56,6 +56,29 @@ Fixpoint subst_env k vs tm {struct tm} :=
   | TmTable ty => tm
   end.
 
+Ltac break_ne :=
+  match goal with
+  | |- context C [nth_error (map ?f ?A) ?B]
+  => rewrite nth_error_map
+  | H: nth_error ?A ?B = ?C |- context C [nth_error ?A ?B]
+  => rewrite H
+  | |- context C [match nth_error ?A ?B with _ => _ end]
+        => let a := fresh "a" in
+           let b := fresh "b" in
+           let c := fresh "c" in
+           let d := fresh "d" in
+              nth_error_dichotomize a b c d (* bounds is_error v v_def *)
+        end.
+
+(* This "magic" tactic is quite likely to solve goals involing subst_env. *)
+Ltac magic :=
+  (repeat double_case; simpl);
+  (repeat (rewrite nth_error_map); simpl);
+  (repeat breakauto; simpl);
+  (repeat (rewrite nth_error_map); simpl);
+  (repeat break_ne; simpl);
+  try solve [auto | lia].
+
 Lemma subst_env_nonfree_noop:
   forall N T env Vs n,
     Typing env N T ->
@@ -190,13 +213,8 @@ Proof.
    solve[map_lia].
   simpl.
   break.
-   rewrite nth_error_map.
-   nth_error_dichotomize bounds is_error v v_def.
-    unfold shift_var.
-    break; finish.
-   sauto.
-  simpl; unfold shift_var.
-  break; finish.
+  repeat (magic; unfold shift_var; simpl).
+  repeat (magic; unfold shift_var; simpl).
 Qed.
 
 Lemma shift_subst_commute_hi:
@@ -920,41 +938,19 @@ Proof.
  solve [lia]...
 Qed.
 
-Ltac break_ne :=
-  match goal with
-  | |- context C [nth_error (map ?f ?A) ?B]
-  => rewrite nth_error_map
-  | H: nth_error ?A ?B = ?C |- context C [nth_error ?A ?B]
-  => rewrite H
-  | |- context C [match nth_error ?A ?B with _ => _ end]
-        => let a := fresh "a" in
-           let b := fresh "b" in
-           let c := fresh "c" in
-           let d := fresh "d" in
-              nth_error_dichotomize a b c d (* bounds is_error v v_def *)
-        end.
-
-Ltac magic :=
-  (repeat double_case; simpl);
-  (repeat (rewrite nth_error_map); simpl);
-  (repeat breakauto; simpl);
-  (repeat (rewrite nth_error_map); simpl);
-  (repeat break_ne; simpl);
-  try solve [auto | lia].
-
 Lemma subst_factor_var:
-forall x m n env env',
-(* If *)
-(* 1. All freevars of all items in env are not in the domain of env', *)
-all _ (fun z =>
+ forall x m n env env',
+ (* If *)
+ (* 1. All freevars of all items in env are not in the domain of env', *)
+ all _ (fun z =>
             all _ (fun x => not (in_env_domain m env' x)) (freevars z)) env ->
-(* 2. and the domain (m,env') does not contain n, and (n,env) does not contain m,
-   i.e. they are nonoverlapping: *)
-(m + length env' <= n \/ n + length env <= m) ->
-(* Then *)
-(* We can "commute" the two substitutions, with a modification to one: *)
-  subst_env m (map (subst_env n env) env') (subst_env n env (TmVar x)) =
-  subst_env n env (subst_env m env' (TmVar x)).
+ (* 2. and the domain (m,env') does not contain n, and (n,env) does not contain m,
+    i.e. they are nonoverlapping: *)
+ (m + length env' <= n \/ n + length env <= m) ->
+ (* Then *)
+ (* We can "commute" the two substitutions, with a modification to one: *)
+   subst_env m (map (subst_env n env) env') (subst_env n env (TmVar x)) =
+   subst_env n env (subst_env m env' (TmVar x)).
 Proof.
   simpl.
   intros x m n env env' H0 H1.
@@ -974,13 +970,12 @@ Proof.
     destruct (le_gt_dec x m);
     lia.
 
-  destruct H as [H | [H | H]]. (* ... as ... *)
+  destruct H as [H | [H | H]].
   (* x is in the (n, env) range and not in (m, env') *)
   - destruct H; subst P Q.
     assert (H3: x - n < length env) by lia.
     destruct (nth_error_exists _ env (x - n) H3)
       as [v v_def].
-    set (v_fvs := freevars v).
     pose (v_fvs_notin_m_env' := nth_error_all _ _ _ _ _ v_def H0).
     clearbody v_fvs_notin_m_env'.
 
