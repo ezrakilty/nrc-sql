@@ -588,7 +588,7 @@ Qed.
      - less the range of variables we replaced
      - union the freevars of all the substituted terms.
  *)
-Lemma subst_Freevars:
+Lemma subst_freevars:
   forall M env q,
     incl_sets _
       (freevars (subst_env q env M))

@@ -432,7 +432,7 @@ Proof.
   replace (freevars (shift 0 1 M))
      with (set_unions _ eq_nat_dec (map freevars (shift 0 1 M :: nil)))
        by auto.
-  apply subst_Freevars; sauto.
+  apply subst_freevars; sauto.
 
  (* Now we have H : fvs ⊆ (fvs_N ∖ {0}) ∪ fvs_M *)
  (* TODO: From here out, basically just set math, plus shift_freevars_range *)
@@ -531,7 +531,7 @@ Proof.
    simpl.
    rewrite shift_shift_commute by lia.
    trivial. }
- rewrite subst_Freevars by auto.
+ rewrite subst_freevars by auto.
  intro H0.
  apply set_union_elim in H0.
  destruct H0.
