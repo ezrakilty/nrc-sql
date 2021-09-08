@@ -703,21 +703,16 @@ Lemma subst_unused_noop_binder:
 Proof.
   intros M IHM env n H.
   rewrite IHM; [auto|].
-  unfold all.
-  unfold all in H.
+  unfold all in *.
   intros.
-  cut (~in_env_domain (S n) env x).
-   unfold in_env_domain.
-   rewrite map_length.
-   auto.
+  specialize (H (pred x)).
+  unfold in_env_domain in *.
   destruct (eq_nat_dec x 0).
-   unfold in_env_domain.
-   lia.
-  cut (~in_env_domain n env (pred x)).
-   unfold in_env_domain.
-   intros.
-   lia.
-  apply H.
+  { lia. }
+  lapply H.
+  { rewrite map_length.
+    intros.
+    lia. }
   apply set_map_intro.
   apply set_remove_intro.
   auto.
