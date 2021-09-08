@@ -696,9 +696,10 @@ Lemma subst_unused_noop:
     all nat (fun x => not (in_env_domain n env x)) (freevars M)
     -> subst_env n env M = M.
 Proof.
- induction M; simpl; intros.
- (* Case TmConst *)
-    auto.
+ induction M; simpl; intros; try (
+   try (rewrite all_union in H; destruct H);
+   f_equal; auto
+ ).
  (* Case TmVar *)
    assert (~in_env_domain n env x).
     unfold all in H.
@@ -708,13 +709,6 @@ Proof.
    unfold in_env_domain in H0.
    break; auto.
    nth_error_dichotomize bounds is_error v v_def; finish.
- (* Case TmPair *)
-    apply all_union in H.
-    destruct H.
-    f_equal; eauto.
- (* Case TmProj *)
-   f_equal.
-   auto.
  (* Case TmAbs *)
   rewrite IHM; [auto|].
   unfold all.
@@ -736,24 +730,9 @@ Proof.
   apply set_remove_intro.
   auto.
 
- (* Case TmApp *)
- rewrite all_union in H.
- rewrite IHM1, IHM2 by tauto; trivial.
-
- (* Case TmNull *)
- auto.
- (* Case TmSingle *)
- rewrite IHM by auto; trivial.
- (* Case TmUnion *)
- rewrite all_union in H.
- rewrite IHM1, IHM2 by tauto; trivial.
-
  (* Case TmBind *)
- rewrite all_union in H.
- rewrite IHM1; [|solve[intuition]].
   rewrite IHM2.
    auto.
-  destruct H.
   apply all_map in H0.
  rewrite in_env_domain_map.
  unfold all in H0 |- *.
@@ -769,12 +748,10 @@ Proof.
  auto.
 
  (* Case TmIf *)
- rewrite all_union in H.
- rewrite all_union in H.
- rewrite IHM1, IHM2, IHM3 by tauto; trivial.
-
- (* Case TmTable *)
- sauto.
+ apply all_union in H0; destruct H0.
+ auto.
+ apply all_union in H0; destruct H0.
+ auto.
 Qed.
 
 Lemma subst_factor_binder:
@@ -901,17 +878,10 @@ Lemma subst_factor :
       subst_env n env (subst_env m env' N).
 (* TODO: reverse the orientation of that equation. *)
 Proof.
- induction N; intros m n env env' H0 H1; simpl; try (solve[f_equal; auto]).
+ induction N; intros m n env env' H0 H1; simpl; try (solve[f_equal; auto using subst_factor_binder]).
  (* Case TmVar *)
  - apply subst_factor_var; auto.
- (* Case TmAbs. *)
- - f_equal.
-   apply subst_factor_binder; auto.
- (* Case TmBind *)
- - f_equal.
-   * apply IHN1; auto.
-   * apply subst_factor_binder; auto.
-Qed.
+ Qed.
 
 (* Some notations might be nice, but I'm not sure I've got the right ones yet.
 
