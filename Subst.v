@@ -691,25 +691,17 @@ Proof.
  solve [auto with Listkit].
 Qed.
 
-Lemma subst_unused_noop:
-  forall M env n,
-    all nat (fun x => not (in_env_domain n env x)) (freevars M)
-    -> subst_env n env M = M.
+Lemma subst_unused_noop_binder:
+ forall M : Term,
+ (forall (env : list Term) (n : nat),
+  all nat (fun x : nat => ~ in_env_domain n env x) (freevars M) ->
+  subst_env n env M = M) ->
+ forall (env : list Term) (n : nat),
+ all nat (fun x : nat => ~ in_env_domain n env x)
+  (set_map Nat.eq_dec Init.Nat.pred (freevars M % 0)) ->
+ subst_env (S n) (map (shift 0 1) env) M = M.
 Proof.
- induction M; simpl; intros; try (
-   try (rewrite all_union in H; destruct H);
-   f_equal; auto
- ).
- (* Case TmVar *)
-   assert (~in_env_domain n env x).
-    unfold all in H.
-    apply H.
-    unfold set_In, In.
-    auto.
-   unfold in_env_domain in H0.
-   break; auto.
-   nth_error_dichotomize bounds is_error v v_def; finish.
- (* Case TmAbs *)
+  intros M IHM env n H.
   rewrite IHM; [auto|].
   unfold all.
   unfold all in H.
@@ -729,23 +721,30 @@ Proof.
   apply set_map_intro.
   apply set_remove_intro.
   auto.
+Qed.
 
+Lemma subst_unused_noop:
+  forall M env n,
+    all nat (fun x => not (in_env_domain n env x)) (freevars M)
+    -> subst_env n env M = M.
+Proof.
+ induction M; simpl; intros; try (
+   try (rewrite all_union in H; destruct H);
+   f_equal; auto
+ ).
+ (* Case TmVar *)
+   assert (~in_env_domain n env x).
+    unfold all in H.
+    apply H.
+    unfold set_In, In.
+    auto.
+   unfold in_env_domain in H0.
+   break; auto.
+   nth_error_dichotomize bounds is_error v v_def; finish.
+ (* Case TmAbs *)
+  apply subst_unused_noop_binder; auto.
  (* Case TmBind *)
-  rewrite IHM2.
-   auto.
-  apply all_map in H0.
- rewrite in_env_domain_map.
- unfold all in H0 |- *.
- intros x H1.
- destruct (eq_nat_dec x 0).
-  unfold in_env_domain.
-  lia.
- set (H2 := H0 x).
- lapply H2.
-  unfold in_env_domain.
-  lia.
- apply set_remove_intro.
- auto.
+ apply subst_unused_noop_binder; auto.
 
  (* Case TmIf *)
  apply all_union in H0; destruct H0.
