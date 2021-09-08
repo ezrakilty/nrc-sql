@@ -516,7 +516,6 @@ Proof.
  rewrite (IHM2 _ _ _ _); auto.
  apply all_Type_union_rev in a0 as [a0 a1].
  rewrite (IHM3 _ _ _ _); auto.
-
 Qed.
 
 Import Setoid.
@@ -525,6 +524,63 @@ Lemma union_distrib: forall A B C, eq_sets _ (A ∪ (B ∪ C)) ((A ∪ B) ∪ (A
 Proof.
  intros.
  split; solve_set_union_inclusion.
+Qed.
+
+(* Notation "{ q / env } M" := (subst_env q env M) (at level 100). *)
+Notation "A ⊆ B" := (incl_sets nat A B) (at level 100).
+Notation "A % x" := (Term.set_remove nat eq_nat_dec x A) (at level 100).
+
+Lemma subst_freevars_binder:
+ forall M env q,
+ set_map Nat.eq_dec Init.Nat.pred
+   ((set_unions nat Nat.eq_dec (map freevars (map (shift 0 1) env))
+     ∪ set_filter nat
+         (fun x : nat =>
+          outside_range (S q) (length (map (shift 0 1) env) + S q) x)
+         (freevars M)) % 0)
+ ⊆ (set_unions nat Nat.eq_dec (map freevars env)
+    ∪ set_filter nat (fun x : nat => outside_range q (length env + q) x)
+        (set_map Nat.eq_dec Init.Nat.pred (freevars M % 0))).
+Proof.
+ intros M env q.
+
+ (* consider that this works as well as the explicit rewrites below :-/ *)
+ (* Hint Rewrite map_length map_map set_filter_map union_remove unions_remove map_union set_unions_map : idunno. *)
+ (* autorewrite with idunno. *)
+
+ rewrite map_length.
+ rewrite map_map.
+ rewrite set_filter_map.
+ rewrite union_remove.
+ rewrite unions_remove.
+ rewrite map_map.
+ rewrite map_union.
+ rewrite set_unions_map.
+ rewrite map_map.
+
+ (* Corresponding sides of the union are \subseteq *)
+
+ apply incl_sets_union.
+ (* Left side *)
+  rewrite <- filter_remove.
+  set (f := fun x : nat => outside_range (S q) (length env + S q) x).
+  set (g := fun x : nat => outside_range q (length env + q) (pred x)).
+  rewrite filter_extensionality with (g:=g); [solve [auto with Listkit]|].
+  intros.
+  assert (x <> 0).
+   apply set_remove_elim in H.
+   intuition.
+  unfold f, g.
+  unfold outside_range.
+  break; break; try (break; try break); auto; finish.
+ (* Right side *)
+ apply unions2_mor.
+ apply compwise_eq_sets_map.
+ intros x.
+ setoid_replace (set_remove nat eq_nat_dec 0 (freevars (shift 0 1 x)))
+        with (freevars (shift 0 1 x)).
+ rewrite pred_freevars_shift; solve [auto with Listkit].
+ solve[apply remove_0_shift_0_1].
 Qed.
 
 (** After making a substitution, the freevars of the result is:
@@ -574,51 +630,10 @@ Proof.
          apply IHM; auto.
 
  (* Case TmAbs *)
- (* Notation "{ q / env } M" := (subst_env q env M) (at level 100). *)
- Notation "A ⊆ B" := (incl_sets nat A B) (at level 100).
- Notation "A % x" := (Term.set_remove nat eq_nat_dec x A) (at level 100).
         simpl.
-
         rewrite IHM by auto.
         clear IHM.
-
-     (* consider that this works as well as the explicit rewrites below :-/ *)
-     (* Hint Rewrite map_length map_map set_filter_map union_remove unions_remove map_union set_unions_map : idunno. *)
-     (* autorewrite with idunno. *)
-
-        rewrite map_length.
-        rewrite map_map.
-        rewrite set_filter_map.
-        rewrite union_remove.
-        rewrite unions_remove.
-        rewrite map_map.
-        rewrite map_union.
-        rewrite set_unions_map.
-        rewrite map_map.
-
-        (* Corresponding sides of the union are \subseteq *)
-
-        apply incl_sets_union.
-        (* Left side *)
-         rewrite <- filter_remove.
-         set (f := fun x : nat => outside_range (S q) (length env + S q) x).
-         set (g := fun x : nat => outside_range q (length env + q) (pred x)).
-         rewrite filter_extensionality with (g:=g); [solve [auto with Listkit]|].
-         intros.
-         assert (x <> 0).
-          apply set_remove_elim in H.
-          intuition.
-         unfold f, g.
-         unfold outside_range.
-         break; break; try (break; try break); auto; finish.
-        (* Right side *)
-        apply unions2_mor.
-        apply compwise_eq_sets_map.
-        intros x.
-        setoid_replace (set_remove nat eq_nat_dec 0 (freevars (shift 0 1 x)))
-               with (freevars (shift 0 1 x)).
-        rewrite pred_freevars_shift; solve [auto with Listkit].
-        solve[apply remove_0_shift_0_1].
+        apply subst_freevars_binder; auto.
 
  (* Case TmApp *)
        simpl.
@@ -661,40 +676,8 @@ Proof.
    subst s l l0.
 
    rewrite IHM2.
-
-   (* From here, proof is the same as TmAbs. *)
-   rewrite set_filter_map.
-   rewrite filter_remove.
-   rewrite union_remove.
-   rewrite map_union.
-   rewrite map_map.
-
-   apply incl_sets_union.
-    rewrite <- filter_remove.
-    rewrite <- filter_remove.
-    rewrite map_length.
-    set (f := fun x : nat => outside_range (S q) (length env + S q) x).
-    set (g := fun x : nat => outside_range q (length env + q) (pred x)).
-    setoid_rewrite filter_extensionality with (g:=g); [solve [auto with Listkit]|].
-    intros.
-    assert (x <> 0).
-     apply set_remove_elim in H.
-     intuition.
-    unfold f, g.
-    unfold outside_range.
-    break; break; try (break; try break); auto; finish.
-   (* Obligation (shift 0 1 ; pred) = idy *)
-   rewrite unions_remove.
-   rewrite set_unions_map.
-   apply unions2_mor.
-   rewrite map_map.
-   rewrite map_map.
-   apply compwise_eq_sets_map.
-   intros x.
-   setoid_replace (set_remove nat eq_nat_dec 0 (freevars (shift 0 1 x)))
-             with (freevars (shift 0 1 x)).
-    rewrite pred_freevars_shift; solve [auto with Listkit].
-   solve[apply remove_0_shift_0_1].
+   simpl.
+   apply subst_freevars_binder.
 
  (* Case TmIf *)
   simpl.
@@ -706,7 +689,6 @@ Proof.
  (* Case TmTable *)
  simpl.
  solve [auto with Listkit].
-
 Qed.
 
 Lemma subst_unused_noop:
@@ -919,35 +901,16 @@ Lemma subst_factor :
       subst_env n env (subst_env m env' N).
 (* TODO: reverse the orientation of that equation. *)
 Proof.
- induction N; intros m n env env' H0 H1; simpl.
- (* Case TmConst *)
- - trivial.
+ induction N; intros m n env env' H0 H1; simpl; try (solve[f_equal; auto]).
  (* Case TmVar *)
  - apply subst_factor_var; auto.
- (* Case TmPair *)
- - rewrite IHN1, IHN2; auto.
- (* Case TmProj *)
- - f_equal.
-   apply IHN; auto.
  (* Case TmAbs. *)
  - f_equal.
    apply subst_factor_binder; auto.
- (* Case TmApp. *)
- - rewrite IHN1, IHN2; auto.
- (* Case TmNull. *)
- - auto.
- (* Case TmSingle. *)
- - rewrite IHN; auto.
- (* Case TmUnion. *)
- - rewrite IHN1, IHN2; auto.
  (* Case TmBind *)
  - f_equal.
    * apply IHN1; auto.
    * apply subst_factor_binder; auto.
- (* Case TmIf. *)
- - rewrite IHN1, IHN2, IHN3; auto.
- (* Case TmTable *)
- - auto.
 Qed.
 
 (* Some notations might be nice, but I'm not sure I've got the right ones yet.
