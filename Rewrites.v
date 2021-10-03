@@ -787,54 +787,28 @@ Lemma beta_with_unshift_var:
     n >= n' ->
     unshift n k (unshift n' 1 (subst_env n' (shift 0 1 M :: nil) (TmVar x))) =
     unshift n' 1
-            (subst_env n' (shift 0 1 (unshift n k M) :: nil) (unshift (S n) k (TmVar x))).
+      (subst_env n' (shift 0 1 (unshift n k M) :: nil) (unshift (S n) k (TmVar x))).
 Proof.
-(* NEW *)
-(*  intros. *)
-(* rewrite unshift_unshift_commute by auto. *)
-(* f_equal. *)
-(* rewrite <- unshift_shift_commute by lia. *)
-(* Search unshift. *)
-(* replace (shift 0 1 M :: nil) with (map (shift 0 1) (M :: nil)) by auto. *)
-(* Check subst_unshift. *)
-(* rewrite <- shift_subst_commute_hi. *)
+  intros.
+  destruct (eq_nat_dec x n').
+  - subst x.
+    rewrite subst_env_one by auto.
 
-(* OLD *)
- simpl.
- intros.
- nth_error_dichotomize H1 H2 V H2; simpl in *.
-  nth_error_dichotomize H3 H4 V H4; simpl in *.
-   rewrite 2 Listkit.logickit.if_irrelevant.
-   rewrite unshift_unshift_commute; solve [auto | lia].
-  exfalso.
-  assert (H0 : unshift_var (S n) k x - n' = 0) by lia.
-  unfold unshift_var in H0.
-  destruct (le_gt_dec (k + S n) x) in H0; solve [lia].
- nth_error_dichotomize H3 H4 W H4; simpl in *.
-  exfalso.
-  unfold unshift_var in H3.
-  destruct (le_gt_dec (k + S n) x); solve [lia].
- break; break.
-    assert (x < S n) by lia.
-    assert (unshift_var (S n) k x = x).
-     unfold unshift_var.
-     destruct (le_gt_dec (k + S n) x); solve [lia].
-    replace (unshift_var (S n) k x) with x in * by auto.
-    replace (x - n') with 0 in * by lia.
-    simpl in *.
-    inversion H2.
-    inversion H4.
-    rewrite unshift_unshift_commute by lia.
-    rewrite unshift_shift_commute by lia.
-    auto.
-   exfalso.
-   unfold unshift_var in g.
-   destruct (le_gt_dec (k + S n) x); solve [lia].
-  exfalso.
-  unfold unshift_var in l.
-  destruct (le_gt_dec (k + S n) x); solve [lia].
- unfold unshift, unshift_var.
- break; break; break; break; solve [lia | auto].
+    replace (unshift (S n) k (TmVar n')) with (TmVar n').
+    * rewrite subst_env_one by auto.
+      rewrite unshift_unshift_commute by auto.
+      rewrite unshift_shift_commute by lia.
+      auto.
+    * unfold unshift, unshift_var.
+      break; easy.
+  - rewrite subst_env_noop by auto.
+    simpl unshift at 5.
+    rewrite subst_env_noop.
+    * simpl.
+      rewrite unshift_var_unshift_var_commute by auto.
+      auto.
+    * unfold unshift_var.
+      break; easy.
 Qed.
 
 Lemma beta_with_unshift:
@@ -844,37 +818,19 @@ Lemma beta_with_unshift:
     unshift n' 1
             (subst_env n' (shift 0 1 (unshift n k M) :: nil) (unshift (S n) k N)).
 Proof.
- induction N; intros; simpl.
- (* TmConst *)
- - auto.
+ induction N; intros; simpl; try (solve [f_equal; auto]).
  (* TmVar *)
  - apply beta_with_unshift_var; auto.
- (* TmPair *)
- - rewrite IHN1, IHN2; auto.
- (* TmProj *)
- - rewrite IHN; auto.
  (* TmAbs *)
  - rewrite IHN by lia.
    rewrite unshift_shift_commute.
    -- easy.
    -- lia.
- (* TmApp *)
- - rewrite IHN1, IHN2; auto.
- (* TmNull *)
- - trivial.
- (* TmSingle *)
- - rewrite IHN; auto.
- (* TmUnion *)
- - rewrite IHN1, IHN2; auto.
  (* TmBind *)
  - rewrite IHN1, IHN2 by lia.
    rewrite unshift_shift_commute.
    -- easy.
    -- lia.
- (* TmUnion *)
- - rewrite IHN1, IHN2, IHN3; auto.
- (* TmTable *)
- - auto.
 Qed.
 
 Lemma unshift_preserves_rw:

@@ -170,6 +170,21 @@ Ltac break_in H :=
 
 Ltac breakauto := break; try lia; try auto.
 
+
+Ltac break_ne :=
+  match goal with
+  | |- context C [nth_error (map ?f ?A) ?B]
+  => rewrite nth_error_map
+  | H: nth_error ?A ?B = ?C |- context C [nth_error ?A ?B]
+  => rewrite H
+  | |- context C [match nth_error ?A ?B with _ => _ end]
+        => let a := fresh "a" in
+           let b := fresh "b" in
+           let c := fresh "c" in
+           let d := fresh "d" in
+              nth_error_dichotomize a b c d (* bounds is_error v v_def *)
+        end.
+
 Ltac finish := solve [auto | lia].
 Ltac efinish := solve [simpl;eauto | simpl; lia].
 

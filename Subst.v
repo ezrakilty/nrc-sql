@@ -180,6 +180,32 @@ Proof.
  destruct (le_gt_dec k x); auto.
 Qed.
 
+Lemma subst_env_one:
+  forall n n' M env,
+    n = n' ->
+    subst_env n (M::env) (TmVar n') = M.
+Proof.
+  intros.
+  simpl.
+  destruct (le_gt_dec n n'); try lia.
+  replace (n' - n) with 0 by lia.
+  auto.
+Qed.
+
+Lemma subst_env_noop:
+  forall n x M,
+    n <> x ->
+    subst_env n (M::nil) (TmVar x) = TmVar x.
+Proof.
+ intros; simpl.
+ break.
+ - break_ne.
+   { auto. }
+   simpl in *.
+   lia.
+ - auto.
+Qed.
+
 (** If a variable is bigger than [q + length env] then it is untouched
  by substituting ([q], [env]). *)
 (* TODO: This might be a lemma that would be immediate from a lemma about
