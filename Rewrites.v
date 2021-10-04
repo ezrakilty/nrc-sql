@@ -295,30 +295,10 @@ Proof.
  induction red;
     intros env T T_tp;
     inversion T_tp as
-        [| | | ? ? S T' TmAbs_N_tp | | ? ? ? H | ? ? ? H | ? ? H | | | ? ? ? ? H H0 |];
-    eauto.
- (* Case Beta_reduction -> *)
- - inversion TmAbs_N_tp.
-   subst.
-   eapply beta_reduct_typing; eauto.
- (* Case Beta reduction TPair (1) *)
- - subst.
-   inversion H; sauto.
- (* Case Beta reduction TPair (2) *)
- - subst.
-   inversion H; sauto.
- (* Case Beta reduction [] *)
- - inversion H.
-   subst.
-   eauto using beta_reduct_typing.
- (* Case TmUnion/TmBind *)
- - inversion H.
-   subst.
-   eauto.
+        [| | | ? ? S T' H | | ? ? ? H | ? ? ? H | ? ? H | | | ? ? ? ? H H0 |];
+    inversion H; subst; try (solve [eauto using beta_reduct_typing]).
  (* Case TmBind_assoc *)
- - inversion H.
-   subst.
-   eapply TBind; eauto.
+ - eapply TBind; eauto.
    eapply TBind; eauto.
    replace (s :: s0 :: env) with ((s::nil) ++ (s0::nil) ++ env) by auto.
    eapply shift_preserves_typing; eauto.
@@ -560,15 +540,15 @@ Proof.
  induction N; simpl; intros M k red; inversion red.
  - (* Case TmPair; reduction in left *)
    edestruct (IHN1 _ _ H2); subst.
-   econstructor; eauto; simpl; auto.
+   eexists; eauto; simpl; auto.
 
  - (* Case TmPair; reduction in right *)
    edestruct (IHN2 _ _ H2); subst.
-   econstructor; eauto; simpl; auto.
+   eexists; eauto; simpl; auto.
 
  - (* Case TmProj; reduction in body *)
    edestruct (IHN _ _ H2); subst.
-   econstructor; eauto; simpl; eauto.
+   eexists; eauto; simpl; eauto.
 
  - (* Case TmProj (left) on TmPair *)
    subst.
@@ -584,7 +564,7 @@ Proof.
 
  - (* Case TmAbs; reduction in body *)
    edestruct (IHN _ _ H0); subst.
-   econstructor; eauto; simpl; eauto.
+   eexists; eauto; simpl; eauto.
 
  - (* Case: Beta reduction. *)
    subst.
@@ -596,31 +576,31 @@ Proof.
 
  - (* Case: reduction in left part of application. *)
    edestruct (IHN1 _ _ H2); subst.
-   econstructor; eauto; simpl; eauto.
+   eexists; eauto; simpl; eauto.
 
  - (* Case: reduction in right part of application. *)
    edestruct (IHN2 _ _ H2); subst.
-   econstructor; eauto; simpl; eauto.
+   eexists; eauto; simpl; eauto.
 
  - (* Case TmSingle *)
    edestruct (IHN _ _ H0); subst.
-   econstructor; eauto; simpl; eauto.
+   eexists; eauto; simpl; eauto.
 
  - (* Case: TmUnion, reduction in left *)
    destruct (IHN1 _ _ H2); subst.
-   econstructor; eauto; simpl; auto.
+   eexists; eauto; simpl; auto.
 
  - (* Case: TmUnion, reduction in right *)
    destruct (IHN2 _ _ H2); subst.
-   econstructor; eauto; simpl; auto.
+   eexists; eauto; simpl; auto.
 
  - (* Case: Null for Bind *)
    descrim N1.
-   econstructor; eauto.
+   eexists; eauto.
 
  - (* Case: Null for Bind in the body *)
    descrim N2.
-   econstructor; eauto.
+   eexists; eauto.
    auto.
 
  - (* Case: Beta for Bind *)
@@ -635,11 +615,11 @@ Proof.
    descrim N1.
    inversion H0; subst.
    simpl in red.
-   econstructor; eauto; simpl; auto.
+   eexists; eauto; simpl; auto.
 
  - (* Case: reduction in subject of TmBind. *)
    destruct (IHN1 _ _ H2); subst.
-   econstructor; eauto; simpl; auto.
+   eexists; eauto; simpl; auto.
 
  - (* Case: TmBind assoc *)
    subst.
@@ -652,7 +632,7 @@ Proof.
 
  - (* Case: reduction in body of TmBind. *)
    destruct (IHN2 _ _ H2); subst.
-   econstructor; eauto; simpl; auto.
+   eexists; eauto; simpl; auto.
 
  - destruct (IHN1 _ _ H3); subst.
    exists (TmIf x N2 N3); auto.
