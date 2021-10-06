@@ -121,7 +121,7 @@ Proof.
      (Q' := plug TmNull K); try auto.
  intros K0 Z H2 H3.
 
- clone H3.
+ clone H3 as H3'.
  apply K_TmNull_rw in H3 as [[K_shorter H1a [K' Ksize_K' H1b]] | [K' H1a H1b]].
  (* Case [plug K0 TmNull] drops a frame. *)
   right.
@@ -135,9 +135,9 @@ Proof.
    apply trans with (K' := appendK K' K_shorter).
     auto.
    apply relK_rt_appendK.
-  apply magic with (M:=M) in H1; auto.
+  apply magic with (M:=M) in H; auto.
 
-  destruct H1 as [M' SN_M'].
+  destruct H as [M' SN_M'].
 
   apply IHK with (M:=M'); auto.
   apply Rw_rt_conserves_Ksize in H2.
@@ -253,10 +253,10 @@ Proof.
         ** assert (relK_rt (Iterate t :: (appendK K'' (Iterate TmNull :: K'))) K').
            --- eapply trans.
                *** apply step.
-                   apply strip with (Iterate t).
+                   apply shorten with (Iterate t).
                    eauto.
                *** assert (relK_rt (Iterate TmNull :: K') K').
-                   apply step; eapply strip; eauto.
+                   apply step; eapply shorten; eauto.
                    assert (relK_rt (appendK K'' (Iterate TmNull :: K')) (Iterate TmNull :: K')).
                    eapply relK_rt_appendK.
                    eauto with Continuation.
@@ -313,11 +313,11 @@ Lemma Krw_norm_SN:
 Proof.
   induction K using Ksize_induction_strong.
   - intros.
-    clone H0.
+    clone H0 as H0'.
     induction H0.
     constructor.
     intros.
-    apply K_TmNull_rw in H2.
+    apply K_TmNull_rw in H1.
     firstorder; subst.
     * apply H.
       rewrite Ksize_appendK.
@@ -335,7 +335,7 @@ Proof.
       apply H.
       lia.
       auto.
-      inversion H1.
-      apply H2.
+      inversion H0'.
+      apply H1.
       auto.
 Qed.

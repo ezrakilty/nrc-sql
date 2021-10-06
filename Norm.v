@@ -315,7 +315,7 @@ Proof.
    exists x1; auto.
  - assert (f x ~>> m) by (eapply Rw_rt_trans; eauto).
    assert (f x ~>> n) by (eapply Rw_rt_trans; eauto).
-   clone H; clone H0; clone H1.
+   clon H; clon H0; clon H1.
    apply X0 in H.
    apply X0 in H0.
    apply X0 in H1.

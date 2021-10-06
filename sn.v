@@ -434,7 +434,7 @@ Proof.
  induction H1.
  constructor.
  intros m' H3.
- clone H3.
+ clone H3 as H2.
  apply Neutral_Lists in H3 as [[[M' s1 s2] | [K1 s1 s2]] | [K' eq [K'' xeq]]]; [ | | | auto].
  - subst.
    apply X; auto.
@@ -448,8 +448,8 @@ Proof.
    assert (Krw_norm K').
    eapply prefix_Krw_norm.
    assert (prefix K' (appendK K'' K')).
-   apply prefix_appendK; auto with Continuation.
-   apply H2.
+   { apply prefix_appendK; auto with Continuation. }
+   apply H1.
    unfold Krw_norm.
    constructor.
    sauto.
@@ -1233,7 +1233,7 @@ Proof.
                             (g:=fun k => plug (TmTable t) k);
     auto.
   intros K' Z Hdown H1.
-  clone H1.
+  clone H1 as H2.
   apply K_TmTable_rw2 in H1.
   destruct H1 as [[K'' Zeq rw] | [K'' eq [K''' K'''eq]]].
   - left.

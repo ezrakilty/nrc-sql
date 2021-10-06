@@ -3,6 +3,8 @@
  * Copyright Ezra Cooper, 2008-2020.
  *)
 
+Load "eztactics.v".
+
 Add LoadPath "Listkit" as Listkit.
 
 Require Import Coq.Sets.Image.
@@ -185,8 +187,7 @@ Proof.
   induction K; simpl; intros.
   - left; left; left.
     eauto.
-  - clone H.
-    rename H0 into H_rw.
+  - clone H as H_rw.
     destruct a; simpl in *.
     apply IHK in H; clear IHK.
     destruct H as [[[[[M' H0 H1] | [K' H0 H1]] | [H' [K' [M' H0 H1]]]] | [K' Zeq [K'' Keq]]] | [L [L' H0 [K' [N H1 H2]]]]].
@@ -242,8 +243,7 @@ Lemma Neutral_Lists:
     {K' : Continuation & Z = plug TmNull K' & {K'' & K = appendK K'' K'}}.
 Proof.
  intros.
- clone H0.
- rename H1 into H00.
+ clone H0 as H00.
  apply interface_rw_classification in H0.
  destruct H0 as [[[[[M' H0 H1] | [K' H0 H1]] | [H' [K' [L H0 H1]]]] | [K' Zeq [K'' Keq]]] | ?].
  * left; left; eauto.
@@ -282,8 +282,7 @@ Proof.
  destruct K; simpl; intros Z H.
  * inversion H.
  * destruct f; simpl in *.
-   clone H.
-   rename H0 into H_rw.
+   clone H as H_rw.
    apply interface_rw_classification in H.
    destruct H as [[[[[M' Ha Hb] | [K' Ha Hb]] |  [H' [K' [M' H0 [N H1 H2]]]]] | ?] | ?].
    - inversion Hb; subst.
@@ -393,6 +392,7 @@ Lemma deepest_K_spec:
     plug M'  K'  = M.
 Proof.
  induction M; simpl; intros; inversion H; auto.
+ (* Cases for various frames; at the moment there is only one. *)
  - pose (X := deepest_K M1).
    assert (X = deepest_K M1) by auto.
    destruct X.
@@ -414,9 +414,9 @@ Qed.
 
 Lemma deepest_K_plugframe:
   forall a,
-     forall M K' M',
-       deepest_K M               = (M', K')                ->
-       deepest_K (plugframe M a) = (M', K' ++ (a :: nil)).
+    forall M K' M',
+      deepest_K M               = (M', K')                ->
+      deepest_K (plugframe M a) = (M', K' ++ (a :: nil)).
 Proof.
   intros.
   destruct a; simpl; rewrite H; auto.
@@ -424,9 +424,9 @@ Qed.
 
 Lemma deepest_K_plug:
   forall K,
-     forall M K' M',
-       deepest_K M          = (M', K')             ->
-       deepest_K (plug M K) = (M', K' ++ K).
+    forall M K' M',
+      deepest_K M          = (M', K')             ->
+      deepest_K (plug M K) = (M', K' ++ K).
 Proof.
  induction K.
  - simpl.
@@ -472,9 +472,9 @@ Lemma unique_plug_null:
 Proof.
  intros.
  assert (deepest_K (plug TmNull K) = (TmNull, K)).
-  apply deepest_K_TmNull.
+ { apply deepest_K_TmNull. }
  assert (deepest_K (plug TmNull K') = (TmNull, K')).
-  apply deepest_K_TmNull.
+ { apply deepest_K_TmNull. }
  congruence.
 Qed.
 
@@ -619,8 +619,10 @@ Qed.
 
 Inductive relK : Continuation -> Continuation -> Set :=
   rw : forall K K', Krw K K' -> relK K K'
-| strip : forall K K' f, K = f :: K' -> relK K K'.
+| shorten : forall K K' f, K = f :: K' -> relK K K'.
 
+(* relK_rt is a relation between Continuations that encompasses strings of rw
+   steps and shortening steps. It makes a good WF induction relation. *)
 Inductive relK_rt  : Continuation -> Continuation -> Set :=
   refl : forall K, relK_rt K K
 | step : forall K K', relK K K' -> relK_rt K K'
@@ -637,27 +639,27 @@ forall K K',
 Proof.
  intros K K' rel.
  induction rel; intros M sn.
-   seauto.
-  destruct r.
-   pose (k M).
-   exists M.
-   inversion sn.
-   solve [eauto with Norm].
-  lapply (reexamine K' (f :: K')).
-   intros H.
-   subst.
-   specialize (H M).
-   destruct H.
-   exists x.
-   simpl in *.
-   rewrite e.
-   sauto.
-  apply prefix_frame.
-  apply prefix_refl.
- pose (s := IHrel1 M sn).
- destruct s.
- pose (IHrel2 x s).
- sauto.
+ - eauto.
+ - destruct r.
+   * pose (k M).
+     exists M.
+     inversion sn.
+     eauto with Norm.
+   * lapply (reexamine K' (f :: K')).
+     -- intros H.
+        subst.
+        specialize (H M).
+        destruct H.
+        exists x.
+        simpl in *.
+        rewrite e.
+        auto.
+     -- apply prefix_frame.
+        apply prefix_refl.
+ - pose (s := IHrel1 M sn).
+   destruct s.
+   pose (IHrel2 x s).
+   auto.
 Qed.
 
 Lemma relK_rt_appendK:
@@ -668,7 +670,7 @@ Proof.
  - auto with Continuation.
  - eapply trans.
    * apply step.
-     apply strip with a.
+     apply shorten with a.
      eauto.
    * auto.
 Qed.
@@ -717,10 +719,10 @@ Lemma K_TmNull_rw_rt:
 Proof.
  intros.
  induction H; unfold is_K_null; firstorder; subst.
-  subst.
-  eauto.
-  apply K_TmNull_rw_abstract in r.
-  firstorder.
+ * subst.
+   eauto.
+ * apply K_TmNull_rw_abstract in r.
+   firstorder.
 Qed.
 
 Lemma K_TmNull_relK_rt_inner:
@@ -804,9 +806,9 @@ Lemma Rw_rt_under_K:
 Proof.
  intros K M N red.
  induction red.
-   subst; auto.
-  eauto using Rw_rt_step, Rw_under_K.
- eauto.
+ - subst; auto.
+ - eauto using Rw_rt_step, Rw_under_K.
+ - eauto.
 Qed.
 
 (* (* TODO: Should be able to get "induction on Krw sequences" directly
@@ -880,11 +882,11 @@ Lemma Krw_appendK:
     Krw K K' ->
     Krw (appendK K1 K) (appendK K1 K').
 Proof.
- induction K1; simpl; auto.
- intros.
- intro.
- simpl.
- lapply IHK1; auto.
+  induction K1; simpl; auto.
+  intros.
+  intro.
+  simpl.
+  lapply IHK1; auto.
 Qed.
 
 Lemma prefix_appendK:
