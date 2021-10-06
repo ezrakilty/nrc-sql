@@ -93,12 +93,10 @@ Lemma rw_in_K_body:
   forall K M M',
    (M ~> M') -> (Krw (Iterate M :: K) (Iterate M' :: K)).
 Proof.
- intros.
  unfold Krw.
  intros.
  simpl.
- apply Rw_under_K.
- eauto.
+ eauto using Rw_under_K.
 Qed.
 
 #[export] Hint Resolve iterate_reduce rw_in_K_body : Continuation.
@@ -120,13 +118,12 @@ Lemma SN_push_under_k:
     SN M.
 Proof.
  induction K.
-  simpl.
-  auto.
- intros.
- destruct a.
- - simpl in H.
-   pose (s := IHK (TmBind M t) H).
-   eapply SN_embedding with (f := fun x => TmBind x t) (Q := TmBind M t); solve [auto].
+ - simpl.
+   auto.
+ - intros.
+   destruct a.
+   * simpl in H.
+     eapply SN_embedding with (f := fun x => TmBind x t) (Q := TmBind M t); solve [auto].
 Qed.
 
 #[export] Hint Constructors Neutral : Continuation.
@@ -151,7 +148,8 @@ Qed.
  *)
 Lemma assoc_in_K:
   forall N0 N K,
-  Krw (Iterate N0 :: (Iterate N :: K)) (Iterate (TmBind N0 (shift 1 1 N)) :: K).
+  Krw (Iterate N0 :: (Iterate N :: K))
+      (Iterate (TmBind N0 (shift 1 1 N)) :: K).
 Proof.
  unfold Krw.
  simpl.
@@ -165,12 +163,10 @@ Lemma NotBind_TmBind L M : NotBind (TmBind L M) -> False.
 Proof.
   unfold NotBind.
   unfold not.
-  intro H.
-  eapply H.
   eauto.
 Qed.
 
-Lemma three_ways_to_reduce_at_interface:
+Lemma interface_rw_classification:
   forall (K : Continuation) (M Z : Term),
     (plug M K ~> Z) ->
     {M' : Term         &              Z = plug M' K & M ~> M'} +
@@ -248,7 +244,7 @@ Proof.
  intros.
  clone H0.
  rename H1 into H00.
- apply three_ways_to_reduce_at_interface in H0.
+ apply interface_rw_classification in H0.
  destruct H0 as [[[[[M' H0 H1] | [K' H0 H1]] | [H' [K' [L H0 H1]]]] | [K' Zeq [K'' Keq]]] | ?].
  * left; left; eauto.
  * left; right.
@@ -288,7 +284,7 @@ Proof.
  * destruct f; simpl in *.
    clone H.
    rename H0 into H_rw.
-   apply three_ways_to_reduce_at_interface in H.
+   apply interface_rw_classification in H.
    destruct H as [[[[[M' Ha Hb] | [K' Ha Hb]] |  [H' [K' [M' H0 [N H1 H2]]]]] | ?] | ?].
    - inversion Hb; subst.
      ** left.
@@ -496,7 +492,7 @@ Proof.
    simpl.
    intros.
    let T := type of H in assert (H' : T) by auto.
-   apply three_ways_to_reduce_at_interface in H.
+   apply interface_rw_classification in H.
    destruct H as [[[[[M' Ha Hb] | [K0 Ha Hb]] | [Hn [K0 [M' H0 [N H1 H2]]]]] | ?] | ?].
    * inversion Hb; subst.
      -- assert (K' = K).

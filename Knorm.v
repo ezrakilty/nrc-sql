@@ -192,7 +192,7 @@ Proof.
  - destruct f.
    simpl in H_rw.
 
-   apply three_ways_to_reduce_at_interface in H_rw as
+   apply interface_rw_classification in H_rw as
        [[[[[M' Z_def rw] | [K' Z_def rw]] | [H' [K' [M' ? [? ? H_bogus]]]]] | ?] | ?].
    * (* Case: rw is within TmBind (TmUnion M N) t *)
      subst.

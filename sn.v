@@ -769,7 +769,7 @@ Lemma K_TmTable_rw:
 Proof.
   induction K using Ksize_induction_strong.
   intros.
-  apply three_ways_to_reduce_at_interface in H0.
+  apply interface_rw_classification in H0.
   destruct H0 as [[[[[K'' Zeq rw]| [K'' Zeq rw]]| p] | [K'' Zeq  [K0 K''eq]]]| ?].
   - inversion rw.
   - left; eauto.
@@ -796,7 +796,7 @@ Lemma K_TmTable_rw2:
 Proof.
   induction K using Ksize_induction_strong.
   intros.
-  apply three_ways_to_reduce_at_interface in H0.
+  apply interface_rw_classification in H0.
   destruct H0 as [[[[[K'' Zeq rw]| [K'' Zeq rw]]| p] | [K'' Zeq  [K0 K''eq]]]| ?].
   - inversion rw.
   - left; eauto.
@@ -1048,7 +1048,7 @@ Proof.
   intros K0 N0 L0 ? ? ? IHK0 IHM0 IHL0.
   apply reducts_SN; fold SN.
   intros Z redn.
-  apply three_ways_to_reduce_at_interface in redn
+  apply interface_rw_classification in redn
     as [[[[[M' redn_a redn_b] | [K'' redn_a redn_b]] | ?] | ?] | ?].
   * (* Inside body. *)
     inversion redn_b; subst.
@@ -1167,7 +1167,7 @@ Lemma TmTable_rw:
     {K' : Continuation & prefix K' K & x = plug TmNull K'}.
 Proof.
   simpl; intros.
-  apply three_ways_to_reduce_at_interface in H.
+  apply interface_rw_classification in H.
   destruct H as [[[[[M' H H1] | H] | H] | H] | ?].
   - inversion H1.
   - eauto.

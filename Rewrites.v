@@ -243,7 +243,6 @@ Lemma Rw_rt_destruct:
   forall a z,
     forall redn: a ~>> z,
        (Is_empty_Rw_rt a z redn) + {x : Term & (a ~> x) & (x ~>> z)}.
-(* TODO: A bit ugly! *)
 Proof.
  intros.
  induction redn.
