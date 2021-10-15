@@ -33,12 +33,12 @@ Proof.
  intros T M env k k_def M_tp N_tp; simpl; inversion N_tp; eauto.
  subst.
  assert (H: x < length (env++(S::env'))).
-  eapply nth_error_to_length; eauto.
+ { eapply nth_error_to_length; eauto. }
  rewrite app_length in H.
  simpl in H.
  destruct (le_gt_dec (length env) x).
-  destruct (eq_nat_dec x (length env)).
-   (* 'x' points to the type 'S' *)
+ destruct (eq_nat_dec x (length env)).
+ - (* 'x' points to the type 'S' *)
    subst x.
    replace (length env - length env) with 0 by lia.
    simpl.
@@ -51,35 +51,36 @@ Proof.
    simpl in H0.
    inversion H0.
    auto.
-  (* 'x' is in the second environment. *)
-  assert (length env < x) by lia.
-  assert (0 < x-length env) by lia.
-  replace (nth_error (shift 0 (length env + 1) M::nil) (x-length env))
-    with (error : option Term).
+ - (* 'x' is in the second environment. *)
+   assert (length env < x) by lia.
+   assert (0 < x-length env) by lia.
+   replace (nth_error (shift 0 (length env + 1) M::nil) (x-length env))
+     with (error : option Term).
+   2: { (* Prove that nth_error (_::nil) z = error when z > 0. *)
+        symmetry.
+        apply nth_error_overflow.
+        simpl.
+        lia. }
+
    simpl.
    apply TVar.
-   unfold unshift_var.
-   destruct (le_gt_dec (1 + length env) x); [ | lia].
-   apply nth_error_app in H0; auto.
+   replace (unshift_var (length env) 1 x) with (x - 1).
+   2 : { unfold unshift_var. break; lia. }
    replace (S::env') with ((S::nil)++env') in H0; auto.
    apply nth_error_app in H0; auto.
+   apply nth_error_app in H0; auto.
    simpl in H0.
-   rewrite rewrite_nth_error_app.
-    replace (x - 1 - length env) with (x - length env - 1) by lia.
-    auto.
+   rewrite rewrite_nth_error_app by lia.
+   rewrite H0.
+   f_equal.
    lia.
 
-  (* Prove that nth_error (_::nil) z = error when z > 0. *)
-  symmetry; apply nth_error_overflow.
-  simpl.
-  lia.
-
  (* x is in the first environment *)
- apply TVar.
- replace (unshift_var (length env) 1 x) with x.
-  rewrite nth_error_ext_length; auto.
-  rewrite nth_error_ext_length in H0; auto.
- rewrite unshift_var_lo; auto.
+ - apply TVar.
+   replace (unshift_var (length env) 1 x) with x.
+   2: { rewrite unshift_var_lo; auto. }
+   rewrite nth_error_ext_length; auto.
+   rewrite nth_error_ext_length in H0; auto.
 Qed.
 
 (** Beta reduction preserves types:
@@ -229,12 +230,12 @@ Lemma empty_Rw_rt_elim:
     Is_empty_Rw_rt l m redn -> l = m.
 Proof.
  intros l m redn H. induction redn.
-   auto.
-  simpl in H.
-  contradiction.
- simpl in H.
- intuition.
- congruence.
+ - auto.
+ - simpl in H.
+   contradiction.
+ - simpl in H.
+   intuition.
+   congruence.
 Qed.
 
 (** A transitive reduction sequence is either empty or decomposable
