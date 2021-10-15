@@ -1028,6 +1028,40 @@ Proof.
     * apply IHRewritesTo_rt2; auto.
 Qed.
 
+Lemma beta_assoc_simpl:
+forall L N,
+  unshift 1 1 (subst_env 1 (shift 0 1 (shift 0 1 L) :: nil) (shift 1 1 N))
+    = N.
+Proof.
+  intros.
+  rewrite subst_unused_noop.
+  apply unshift_shift.
+  pose (shift_freevars_range N 1).
+  unfold in_env_domain.
+  simpl in a |- *.
+  eapply all_cut; [| apply a]; simpl.
+  intros; lia.
+Qed.
+
+Lemma assoc_result_SN:
+  forall (K : Continuation) (L N : Term) (N0 L0 : Term) (K'' : Continuation) (N1 : Term),
+    SN (plug (N */ L) K) ->
+    Krw_rt K (Iterate N1 :: K'') ->
+    (N ~>> N0) -> (L ~>> L0) ->
+    SN (plug (TmBind N0 (shift 1 1 N1) */ L0) K'').
+Proof.
+  intros.
+  simpl.
+  rewrite beta_assoc_simpl.
+
+  assert (H5:SN (plug (N0 */ L0) (Iterate N1 :: K''))).
+  { assert (H5:plug (N */ L) K ~>> plug (N0 */ L0) (Iterate N1 :: K'')).
+    { apply beta_reduct_under_K_rw_rt; sauto. }
+    apply Rw_trans_preserves_SN in H5; sauto.
+  }
+  auto.
+Qed.
+
 (* TODO: Seems like this is overly long.
    I wonder if the induction on K is needed?
  *)
@@ -1041,8 +1075,8 @@ Proof.
   rename H into IHK.
   intros L N H H0.
   assert (SN N).
-   apply SN_push_under_k in H0.
-   eauto using SN_less_substituent.
+  { apply SN_push_under_k in H0.
+    eauto using SN_less_substituent. }
   apply triple_induction_scoped with (K0:=K) (M0:=N) (N0:=L);
     eauto using Krw_norm_from_SN.
   intros K0 N0 L0 ? ? ? IHK0 IHM0 IHL0.
@@ -1085,24 +1119,7 @@ Proof.
       simpl in H2.
       lia. }
     { eauto with Norm. }
-    assert (SN (plug (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)) (Iterate N1 :: K''))).
-     assert (plug (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) K
-                ~>> plug (unshift 0 1 (subst_env 0 (shift 0 1 L0 :: nil) N0)) (Iterate N1 :: K'')).
-      apply beta_reduct_under_K_rw_rt; sauto.
-     apply Rw_trans_preserves_SN in H5; sauto.
-    simpl in H5 |- *.
-
-    replace (unshift 1 1 (subst_env 1 (shift 0 1 (shift 0 1 L0) :: nil)
-                                    (shift 1 1 N1)))
-      with N1.
-    { auto. }
-    rewrite subst_unused_noop.
-    symmetry; apply unshift_shift.
-    pose (shift_freevars_range N1 1).
-    unfold in_env_domain.
-    simpl in a |- *.
-    eapply all_cut; [| apply a]; simpl.
-    intros; lia.
+    eauto using assoc_result_SN.
 Qed.
 
 Lemma Bind_Reducible_core:
