@@ -1028,7 +1028,7 @@ Proof.
     * apply IHRewritesTo_rt2; auto.
 Qed.
 
-Lemma beta_assoc_simpl:
+Lemma beta_assoc_simpl:  (* TODO: Move to Subst? *)
 forall L N,
   unshift 1 1 (subst_env 1 (shift 0 1 (shift 0 1 L) :: nil) (shift 1 1 N))
     = N.
@@ -1053,12 +1053,10 @@ Proof.
   intros.
   simpl.
   rewrite beta_assoc_simpl.
-
-  assert (H5:SN (plug (N0 */ L0) (Iterate N1 :: K''))).
-  { assert (H5:plug (N */ L) K ~>> plug (N0 */ L0) (Iterate N1 :: K'')).
-    { apply beta_reduct_under_K_rw_rt; sauto. }
-    apply Rw_trans_preserves_SN in H5; sauto.
-  }
+  eapply Rw_trans_preserves_SN; eauto.
+  assert (H5:plug (N */ L) K ~>> plug (N0 */ L0) (Iterate N1 :: K'')).
+  { apply beta_reduct_under_K_rw_rt; sauto. }
+  simpl in *.
   auto.
 Qed.
 
