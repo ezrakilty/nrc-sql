@@ -42,13 +42,7 @@ Lemma triple_induction_via_TripleSN_scoped P:
 Proof.
  intros K0 M0 N0 IH SN_K0_M0_N0.
  induction SN_K0_M0_N0.
- apply IH; auto with Continuation.
- intros; apply X; auto.
- intros; apply IH; eauto with Continuation.
- intros; apply X0; auto.
- intros; apply IH; eauto.
- intros; apply X1; auto.
- intros; apply IH; eauto.
+ apply IH; auto with Continuation; eauto using X, X0, X1 with Continuation.
 Qed.
 
 Lemma Triple_SN_intro:
@@ -266,7 +260,7 @@ Proof.
         auto.
 
    * (* Case: M is a TmBind and we assoc with the context. *)
-     destruct s as [L [L' ? [K' [N' Ha Hb]]]].
+     destruct s as [L [L' e [K' [N' Ha Hb]]]].
      inversion e.
      subst.
      rewrite reverse_plug_defn.
@@ -300,7 +294,7 @@ Proof.
   destruct (prefix_breakdown _ _ H1) as [K1 K0eq].
   subst.
   assert (H3: Krw (appendK K1 K') (appendK K1 KZ)).
-  apply Krw_appendK; auto.
+  { apply Krw_appendK; auto. }
   pose (H _ H3).
   apply k.
   apply prefix_appendK.
@@ -327,15 +321,15 @@ Proof.
          auto with Continuation.
       -- auto with Continuation.
     * apply H0; auto.
-      (* seems silly *)
-      assert (Ksize x0 <= Ksize x).
-      apply Krw_rt_conserves_Ksize.
-      eauto with Continuation.
-      intros.
-      apply H.
-      lia.
-      auto.
-      inversion H0'.
-      apply H1.
-      auto.
+      -- (* seems silly *)
+         assert (Ksize x0 <= Ksize x).
+         { apply Krw_rt_conserves_Ksize.
+           eauto with Continuation. }
+         intros.
+         apply H.
+         { lia. }
+         auto.
+      -- inversion H0'.
+         apply H1.
+         auto.
 Qed.

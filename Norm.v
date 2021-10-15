@@ -241,12 +241,7 @@ Lemma SN_embedding2' A f g:
         SN (g M).
 Proof.
  intros.
- apply SN_embedding2 with (f:=f)(Q:=f M)(Q':=g M).
-    intros.
-    auto.
-   auto.
-  auto.
- auto.
+ apply SN_embedding2 with (f:=f)(Q:=f M)(Q':=g M); auto.
 Qed.
 
 Lemma SN_context_Proj : forall b M,

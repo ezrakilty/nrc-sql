@@ -333,11 +333,11 @@ Proof.
  clearbody n.
  revert n K H.
  induction n.
-  auto.
- intros K H.
- destruct K.
-  simpl in H; auto.
- apply H_ind with (n:=n); sauto.
+ - auto.
+ - intros K H.
+   destruct K.
+   * simpl in H; auto.
+   * apply H_ind with (n:=n); sauto.
 Qed.
 
 Lemma Ksize_induction_strong P :
@@ -550,10 +550,10 @@ Lemma Krw_rt_conserves_Ksize:
 Proof.
  intros.
  induction H.
-   subst; sauto.
-  specialize (k TmNull).
-  apply Rw_conserves_Ksize; sauto.
- lia.
+ - subst; sauto.
+ - specialize (k TmNull).
+   apply Rw_conserves_Ksize; auto.
+ - lia.
 Qed.
 
 Lemma rw_rt_preserves_plug_TmNull:
@@ -725,6 +725,7 @@ Proof.
    firstorder.
 Qed.
 
+(* TODO: bit of a mess, eh? *)
 Lemma K_TmNull_relK_rt_inner:
   forall A Z
     (pA : is_K_null A) (pZ: is_K_null Z),
@@ -776,11 +777,9 @@ Lemma K_TmNull_relK_rt:
 Proof.
  intros.
  assert (is_K_null (plug TmNull K)).
-  unfold is_K_null.
-  eauto.
+ { unfold is_K_null. eauto. }
  assert (is_K_null (plug TmNull K')).
-  unfold is_K_null.
-  eauto.
+ { unfold is_K_null. eauto. }
  eapply K_TmNull_relK_rt_inner in H; eauto.
  replace (gimme_K (plug TmNull K) H0) with K in H.
   replace (gimme_K (plug TmNull K') H1) with K' in H.
@@ -848,7 +847,7 @@ Lemma plug_rw_rt:
 Proof.
  intros.
  assert (plug M K ~>> plug M K').
- apply Krw_rt_Rw_rt; auto.
+ { apply Krw_rt_Rw_rt; auto. }
  assert (plug M K' ~>> plug M' K').
  { apply Rw_rt_under_K; auto. }
  eauto.
@@ -886,7 +885,7 @@ Proof.
   intros.
   intro.
   simpl.
-  lapply IHK1; auto.
+  apply IHK1; auto.
 Qed.
 
 Lemma prefix_appendK:
