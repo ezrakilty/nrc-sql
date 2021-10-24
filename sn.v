@@ -522,6 +522,24 @@ Proof.
    * eauto.
 Qed.
 
+Lemma SN_one_fewer_subst:
+  forall (N : Term) (S T : Ty) (Ts : list Ty) (Vs : list Term)
+         (N_tp : Typing (S :: Ts) N T)
+         (Vs_tp: env_typing Vs Ts) (Vs_red: env_Reducible Vs Ts)
+         (H: forall V : Term, Reducible V S -> Reducible (subst_env 0 (V :: Vs) N) T),
+    SN (subst_env 1 Vs N).
+Proof.
+  intros.
+  destruct (Reducible_inhabited S) as [V V_Red].
+  assert (SN (subst_env 0 (V :: Vs) N)).
+  { eauto using Reducible_SN, H. }
+  apply SN_embedding with (f:=subst_env 0 (V :: nil)) (Q:=subst_env 0 (V::Vs) N); auto.
+  - auto using subst_env_compat_rw.
+  - rewrite subst_env_concat with (env := S::Ts); auto.
+    apply env_typing_cons; auto.
+    apply Reducible_welltyped_closed; auto.
+Qed.
+
 (** * Reducibility of specific term types. *)
 
 (** (Lemma 28) *)
@@ -541,13 +559,7 @@ Proof.
 
  (* Typing *)
  (* FIXME: Should be more automatic *)
-  eapply subst_env_preserves_typing.
-  eauto.
-  simpl.
-  apply TAbs.
-  auto.
-  simpl.
-  sauto.
+  eapply subst_env_preserves_typing; eauto.
 
  (* Reducibility *)
  intros P P_tp P_red.
@@ -559,28 +571,13 @@ Proof.
  assert (SN P) by eauto with SN.
  set (N'' := subst_env 1 Vs N).
  assert (SN_N'' : SN N'').
-  assert (forall V, Reducible V S -> SN (subst_env 0 (V::nil) N'')).
-   intros.
-   apply Reducible_SN with T.
-   subst N''.
-   rewrite subst_env_concat with (env:=S::Ts).
-    apply H; auto.
-   simpl.
-   apply Reducible_welltyped_closed in X.
-   apply env_typing_intro; auto.
-  destruct (Reducible_inhabited S) as [V V_Red].
-  pose (X V V_Red).
-  apply SN_embedding with (f := subst_env 0 (V::nil)) (Q := subst_env 0 (V::nil) N'').
-    intros.
-    apply subst_env_compat_rw; auto.
-   auto.
-  auto.
+  eauto using SN_one_fewer_subst.
+
  (* The following strange pattern puts the goal in a form where
     SN_double_induction can apply. It effectively generalizes the
     goal, so that we prove it not just for N'' and P, but for
     "anything downstream of" the respective terms. *)
  double_induction_SN_intro P N''.
- subst N''.
 
  assert (Typing nil P' S) by (eauto with Reducible).
  assert (Reducible P' S) by (eauto with Reducible).
@@ -600,7 +597,7 @@ Proof.
     assert (subst_env 0 (P' :: Vs) N ~>> subst_env 0 (P' :: nil) N''').
      replace (subst_env 0 (P'::Vs) N)
         with (subst_env 0 (P'::nil) (subst_env 1 Vs N)).
-      auto.
+      sauto.
      eapply subst_env_concat; simpl; solve [eauto with Term].
     assert (Reducible (subst_env 0 (P'::Vs) N) T) by auto.
     solve [eauto with Reducible].
