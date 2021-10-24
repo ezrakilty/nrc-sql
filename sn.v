@@ -558,8 +558,7 @@ Proof.
  split.
 
  (* Typing *)
- (* FIXME: Should be more automatic *)
-  eapply subst_env_preserves_typing; eauto.
+ { eapply subst_env_preserves_typing; eauto. }
 
  (* Reducibility *)
  intros P P_tp P_red.
@@ -571,7 +570,7 @@ Proof.
  assert (SN P) by eauto with SN.
  set (N'' := subst_env 1 Vs N).
  assert (SN_N'' : SN N'').
-  eauto using SN_one_fewer_subst.
+ { eauto using SN_one_fewer_subst. }
 
  (* The following strange pattern puts the goal in a form where
     SN_double_induction can apply. It effectively generalizes the
@@ -586,38 +585,42 @@ Proof.
 
  inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | | | | | | |].
 
- (* Case: beta reduction. *)
+ - (* Case: beta reduction. *)
+   (* TODO: Could probably do this with a lemma that 
+      Reducible N''' and P' imply Reducible (N''' */ P'). *)
    subst V M0 N0.
    replace (shift 0 1 P') with P' in M'_eq by (symmetry; eauto with Shift).
    simpl in M'_eq.
    replace (unshift 0 1 (subst_env 0 (P' :: nil) N'''))
       with (subst_env 0 (P' :: nil) N''') in M'_eq.
 
-    rewrite M'_eq.
-    assert (subst_env 0 (P' :: Vs) N ~>> subst_env 0 (P' :: nil) N''').
-     replace (subst_env 0 (P'::Vs) N)
-        with (subst_env 0 (P'::nil) (subst_env 1 Vs N)).
-      sauto.
-     eapply subst_env_concat; simpl; solve [eauto with Term].
+   (* TODO: I believe this can be simplified. Note repreated use of subst_env_concat
+      on same terms. Also too much shift/subst at this level. Extract? *)
+   { rewrite M'_eq.
+     assert (subst_env 0 (P' :: Vs) N ~>> subst_env 0 (P' :: nil) N''').
+      replace (subst_env 0 (P'::Vs) N)
+         with (subst_env 0 (P'::nil) (subst_env 1 Vs N)).
+       { auto. }
+      { eapply subst_env_concat; simpl; solve [eauto with Term]. }
     assert (Reducible (subst_env 0 (P'::Vs) N) T) by auto.
     solve [eauto with Reducible].
+   }
    (* To show that unshift 0 1 has no effect on (subst_env 0 [P'] N'''). *)
    (* First, N, after substitution of P'::Vs, is closed: *)
    assert (Typing nil (subst_env 0 (P'::Vs) N) T).
-    apply subst_env_preserves_typing with (S::Ts); solve [auto with Term].
+   { apply subst_env_preserves_typing with (S::Ts); solve [auto with Term]. }
    (* Next, N''', after substitution of [P'], is closed: *)
    assert (Typing nil (subst_env 0 (P'::nil) N''') T).
-    assert (Typing nil (subst_env 0 (P'::nil) (subst_env 1 Vs N)) T).
+   { assert (Typing nil (subst_env 0 (P'::nil) (subst_env 1 Vs N)) T).
      erewrite subst_env_concat; simpl; solve [eauto with Term].
-     (* Rw_rt_preserves_types is automatic *)
-    eapply Rw_rt_preserves_types; solve [eauto].
+     eauto. }
    symmetry; apply unshift_closed_noop with T; solve [auto].
- (* Case: Reduction in left subterm. *)
-  inversion L_redn.
-  subst n m1 m2 n0.
-  apply IHN''; solve [eauto].
- (* Case: Reduction in right subterm. *)
- apply IHP; solve [eauto].
+ - (* Case: Reduction in left subterm. *)
+   inversion L_redn.
+   subst n m1 m2 n0.
+   apply IHN''; solve [eauto].
+ - (* Case: Reduction in right subterm. *)
+   apply IHP; solve [eauto].
 Qed.
 
 Lemma pair_proj_reducible:
