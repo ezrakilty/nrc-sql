@@ -540,6 +540,44 @@ Proof.
     apply Reducible_welltyped_closed; auto.
 Qed.
 
+Lemma Reducible_beta_1:
+  forall N P S T,
+    Typing (S::nil) N T ->
+    (forall V : Term, Reducible V S -> Reducible (subst_env 0 (V::nil) N) T) ->
+    Reducible P S ->
+    Reducible (N */ P) T.
+Proof.
+  intros.
+  assert (Typing nil P S).
+  auto with Reducible.
+  replace (shift 0 1 P) with P by (symmetry; eauto with Shift).
+  replace (unshift 0 1 (subst_env 0 (P :: nil) N))
+     with (subst_env 0 (P :: nil) N).
+  { solve [eauto with Reducible]. }
+  symmetry. eapply unshift_closed_noop.
+  eapply subst_env_preserves_typing with (env':=(S::nil)); eauto.
+  firstorder.
+Qed.
+
+Lemma Reducible_beta_1_many:
+  forall N P Vs Ts S T,
+    Typing (S::Ts) N T ->
+    env_typing Vs Ts ->
+    (forall V : Term, Reducible V S -> Reducible (subst_env 0 (V :: Vs) N) T) ->
+    Reducible P S ->
+    Reducible (subst_env 1 Vs N */ P) T.
+Proof.
+  intros.
+  apply Reducible_beta_1 with (S0:=S).
+  - eapply subst_env_preserves_typing; eauto.
+  - intros.
+    erewrite subst_env_concat; simpl.
+    * auto.
+    * apply Reducible_welltyped_closed in X1.
+      apply env_typing_cons; eauto.
+  - auto.
+Qed.
+
 (** * Reducibility of specific term types. *)
 
 (** (Lemma 28) *)
@@ -586,35 +624,11 @@ Proof.
  inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | | | | | | | | | | | | | | | |].
 
  - (* Case: beta reduction. *)
-   (* TODO: Could probably do this with a lemma that 
-      Reducible N''' and P' imply Reducible (N''' */ P'). *)
-   subst V M0 N0.
-   replace (shift 0 1 P') with P' in M'_eq by (symmetry; eauto with Shift).
-   simpl in M'_eq.
-   replace (unshift 0 1 (subst_env 0 (P' :: nil) N'''))
-      with (subst_env 0 (P' :: nil) N''') in M'_eq.
-
-   (* TODO: I believe this can be simplified. Note repreated use of subst_env_concat
-      on same terms. Also too much shift/subst at this level. Extract? *)
-   { rewrite M'_eq.
-     assert (subst_env 0 (P' :: Vs) N ~>> subst_env 0 (P' :: nil) N''').
-      replace (subst_env 0 (P'::Vs) N)
-         with (subst_env 0 (P'::nil) (subst_env 1 Vs N)).
-       { auto. }
-      { eapply subst_env_concat; simpl; solve [eauto with Term]. }
-    assert (Reducible (subst_env 0 (P'::Vs) N) T) by auto.
-    solve [eauto with Reducible].
-   }
-   (* To show that unshift 0 1 has no effect on (subst_env 0 [P'] N'''). *)
-   (* First, N, after substitution of P'::Vs, is closed: *)
-   assert (Typing nil (subst_env 0 (P'::Vs) N) T).
-   { apply subst_env_preserves_typing with (S::Ts); solve [auto with Term]. }
-   (* Next, N''', after substitution of [P'], is closed: *)
-   assert (Typing nil (subst_env 0 (P'::nil) N''') T).
-   { assert (Typing nil (subst_env 0 (P'::nil) (subst_env 1 Vs N)) T).
-     erewrite subst_env_concat; simpl; solve [eauto with Term].
-     eauto. }
-   symmetry; apply unshift_closed_noop with T; solve [auto].
+   subst N''.
+   subst.
+   apply Rw_rt_preserves_Reducible with (subst_env 1 Vs N */ P').
+   eapply Reducible_beta_1_many; eauto.
+   apply unshift_substitution_doubly_preserves_rw_rt; auto.
  - (* Case: Reduction in left subterm. *)
    inversion L_redn.
    subst n m1 m2 n0.
