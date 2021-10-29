@@ -331,7 +331,7 @@ Proof.
     exists (TmAbs (shift 0 1 N)).
     split.
     (* The dummy abstraction has the appropriate type. *)
-    solve [auto with Reducible Shift].
+     solve [auto with Reducible Shift].
     (* It is reducible at -> type; it applied to any reducible term gives
        a reducible application. *)
     intros M M_tp M_Red.
@@ -350,7 +350,7 @@ Proof.
     (* beta reduction *)
        (* BUG: should be able to put these all as args to congruence. *)
        pose subst_dummyvar; pose subst_nil; pose unshift_shift.
-       replace (unshift 0 1 (subst_env 0 (shift 0 1 M' :: nil) (shift 0 1 N')))
+       replace (shift 0 1 N' */ M')
          with N' by congruence.
        apply Rw_rt_preserves_Reducible with N; sauto.
     (* Reduction of the function position. *)
@@ -571,8 +571,7 @@ Proof.
   apply Reducible_beta_1 with (S0:=S).
   - eapply subst_env_preserves_typing; eauto.
   - intros.
-    erewrite subst_env_concat; simpl.
-    * auto.
+    erewrite subst_env_concat; simpl; eauto.
     * apply Reducible_welltyped_closed in X1.
       apply env_typing_cons; eauto.
   - auto.
