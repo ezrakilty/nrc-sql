@@ -278,10 +278,10 @@ Proof.
  intros.
  pose (redn := Rw_rt_trans a y z H_a_downto_y (Rw_rt_step _ _ H)).
  destruct (Rw_rt_destruct a z redn).
-  subst redn.
-  simpl in *.
-  intuition.
- auto.
+ - subst redn.
+   simpl in *.
+   intuition.
+ - auto.
 Qed.
 
 (** The rewrite relation preserves the [Typing] judgment. *)
