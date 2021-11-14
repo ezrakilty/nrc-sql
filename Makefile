@@ -24,7 +24,7 @@ Typing.vo: Term.vo
 
 OutsideRange.vo: eztactics.v
 
-Continuation.vo: Term.vo Norm.vo
+Continuation.vo: Term.vo Norm.vo Subst.vo Shift.vo Rewrites.vo
 
 Knorm.vo: Continuation.vo Rewrites.vo Norm.vo Term.vo
 

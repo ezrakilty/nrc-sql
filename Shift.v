@@ -210,27 +210,6 @@ Qed.
 
 #[export] Hint Resolve shift1_preserves_typing : Shift.
 
-(** For a closed list of terms (as indicated when env_typing applies
-to the list), shifting by any amount is a noop. *)
-Lemma env_typing_shift_noop :
-  forall Vs env,
-    env_typing Vs env ->
-    forall n k, map (shift n k) Vs = Vs.
-Proof.
- induction Vs; simpl; intros env H; auto.
- intros n k.
- inversion H as [len tps].
- destruct env; [refute; simpl in *; lia| ].
- unfold foreach2_ty in tps.
- simpl in tps.
- inversion tps.
- f_equal.
- - eauto using shift_closed_noop.
- - rewrite IHVs with env n k; auto.
-Qed.
-
-#[export] Hint Resolve env_typing_shift_noop : Shift.
-
 (** Applying [unshift k _] to a variable _smaller_ than [k] as no effect. *)
 Lemma unshift_var_lo :
   forall x k n,
@@ -670,3 +649,5 @@ Proof.
  - erewrite shift_closed_noop; eauto.
  - eauto.
 Qed.
+
+#[export] Hint Resolve shift_closed_noop_map : Shift.

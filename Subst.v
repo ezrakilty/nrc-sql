@@ -162,10 +162,10 @@ Proof.
    apply TAbs.
    replace (S (length env)) with (length (s::env)) by trivial.
    apply IHM with env'; trivial.
-   erewrite env_typing_shift_noop; eauto.
+   erewrite shift_closed_noop_map; eauto.
  - (* Case TmBind *)
    eapply TBind; eauto using IHM1, IHM2.
-   erewrite env_typing_shift_noop; eauto.
+   erewrite shift_closed_noop_map; eauto.
 Qed.
 
 (* Note: Used only in one place, in sn.v! *)
@@ -387,7 +387,7 @@ Proof.
      (S k + length (map (shift 0 1) Vs)); [|easy].
   apply IHN with env; auto.
   rewrite <- map_app.
-  erewrite env_typing_shift_noop; eauto.
+  erewrite shift_closed_noop_map; eauto.
 
  (* Case TmBind *)
  simpl; f_equal; eauto.
@@ -397,7 +397,7 @@ Proof.
     (S k + length (map (shift 0 1) Vs)); [|easy].
  apply IHN2 with env; auto.
  rewrite <- map_app.
- erewrite env_typing_shift_noop; eauto.
+ erewrite shift_closed_noop_map; eauto.
 Qed.
 
 (** Shifting creates a term with a "dummy" (unused) variable;
@@ -922,6 +922,49 @@ Lemma closing_subst_closes:
 Proof.
  intros.
  apply subst_env_preserves_typing with (env' := ts); simpl; auto.
+Qed.
+
+Lemma beta_assoc_simpl:
+forall L N,
+  unshift 1 1 (subst_env 1 (shift 0 1 (shift 0 1 L) :: nil) (shift 1 1 N))
+    = N.
+Proof.
+  intros.
+  rewrite subst_unused_noop.
+  apply unshift_shift.
+  pose (shift_freevars_range N 1).
+  unfold in_env_domain.
+  simpl in a |- *.
+  eapply all_cut; [| apply a]; simpl.
+  intros; lia.
+Qed.
+
+(** Let's make [N */ L] a notation for the result of a beta-reduction
+    (including all the de Bruijn monkeying). Makes the lemmas a lot easier to read.
+    Precedence is not correct. *)
+    Notation "N */ L" := (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) (at level 99).
+
+Lemma closed_beta_subst:
+  forall P S N T,
+  Typing nil P S ->
+  Typing (S::nil) N T ->
+  (N */ P) = subst_env 0 (P :: nil) N.
+Proof.
+  intros.
+  replace (shift 0 1 P) with P by (symmetry; eauto with Shift).
+  eapply unshift_closed_noop.
+  eapply subst_env_preserves_typing with (env':=(S::nil)); eauto.
+  firstorder.
+Qed.
+
+Lemma subst_dummyvar_beta:
+  forall N M,
+    (shift 0 1 N */ M) = N.
+Proof.
+  intros.
+  (* BUG: should be able to put these all as args to congruence. *)
+  pose subst_dummyvar; pose subst_nil; pose unshift_shift.
+  congruence.
 Qed.
 
 (*End Subst.*)

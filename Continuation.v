@@ -12,6 +12,7 @@ Require Import Coq.Sets.Image.
 Require Import Arith.
 Require Import Lia.
 Require Import Norm.
+Require Import Subst.
 Require Import Rewrites.
 Require Import Shift.
 Require Import Term.

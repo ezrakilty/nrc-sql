@@ -326,8 +326,7 @@ Proof.
   splitN 3.
   (* Exists a reducible term at T1->T2 *)
     destruct IHT2 as [[[N N_Red] Red_T2_tms_SN] IHT2_Red_neutral_withdraw].
-    (* Given any term at T2, we can abstract it with a dummy argument.
-       (shift 0 1) gives us uniqueness of the argument. *)
+    (* Given any term at T2, we can abstract it with a dummy argument. *)
     exists (TmAbs (shift 0 1 N)).
     split.
     (* The dummy abstraction has the appropriate type. *)
@@ -339,6 +338,7 @@ Proof.
     destruct IHT1 as [[_ Red_T1_tms_SN] _].
     assert (SN M) by auto.
     pattern N, M.
+
     (* TODO: The double redseq induction pattern. Abstract out! *)
     double_induction_SN_intro M N.
     (* We'll show that all reducts are reducible. *)
@@ -348,19 +348,16 @@ Proof.
     (* Take cases on the reductions. *)
     inversion red as [ | ? Z ? redn_Z | | | | | | | | | | | | | | | | | | | | | |] ; subst.
     (* beta reduction *)
-       (* BUG: should be able to put these all as args to congruence. *)
-       pose subst_dummyvar; pose subst_nil; pose unshift_shift.
-       replace (shift 0 1 N' */ M')
-         with N' by congruence.
-       apply Rw_rt_preserves_Reducible with N; sauto.
+      rewrite subst_dummyvar_beta.
+      apply Rw_rt_preserves_Reducible with N; sauto.
     (* Reduction of the function position. *)
-      inversion redn_Z.
-      subst Z.
-      destruct (shift_Rw_inversion _ _ _ H2) as [N'' N''_def N'0_rew_N''].
-      subst n'.
-      apply IHN; seauto.
+     inversion redn_Z.
+     subst Z.
+     destruct (shift_Rw_inversion _ _ _ H2) as [N'' N''_def N'0_rew_N''].
+     subst n'.
+     apply IHN; seauto.
     (* Reduction of the argument position. *)
-     apply IHM; seauto.
+    apply IHM; seauto.
 
   (* Reducibile S->T terms are SN. *)
    intros M M_red.
@@ -550,13 +547,7 @@ Proof.
   intros.
   assert (Typing nil P S).
   auto with Reducible.
-  replace (shift 0 1 P) with P by (symmetry; eauto with Shift).
-  replace (unshift 0 1 (subst_env 0 (P :: nil) N))
-     with (subst_env 0 (P :: nil) N).
-  { solve [eauto with Reducible]. }
-  symmetry. eapply unshift_closed_noop.
-  eapply subst_env_preserves_typing with (env':=(S::nil)); eauto.
-  firstorder.
+  erewrite closed_beta_subst; eauto.
 Qed.
 
 Lemma Reducible_beta_1_many:
@@ -568,7 +559,7 @@ Lemma Reducible_beta_1_many:
     Reducible (subst_env 1 Vs N */ P) T.
 Proof.
   intros.
-  apply Reducible_beta_1 with (S0:=S).
+  apply Reducible_beta_1 with (S0 := S).
   - eapply subst_env_preserves_typing; eauto.
   - intros.
     erewrite subst_env_concat; simpl; eauto.
@@ -601,8 +592,7 @@ Proof.
  intros P P_tp P_red.
 
  simpl.
- replace (map (shift 0 1) Vs) with Vs
-   by (symmetry; eauto with Shift).
+ erewrite shift_closed_noop_map; eauto.
 
  assert (SN P) by eauto with SN.
  set (N'' := subst_env 1 Vs N).
@@ -627,7 +617,7 @@ Proof.
    subst.
    apply Rw_rt_preserves_Reducible with (subst_env 1 Vs N */ P').
    eapply Reducible_beta_1_many; eauto.
-   apply unshift_substitution_doubly_preserves_rw_rt; auto.
+   apply beta_substitution_doubly_preserves_rw_rt; auto.
  - (* Case: Reduction in left subterm. *)
    inversion L_redn.
    subst n m1 m2 n0.
@@ -754,7 +744,7 @@ Proof.
  intros.
  apply SN_embedding with (f := fun x => x */ L) (Q := N */ L); auto.
  intros.
- apply unshift_substitution_preserves_rw; sauto.
+ apply beta_substitution_preserves_rw; sauto.
 Qed.
 
 Lemma beta_reduct_under_K_rw_rt:
@@ -766,7 +756,7 @@ Lemma beta_reduct_under_K_rw_rt:
 Proof.
  intros.
  assert ((N */ L) ~>> (N0 */ L0)).
- apply unshift_substitution_doubly_preserves_rw_rt; auto.
+ apply beta_substitution_doubly_preserves_rw_rt; auto.
  apply plug_rw_rt; auto.
 Qed.
 
@@ -1013,21 +1003,6 @@ Proof.
     eauto.
 Qed.
 
-Lemma beta_assoc_simpl:  (* TODO: Move to Subst? *)
-forall L N,
-  unshift 1 1 (subst_env 1 (shift 0 1 (shift 0 1 L) :: nil) (shift 1 1 N))
-    = N.
-Proof.
-  intros.
-  rewrite subst_unused_noop.
-  apply unshift_shift.
-  pose (shift_freevars_range N 1).
-  unfold in_env_domain.
-  simpl in a |- *.
-  eapply all_cut; [| apply a]; simpl.
-  intros; lia.
-Qed.
-
 Lemma assoc_result_SN:
   forall (K : Continuation) (L N : Term) (N0 L0 : Term) (K'' : Continuation) (N1 : Term),
     SN (plug (N */ L) K) ->
@@ -1074,7 +1049,7 @@ Proof.
        assert (SN (plug (N */ L) K0)).
        apply Krw_rt_preserves_SN with K; auto.
        apply plug_SN_rw_rt with (N */ L); auto.
-       apply unshift_substitution_doubly_preserves_rw_rt; auto.
+       apply beta_substitution_doubly_preserves_rw_rt; auto.
     -- (* subject reduces *) inversion H8; sauto.
     -- (* body reduces *) seauto.
   * (* Inside continuation. *)
@@ -1305,7 +1280,7 @@ Proof.
 
  (* Case TmAbs *)
  * (* TODO: Should be a simpler way to autorewrite this *)
-   replace (map (shift 0 1) Vs) with Vs by (symmetry; eauto with Shift).
+   erewrite shift_closed_noop_map; eauto.
    replace (TmAbs (subst_env 1 Vs M)) with (subst_env 0 Vs (TmAbs M)).
    (* proof of reducibility of the lambda. *)
    - apply lambda_reducibility with tyEnv; auto.
@@ -1316,7 +1291,7 @@ Proof.
 
    (* Obligation: TmAbs (subst_env 1 Vs m) = subst_env 0 Vs (TmAbs m). *)
    - simpl.
-     erewrite env_typing_shift_noop; eauto.
+     erewrite shift_closed_noop_map; eauto.
 
  (* Case TmApp *)
  * subst.
@@ -1353,7 +1328,7 @@ Proof.
    apply Bind_Reducible with s.
    (* Typing *)
    - eapply subst_env_preserves_typing with (env' := tyEnv); auto.
-     rewrite env_typing_shift_noop with (env := tyEnv); auto.
+     erewrite shift_closed_noop_map; eauto.
    (* Precondition: that M1 is Reducible. *)
    - eapply IHM1; eauto.
 
@@ -1370,7 +1345,7 @@ Proof.
      rewrite subst_env_concat with (env := s :: tyEnv).
      (* TO DO: The env_typing oblig. of subst_env_concat seems unnecessary. *)
      ** unfold app.
-        erewrite unshift_closed_noop (* with (T:=TyList t) *); eauto.
+        erewrite unshift_closed_noop; eauto.
         eapply IHM2; eauto with Term.
         simpl.
         auto.
@@ -1380,6 +1355,7 @@ Proof.
    { eauto. }
    intros.
    destruct (Reducible_inhabited t).
+   Search SN plug.
    eapply SN_K_TmTable; eauto.
 Qed.
 
@@ -1390,7 +1366,6 @@ Lemma normalization :
     SN M.
 Proof.
  intros M T tp.
-
  assert (Reducible M T).
   replace M with (subst_env 0 nil M)
    by (eapply subst_env_closed_noop; eauto).

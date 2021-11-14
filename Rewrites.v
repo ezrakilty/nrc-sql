@@ -15,11 +15,6 @@ Require Import Shift.
 Require Import Subst.
 Require Import Term.
 
-(** Let's make [N */ L] a notation for the result of a beta-reduction
-    (including all the de Bruijn monkeying). Makes the lemmas a lot easier to read.
-    Precedence is not correct. *)
-Notation "N */ L" := (unshift 0 1 (subst_env 0 (shift 0 1 L :: nil) N)) (at level 99).
-
 Lemma beta_reduct_typing_general_var:
   forall S env' x T M env k,
    k = length env ->
@@ -937,7 +932,7 @@ Qed.
 
 (** * Rewrites Inside Structures That Look Like A Beta-Reduct. *)
 
-Lemma unshift_substitution_preserves_rw:
+Lemma beta_substitution_preserves_rw:
   forall M M' L,
     (M ~> M') ->
     M */ L ~> M' */ L.
@@ -948,7 +943,7 @@ Proof.
  auto.
 Qed.
 
-Lemma unshift_substitution_doubly_preserves_rw_rt:
+Lemma beta_substitution_doubly_preserves_rw_rt:
   forall M M' L L' : Term,
   (L ~>> L') ->
   (M ~>> M') ->
