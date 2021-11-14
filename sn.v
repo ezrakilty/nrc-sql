@@ -804,7 +804,7 @@ Proof.
   intros.
   intro.
   assert (deepest_K (plug (TmTable t) K) = deepest_K (plug TmNull K')).
-  {f_equal. auto. }
+  { f_equal. auto. }
   rewrite deepest_K_TmNull in H0.
   rewrite deepest_K_TmTable in H0.
   discriminate.
@@ -937,8 +937,8 @@ Lemma Rw_rt1_intermediate_TmTable_subject':
   forall t Z m,
     (RewritesTo_rt_right_linear m Z) -> {K' & Z = plug (TmTable t) K'} ->
     forall A,
-    (A ~> m) -> {K & A = plug (TmTable t) K} ->
-    {K'' & m = plug (TmTable t) K''}.
+      (A ~> m) -> {K & A = plug (TmTable t) K} ->
+      {K'' & m = plug (TmTable t) K''}.
 Proof.
   intros t Z m H.
   induction H; intros; subst.
@@ -1010,10 +1010,7 @@ Proof.
   - assert (H1 : {K'' & m = plug (TmTable t) K''}).
     { eauto using Rw_rt_intermediate_TmTable_subject. }
     destruct H1.
-
-    eapply Rw_rt_trans.
-    * apply IHRewritesTo_rt1; eauto.
-    * apply IHRewritesTo_rt2; auto.
+    eauto.
 Qed.
 
 Lemma beta_assoc_simpl:  (* TODO: Move to Subst? *)
@@ -1201,7 +1198,6 @@ Proof.
     apply plug_TmNull_unique; auto.
 Qed.
 
-
 (* TODO: Ugly. Unify all the SN_embedding lemmas--or name them well. *)
 Lemma SN_embedding2'' A f g:
     forall M : A,
@@ -1241,21 +1237,18 @@ Proof.
     intuition.
   - right.
     subst Z.
-    apply SN_K_M_SN_K_Null with (TmTable t).
     assert (Ksize K'' < Ksize K).
     { assert (Ksize K' <= Ksize K).
       { apply Rw_rt_conserves_Ksize.
-        trivial.
         eauto using Rw_rt_over_TmTable_generalizes. }
       assert (Ksize K' > Ksize K'').
       { subst K'.
         rewrite Ksize_appendK; simpl.
         lia. }
       lia. }
-    apply H with TmNull; auto.
     apply Rw_trans_preserves_SN with (plug x K); auto.
     assert (plug x K' ~> plug TmNull K'').
-    apply Rw_curtailment_generalizes with t; auto.
+    { apply Rw_curtailment_generalizes with t; auto. }
     assert (plug x K ~>> plug x K').
     { eauto using Rw_rt_over_TmTable_generalizes. }
     eauto.
