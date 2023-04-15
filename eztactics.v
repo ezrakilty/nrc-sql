@@ -143,14 +143,15 @@ Tactic Notation "solve_by_inversion_step" tactic(t) :=
   end
   || fail "because the goal is not solvable by inversion.".
 
-Tactic Notation "solve" "by" "inversion" "1" :=
-  solve_by_inversion_step idtac.
-Tactic Notation "solve" "by" "inversion" "2" :=
-  solve_by_inversion_step (solve by inversion 1).
-Tactic Notation "solve" "by" "inversion" "3" :=
-  solve_by_inversion_step (solve by inversion 2).
-Tactic Notation "solve" "by" "inversion" :=
-  solve by inversion 1.
+Ltac solve_by_inversion depth :=
+match depth with
+| O => idtac
+| (S ?n) => solve_by_inversion_step (solve_by_inversion n)
+end.
+
+Tactic Notation "solve" "by" "inversion" constr(depth) :=
+  idtac depth;
+  solve_by_inversion depth.
 
 (** Finds a decidable comparison and takes cases on the decision *)
 Ltac break :=
@@ -189,6 +190,5 @@ Ltac double_case := (* Another form of if_irrelevant! *)
 Ltac splitN n :=
   match n with
     | 2 => split
-    | 3 => split; [splitN 2 | ]
-    | S n => split; [splitN n | ]
+    | S ?m => split; [splitN m | ]
   end.

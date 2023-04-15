@@ -559,7 +559,7 @@ Lemma Reducible_beta_1_many:
     Reducible (subst_env 1 Vs N */ P) T.
 Proof.
   intros.
-  apply Reducible_beta_1 with (S0 := S).
+  apply Reducible_beta_1 with (S := S).
   - eapply subst_env_preserves_typing; eauto.
   - intros.
     erewrite subst_env_concat; simpl; eauto.

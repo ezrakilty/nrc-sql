@@ -40,7 +40,7 @@ Lemma SN_Var : forall x, SN (TmVar x).
  intros.
  apply reducts_SN.
  intros.
- solve by inversion.
+ solve by inversion 1.
 Qed.
 
 (*
