@@ -23,16 +23,16 @@ Fixpoint shift k n tm {struct tm} :=
   match tm with
 | TmConst => TmConst
 | TmVar x => TmVar (shift_var k n x)
-| TmPair L M => TmPair (shift k n L) (shift k n M)
-| TmProj b M => TmProj b (shift k n M)
+(* | TmPair L M => TmPair (shift k n L) (shift k n M) *)
+(* | TmProj b M => TmProj b (shift k n M) *)
 | TmAbs N' => TmAbs (shift (S k) n N')
 | TmApp L M => TmApp (shift k n L) (shift k n M)
-| TmNull => TmNull
+(* | TmNull => TmNull *)
 | TmSingle x => TmSingle (shift k n x)
-| TmUnion L R => TmUnion (shift k n L) (shift k n R)
+(* | TmUnion L R => TmUnion (shift k n L) (shift k n R) *)
 | TmBind M N => TmBind (shift k n M) (shift (S k) n N)
-| TmIf b M N => TmIf (shift k n b) (shift k n M) (shift k n N)
-| TmTable ty => TmTable ty
+(* | TmIf b M N => TmIf (shift k n b) (shift k n M) (shift k n N) *)
+(* | TmTable ty => TmTable ty *)
   end.
 
 Definition unshift_var k n :=
@@ -42,16 +42,16 @@ Fixpoint unshift k n tm {struct tm} :=
   match tm with
 | TmConst => TmConst
 | TmVar x => TmVar (unshift_var k n x)
-| TmPair L M => TmPair (unshift k n L) (unshift k n M)
-| TmProj b m => TmProj b (unshift k n m)
+(* | TmPair L M => TmPair (unshift k n L) (unshift k n M) *)
+(* | TmProj b m => TmProj b (unshift k n m) *)
 | TmAbs N => TmAbs (unshift (S k) n N)
 | TmApp L M =>TmApp (unshift k n L) (unshift k n M)
-| TmNull => TmNull
+(* | TmNull => TmNull *)
 | TmSingle x => TmSingle (unshift k n x)
-| TmUnion l r => TmUnion (unshift k n l) (unshift k n r)
+(* | TmUnion l r => TmUnion (unshift k n l) (unshift k n r) *)
 | TmBind M N => TmBind (unshift k n M) (unshift (S k) n N)
-| TmIf b M N => TmIf (unshift k n b) (unshift k n M) (unshift k n N)
-| TmTable ty => TmTable ty
+(* | TmIf b M N => TmIf (unshift k n b) (unshift k n M) (unshift k n N) *)
+(* | TmTable ty => TmTable ty *)
 end.
 
 #[local] Hint Transparent unshift_var shift_var : Shift.
@@ -168,11 +168,11 @@ Proof.
            subst x0 ty env n k.
            apply TVar.
            apply shift_var_nth_error; auto.
- (* TmPair *)
+ (* (* TmPair *)
           apply TPair; eauto.
  (* TmProj *)
          eapply TProj1; eauto.
-        eapply TProj2; eauto.
+        eapply TProj2; eauto. *)
  (* TmAbs *)
        subst n0 T env k.
        apply TAbs.
@@ -182,8 +182,8 @@ Proof.
  (* TmApp *)
        eauto.
       auto.
-    apply TSingle; eauto.
-   apply TUnion; eauto.
+    (* apply TSingle; eauto.
+   apply TUnion; eauto. *)
  (* TmBind *)
   eapply TBind.
    eapply IHM1; seauto.
@@ -193,9 +193,9 @@ Proof.
   eapply IHM2 with (s::env1 ++ env2); auto.
   simpl.
   sauto.
-
- (* TmTable *)
- auto.
+  (* Case TmSingle *)
+ apply TSingle.
+ eapply IHM; eauto.
 Qed.
 
 (** Shifting a term by just one preserves typing. *)
@@ -400,12 +400,12 @@ Proof.
  (* Case TmVar *)
          f_equal.
          apply shift_var_unshift_var_commute1; auto.
-
+(* 
  (* Case TmPair *)
         rewrite IHM1, IHM2; auto with Listkit.
 
  (* Case TmProj *)
-       f_equal; seauto.
+       f_equal; seauto. *)
 
  (* Case TmAbs *)
       rewrite IHM; [auto | | lia].
@@ -414,15 +414,12 @@ Proof.
 
  (* Case TmApp *)
      rewrite IHM1, IHM2; auto with Listkit.
-
+(* 
  (* Case TmNull *)
     sauto.
 
- (* Case TmSingle *)
-   rewrite IHM; solve [auto].
-
  (* Case TmUnion *)
-  rewrite IHM1, IHM2; auto with Listkit.
+  rewrite IHM1, IHM2; auto with Listkit. *)
 
  (* Case TmBind *)
  rewrite IHM1; auto with Listkit.
@@ -431,7 +428,7 @@ Proof.
  rename k'_not_free into S_k'_in_fvs_M2.
  apply set_union_intro2.
  apply remove_0_pred_preserves_nonzero_membership; easy.
-
+(* 
  (* Case TmIf *)
  (* NB: Listkit doesn't know what to do with a three-way union, so we have to hold its hand. *)
  apply not_in_union_elim in k'_not_free.
@@ -439,7 +436,10 @@ Proof.
  rewrite IHM1, IHM2, IHM3; auto with Listkit.
 
  (* Case TmTable *)
- sauto.
+ sauto. *)
+
+ (* Case TmSingle *)
+ rewrite IHM; solve [auto].
 Qed.
 
 Lemma shift_up_remove_0_pred:
@@ -479,14 +479,14 @@ Proof.
 
  (* Case TmVar *)
           solve [auto with Listkit].
-
+(* 
  (* Case TmPair *)
         rewrite IHM1, IHM2.
         rewrite map_union.
         solve [auto with Listkit].
 
  (* Case TmProj *)
-       solve [eauto with Listkit].
+       solve [eauto with Listkit]. *)
 
  (* Case TmAbs *)
       rewrite IHM.
@@ -496,41 +496,31 @@ Proof.
      rewrite IHM1, IHM2.
      rewrite map_union.
      solve [auto with Listkit].
-
+(* 
  (* Case TmNull *)
     solve [trivial with Listkit].
-
- (* Case TmSingle *)
-   solve [auto with Listkit].
 
  (* Case TmUnion *)
   rewrite IHM1, IHM2.
   rewrite map_union.
-  solve [trivial with Listkit].
+  solve [trivial with Listkit]. *)
 
  (* Case TmBind *)
  rewrite IHM1, IHM2.
  rewrite map_union.
  auto using shift_up_remove_0_pred with Listkit.
-
+(* 
  (* Case TmIf *)
  rewrite IHM1, IHM2, IHM3.
  rewrite map_union.
  rewrite map_union.
- solve [trivial with Listkit].
+ solve [trivial with Listkit].*)
 
- (* Case TmTable *)
- solve [auto with Listkit].
-Qed.
+ (* Case TmSingle *)
+   solve [auto with Listkit].
 
-Lemma pred_shift :
-  forall x,
-      pred (shift_var 0 1 x) = x.
-Proof.
- intros.
- unfold shift_var.
- simpl.
- lia.
+(* (* Case TmTable *)
+ solve [auto with Listkit]. *)
 Qed.
 
 Lemma pred_freevars_shift :

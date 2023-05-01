@@ -103,16 +103,16 @@ Qed.
 Lemma SN_K_M_SN_K_Null:
   forall K M,
     SN (plug M K) ->
-    SN (plug TmNull K).
+    SN (plug (TmVar 0) K).
 Proof.
  induction K using Ksize_induction_strong.
  rename H into IHK.
  intros M H0.
  apply SN_embedding2 with
      (f := fun k => plug M k)
-     (g := fun k => plug TmNull k)
+     (g := fun k => plug (TmVar 0) k)
      (Q := plug M K)
-     (Q' := plug TmNull K); try auto.
+     (Q' := plug (TmVar 0) K); try auto.
  intros K0 Z H2 H3.
 
  clone H3 as H3'.
@@ -157,7 +157,7 @@ Proof.
   apply rw; auto.
   eapply trans; eauto.
 Qed.
-
+(* 
 (** (Lemma 30) *)
 Lemma SN_K_Union:
   forall K,
@@ -281,7 +281,7 @@ Proof.
         apply Rw_trans_preserves_SN with (plug N K).
         { auto. }
         { apply Rw_rt_under_K; auto. }
-Qed.
+Qed. *)
 
 Lemma prefix_Krw_norm:
   forall K' K,
@@ -303,7 +303,7 @@ Qed.
 
 Lemma Krw_norm_SN:
   forall K,
-    Krw_norm K -> SN (plug TmNull K).
+    Krw_norm K -> SN (plug (TmVar 0) K).
 Proof.
   induction K using Ksize_induction_strong.
   - intros.

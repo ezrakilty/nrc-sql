@@ -11,7 +11,6 @@ Require Import List.
 Add LoadPath "Listkit" as Listkit.
 
 Require Import Listkit.AllType.
-Require Import Listkit.AllType.
 Require Import Listkit.Foreach.
 Require Import Listkit.Map.
 Require Import Listkit.NthError.
@@ -44,16 +43,16 @@ Fixpoint subst_env k vs tm {struct tm} :=
       | Some v => v
       end
     else tm
-  | TmPair l m => TmPair (subst_env k vs l) (subst_env k vs m)
-  | TmProj b m => TmProj b (subst_env k vs m)
+  (* | TmPair l m => TmPair (subst_env k vs l) (subst_env k vs m) *)
+  (* | TmProj b m => TmProj b (subst_env k vs m) *)
   | TmApp l m => TmApp (subst_env k vs l) (subst_env k vs m)
   | TmAbs n => TmAbs (subst_env (S k) (map (shift 0 1) vs) n)
-  | TmNull => TmNull
+  (* | TmNull => TmNull *)
   | TmSingle m => TmSingle (subst_env k vs m)
-  | TmUnion m n => TmUnion (subst_env k vs m) (subst_env k vs n)
+  (* | TmUnion m n => TmUnion (subst_env k vs m) (subst_env k vs n) *)
   | TmBind m K => TmBind (subst_env k vs m) (subst_env (S k) (map (shift 0 1) vs) K)
-  | TmIf b m n => TmIf (subst_env k vs b) (subst_env k vs m) (subst_env k vs n)
-  | TmTable ty => tm
+  (* | TmIf b m n => TmIf (subst_env k vs b) (subst_env k vs m) (subst_env k vs n) *)
+  (* | TmTable ty => tm *)
   end.
 
 Ltac break_ne :=
@@ -98,7 +97,7 @@ Proof.
  eapply IHN; efinish.
  (* Case TmBind *)
  eapply IHN2 with (T:=TyList t).
-  apply H3.
+ apply X0.
  simpl; lia.
 Qed.
 
@@ -536,12 +535,12 @@ Proof.
   right; lia.
  apply set_remove_intro.
  intuition.
-
+(* 
  (* Case TmIf *)
  apply all_Type_union_rev in a0 as [a0 a1].
  rewrite (IHM2 _ _ _ _); auto.
  apply all_Type_union_rev in a0 as [a0 a1].
- rewrite (IHM3 _ _ _ _); auto.
+ rewrite (IHM3 _ _ _ _); auto. *)
 Qed.
 
 Import Setoid.
@@ -642,18 +641,18 @@ Proof.
            rewrite nth_error_map.
            rewrite <- H0.
            sauto...
-
+(* 
  (* Case TmPair *)
           simpl.
           rewrite IHM1 by auto.
           rewrite IHM2 by auto.
           rewrite set_filter_union.
           solve_set_union_inclusion. (* TODO: Make this opaque-ify anything that doesn't contain
-                                           set_union *)
-
+                                           set_union *) *)
+(* 
  (* Case TmProj *)
          simpl.
-         apply IHM; auto.
+         apply IHM; auto. *)
 
  (* Case TmAbs *)
         simpl.
@@ -667,22 +666,23 @@ Proof.
        rewrite IHM2 by auto.
        setoid_rewrite set_filter_union.
        solve_set_union_inclusion.
-
+(* 
  (* Case TmNull*)
       simpl.
-      solve [auto with Listkit].
-
+      solve [auto with Listkit]. *)
+(* 
  (* Case TmSingle*)
      simpl.
      rewrite IHM.
      solve [auto with Listkit].
-
+ *)
+(*  
  (* Case TmUnion*)
     simpl.
     rewrite IHM1 by auto.
     rewrite IHM2 by auto.
     rewrite set_filter_union.
-    solve_set_union_inclusion.
+    solve_set_union_inclusion. *)
 
  (* Case TmBind *)
    simpl.
@@ -704,7 +704,7 @@ Proof.
    rewrite IHM2.
    simpl.
    apply subst_freevars_binder.
-
+(* 
  (* Case TmIf *)
   simpl.
   rewrite IHM1, IHM2, IHM3 by auto.
@@ -714,7 +714,10 @@ Proof.
 
  (* Case TmTable *)
  simpl.
- solve [auto with Listkit].
+ solve [auto with Listkit]. *)
+ (* TmSingle*)
+ simpl.
+ auto.
 Qed.
 
 Lemma subst_unused_noop_binder:
@@ -766,11 +769,12 @@ Proof.
   apply subst_unused_noop_binder; auto.
  (* Case TmBind *)
  apply subst_unused_noop_binder; auto.
-
+(* 
  (* Case TmIf *)
  apply all_union in H0; destruct H0.
  auto.
  apply all_union in H0; destruct H0.
+ auto. *)
  auto.
 Qed.
 

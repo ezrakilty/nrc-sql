@@ -140,37 +140,37 @@ Inductive RewritesTo : Term -> Term -> Type :=
 | Rw_Abs_body : forall n n',
     RewritesTo n n' ->
     RewritesTo (TmAbs n) (TmAbs n')
-| Rw_Pair_left : forall m1 m2 n,
+(* | Rw_Pair_left : forall m1 m2 n,
     RewritesTo m1 m2 ->
-    RewritesTo (TmPair m1 n) (TmPair m2 n)
-| Rw_Pair_right : forall m n1 n2,
+    RewritesTo (TmPair m1 n) (TmPair m2 n) *)
+(* | Rw_Pair_right : forall m n1 n2,
     RewritesTo n1 n2 ->
-    RewritesTo (TmPair m n1) (TmPair m n2)
-| Rw_Proj : forall m1 m2 b,
+    RewritesTo (TmPair m n1) (TmPair m n2) *)
+(* | Rw_Proj : forall m1 m2 b,
     RewritesTo m1 m2 ->
-    RewritesTo (TmProj b m1) (TmProj b m2)
-| Rw_Proj_beta1 : forall m n,
-    RewritesTo (TmProj false (TmPair m n)) m
-| Rw_Proj_beta2 : forall m n,
-    RewritesTo (TmProj true (TmPair m n)) n
-| Rw_Union_left : forall M N M',
+    RewritesTo (TmProj b m1) (TmProj b m2) *)
+(* | Rw_Proj_beta1 : forall m n,
+    RewritesTo (TmProj false (TmPair m n)) m *)
+(* | Rw_Proj_beta2 : forall m n,
+    RewritesTo (TmProj true (TmPair m n)) n *)
+(* | Rw_Union_left : forall M N M',
     RewritesTo M M' ->
-    RewritesTo (TmUnion M N) (TmUnion M' N)
-| Rw_Union_right : forall M N N',
+    RewritesTo (TmUnion M N) (TmUnion M' N) *)
+(* | Rw_Union_right : forall M N N',
     RewritesTo N N' ->
-    RewritesTo (TmUnion M N) (TmUnion M N')
-| Rw_Bind_null : forall n,
-    RewritesTo (TmBind TmNull n) TmNull
-| Rw_Bind_null_body : forall m,
-    RewritesTo (TmBind m TmNull) TmNull
+    RewritesTo (TmUnion M N) (TmUnion M N') *)
+(* | Rw_Bind_null : forall n,
+    RewritesTo (TmBind TmNull n) TmNull *)
+(* | Rw_Bind_null_body : forall m,
+    RewritesTo (TmBind m TmNull) TmNull *)
 | Rw_Bind_beta : forall n x V,
     V = (n */ x) -> RewritesTo (TmBind (TmSingle x) n) V
-| Rw_Bind_union : forall n xs ys,
-    RewritesTo (TmBind (TmUnion xs ys) n) (TmUnion (TmBind xs n) (TmBind ys n))
+(* | Rw_Bind_union : forall n xs ys,
+    RewritesTo (TmBind (TmUnion xs ys) n) (TmUnion (TmBind xs n) (TmBind ys n)) *)
 (* TODO: The Union-Body rule does not yet work. More sophisticated Continuation representations are needed to handle it. See the git branch union-body for the first attempt. *)
 (* | Rw_Bind_union_body : forall m xs ys, *)
 (*     RewritesTo (TmBind m (TmUnion xs ys)) (TmUnion (TmBind m xs) (TmBind m ys)) *)
-| Rw_Bind_sesubject : forall m n m',
+| Rw_Bind_subject : forall m n m',
     RewritesTo m m' -> RewritesTo (TmBind m n) (TmBind m' n)
 | Rw_Bind_assoc : forall l m n,
     RewritesTo (TmBind (TmBind l m) n) (TmBind l (TmBind m (shift 1 1 n)))
@@ -178,7 +178,7 @@ Inductive RewritesTo : Term -> Term -> Type :=
                    RewritesTo n n' -> RewritesTo (TmBind m n) (TmBind m n')
 | Rw_Single : forall m m',
                 RewritesTo m m' -> RewritesTo (TmSingle m) (TmSingle m')
-| Rw_If_cond: forall b1 b2 m n,
+(* | Rw_If_cond: forall b1 b2 m n,
     RewritesTo b1 b2 -> RewritesTo (TmIf b1 m n) (TmIf b2 m n)
 | Rw_If_left: forall b m1 m2 n,
     RewritesTo m1 m2 -> RewritesTo (TmIf b m1 n) (TmIf b m2 n)
@@ -429,30 +429,32 @@ Lemma subst_env_compat_rw:
       (subst_env n env M ~> subst_env n env M').
 Proof.
  intros M M' H.
- induction H as [ | M1 M2 N
-                  | M N1 N2
-                  | N N'
+ induction H as [
                   | M1 M2 N
                   | M N1 N2
-                  | M1 M2 b
+                  | N N'
+                  (* | M1 M2 N *)
+                  (* | M N1 N2 *)
+                  (* | M1 M2 b *)
+                  (* | M N *)
+                  (* | M N *)
+                  (* | *)
+                  (* | *)
+                  (* | N *)
+                  (* | M *)
                   | M N
-                  | M N
-                  |
-                  |
-                  | N
-                  | M
-                  | M N
-                  | M N
+                  (* | M N *)
                   (* | *)
                   | M N
                   | L M N
                   | M N
                   | M
-                  | b1 b2 M N
-                  | b M1 M2 N
-                  | b M N1 N2
-                  | b M N
-                  | b M N
+                  (* | b1 b2 M N *)
+                  (* | b M1 M2 N *)
+                  (* | b M N1 N2 *)
+                  (* | b M N *)
+                  (* | b M N *)
+                  | 
                 ];
    intros n env; simpl; eauto.
 
@@ -478,10 +480,10 @@ Proof.
    rewrite shift_shift' by lia.
    simpl.
    auto.
- - (* Case: TmBind/TmIf commutation. *)
+ (* - (* Case: TmBind/TmIf commutation. *)
    replace (S n) with (n + 1) by lia.
    rewrite <- shift_subst_commute_lo by lia.
-   auto.
+   auto. *)
 Qed.
 
 Lemma TmSingle_shift_inversion:
@@ -533,29 +535,30 @@ Lemma shift_Rw_inversion:
 Proof.
 (* TODO: The cases are now mostly very similar. Must be some way to automate. *)
  induction N; simpl; intros M k red; inversion red.
+(* 
  - (* Case TmPair; reduction in left *)
    edestruct (IHN1 _ _ H2); subst.
-   eexists; eauto; simpl; auto.
-
+   eexists; eauto; simpl; auto. *)
+(* 
  - (* Case TmPair; reduction in right *)
    edestruct (IHN2 _ _ H2); subst.
-   eexists; eauto; simpl; auto.
-
+   eexists; eauto; simpl; auto. *)
+(* 
  - (* Case TmProj; reduction in body *)
    edestruct (IHN _ _ H2); subst.
-   eexists; eauto; simpl; eauto.
-
+   eexists; eauto; simpl; eauto. *)
+(* 
  - (* Case TmProj (left) on TmPair *)
    subst.
    descrim N (* must be pair *).
    simpl in red.
-   eexists; inversion H1; auto.
-
+   eexists; inversion H1; auto. *)
+(* 
  - (* Case TmProj (right) on TmPair *)
    subst.
    descrim N.
    simpl in red.
-   eexists; inversion H1; auto.
+   eexists; inversion H1; auto. *)
 
  - (* Case TmAbs; reduction in body *)
    edestruct (IHN _ _ H0); subst.
@@ -576,27 +579,24 @@ Proof.
  - (* Case: reduction in right part of application. *)
    edestruct (IHN2 _ _ H2); subst.
    eexists; eauto; simpl; eauto.
-
- - (* Case TmSingle *)
-   edestruct (IHN _ _ H0); subst.
-   eexists; eauto; simpl; eauto.
-
+(* 
  - (* Case: TmUnion, reduction in left *)
    destruct (IHN1 _ _ H2); subst.
-   eexists; eauto; simpl; auto.
-
+   eexists; eauto; simpl; auto. *)
+(* 
  - (* Case: TmUnion, reduction in right *)
    destruct (IHN2 _ _ H2); subst.
    eexists; eauto; simpl; auto.
-
+ *)
+(*  
  - (* Case: Null for Bind *)
    descrim N1.
-   eexists; eauto.
-
+   eexists; eauto. *)
+(* 
  - (* Case: Null for Bind in the body *)
    descrim N2.
    eexists; eauto.
-   auto.
+   auto. *)
 
  - (* Case: Beta for Bind *)
    destruct (TmSingle_shift_inversion x _ _ H); subst.
@@ -604,13 +604,13 @@ Proof.
    simpl in H.
    inversion H; subst.
    apply commute_shift_beta_reduct.
-
+(* 
  - (* Case: Bind/Union *)
    subst.
    descrim N1.
    inversion H0; subst.
    simpl in red.
-   eexists; eauto; simpl; auto.
+   eexists; eauto; simpl; auto. *)
 
  - (* Case: reduction in subject of TmBind. *)
    destruct (IHN1 _ _ H2); subst.
@@ -628,43 +628,19 @@ Proof.
  - (* Case: reduction in body of TmBind. *)
    destruct (IHN2 _ _ H2); subst.
    eexists; eauto; simpl; auto.
+   
+   - (* reduction inside TmSingle. *)
+     subst.
+     apply IHN in H0.
+     firstorder.
+     eexists; eauto.
+     simpl.
+     subst.
+     auto.
 
- - destruct (IHN1 _ _ H3); subst.
-   exists (TmIf x N2 N3); auto.
- - destruct (IHN2 _ _ H3); subst.
-   exists (TmIf N1 x N3); auto.
- - destruct (IHN3 _ _ H3); subst.
-   exists (TmIf N1 N2 x); auto.
- - exists (TmUnion (TmIf N1 N2 TmNull) (TmIf N1 N3 TmNull)).
-   simpl. auto.
-   auto.
- - descrim N2.
-   simpl in H1.
-   inversion H1.
-   exists (TmBind N2_1 (TmIf (shift 0 1 N1) N2_2 TmNull)).
-   simpl.
-   rewrite shift_shift_commute.
-   auto.
-   lia.
-   descrim N3.
-   auto.
 Qed.
 
 (** * Compatibility of rewriting with each of the term forms. *)
-
-Lemma Rw_rt_Pair_left:
-  forall m1 m2 n : Term, (m1 ~>> m2) -> (〈 m1, n 〉) ~>> (〈 m2, n 〉).
-Proof.
- intros.
- induction H; subst; eauto.
-Qed.
-
-Lemma Rw_rt_Pair_right:
-  forall m n1 n2 : Term, (n1 ~>> n2) -> (〈 m, n1 〉) ~>> (〈 m, n2 〉).
-Proof.
- intros.
- induction H; subst; eauto.
-Qed.
 
 Lemma Rw_rt_App_left:
   forall m1 m2 n : Term, (m1 ~>> m2) -> (m1@n) ~>> (m2@n).
@@ -675,13 +651,6 @@ Qed.
 
 Lemma Rw_rt_App_right:
   forall m n1 n2 : Term, (n1 ~>> n2) -> (m@n1) ~>> (m@n2).
-Proof.
- intros.
- induction H; subst; eauto.
-Qed.
-
-Lemma Rw_rt_Proj:
-  forall (b:bool) (M M' : Term), (M ~>> M') -> (TmProj b M) ~>> (TmProj b M').
 Proof.
  intros.
  induction H; subst; eauto.
@@ -700,7 +669,7 @@ Proof.
  intros.
  induction H; subst; eauto.
 Qed.
-
+(* 
 Lemma Rw_rt_Union_left:
   forall m1 m2 n : Term, (m1 ~>> m2) -> (TmUnion m1 n) ~>> (TmUnion m2 n).
 Proof.
@@ -713,7 +682,7 @@ Lemma Rw_rt_Union_right:
 Proof.
  intros.
  induction H; subst; eauto.
-Qed.
+Qed. *)
 
 Lemma Rw_rt_Bind_left:
   forall m1 m2 n : Term, (m1 ~>> m2) -> (TmBind m1 n) ~>> (TmBind m2 n).
@@ -728,7 +697,7 @@ Proof.
  intros.
  induction H; subst; eauto.
 Qed.
-
+(* 
 Lemma Rw_rt_If_cond:
   forall b1 b2 m n : Term, (b1 ~>> b2) -> (TmIf b1 m n) ~>> (TmIf b2 m n).
 Proof.
@@ -748,12 +717,25 @@ Lemma Rw_rt_If_right:
 Proof.
  intros.
  induction H; subst; eauto.
-Qed.
+Qed. *)
 
 #[export]
-Hint Resolve Rw_rt_Pair_left Rw_rt_Pair_right Rw_rt_App_left Rw_rt_App_right
-     Rw_rt_Proj Rw_rt_Abs Rw_rt_Single Rw_rt_Union_left Rw_rt_Union_right
-     Rw_rt_Bind_left Rw_rt_Bind_right Rw_rt_If_cond Rw_rt_If_left Rw_rt_If_right.
+Hint Resolve 
+  (* Rw_rt_Pair_left
+  Rw_rt_Pair_right *)
+  Rw_rt_App_left
+  Rw_rt_App_right
+  (* Rw_rt_Proj *)
+  Rw_rt_Abs
+  Rw_rt_Single
+  (* Rw_rt_Union_left
+  Rw_rt_Union_right *)
+  Rw_rt_Bind_left
+  Rw_rt_Bind_right
+  (* Rw_rt_If_cond
+  Rw_rt_If_left
+  Rw_rt_If_right *)
+  .
 
 (** * [( */ )] and unshift. *)
 
@@ -824,8 +806,8 @@ Proof.
    lia.
  - rewrite unshift_shift_commute by lia.
    apply Rw_Bind_assoc.
- - rewrite unshift_shift_commute by lia.
-   apply Rw_If_Bind.
+ (*- rewrite unshift_shift_commute by lia.
+   apply Rw_If_Bind.*)
 Qed.
 
 Lemma shift_preserves_rw:

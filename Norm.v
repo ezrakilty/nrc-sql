@@ -244,11 +244,14 @@ Proof.
  apply SN_embedding2 with (f:=f)(Q:=f M)(Q':=g M); auto.
 Qed.
 
+(* 
 Lemma SN_context_Proj : forall b M,
-                          SN (TmProj b M) -> SN M.
+SN (TmProj b M) -> SN M.
 Proof.
- intros b M H.
- apply (SN_embedding (TmProj b)) with (TmProj b M); auto.
+  intros b M H.
+  apply (SN_embedding (TmProj b)) with (TmProj b M); auto.
+Qed. *)
+
 Qed.
 
 Lemma SN_context_App_left:
