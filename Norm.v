@@ -252,8 +252,6 @@ Proof.
   apply (SN_embedding (TmProj b)) with (TmProj b M); auto.
 Qed. *)
 
-Qed.
-
 Lemma SN_context_App_left:
   forall L M, SN (L@M) -> SN L.
 Proof.

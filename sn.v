@@ -346,7 +346,7 @@ Proof.
      apply TApp with T1; solve [eauto with Reducible Shift].
     intros M'' red.
     (* Take cases on the reductions. *)
-    inversion red as [ | ? Z ? redn_Z | | | | | | | | ] ; subst.
+    inversion red as [ | ? Z ? redn_Z | | | | | | | ] ; subst.
     (* beta reduction *)
       rewrite subst_dummyvar_beta.
       apply Rw_rt_preserves_Reducible with N; sauto.
@@ -434,7 +434,12 @@ Proof.
  constructor.
  intros m' H3.
  clone H3 as H2.
- apply Neutral_Lists in H3 as [[[M' s1 s2] | [K1 s1 s2]] | [K' eq [K'' xeq]]]; [ | | | auto].
+ apply Neutral_Lists in H3 as [
+  (* [ *)
+    [M' s1 s2]
+     | [K1 s1 s2]]
+      (* | [K' eq [K'' xeq]]] *)
+      ; [ | | auto ].
  - subst.
    firstorder.
  - subst.
@@ -611,7 +616,7 @@ Proof.
  apply Neutral_Reducible_withdraw; [ sauto | eauto with Subst |].
  intros M' redn.
 
- inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | | |].
+ inversion redn as [N0 M0 V M'_eq| ? ? ? L_redn | | | | | | |].
 
  - (* Case: beta reduction. *)
    subst N''.
@@ -904,16 +909,16 @@ Proof.
   intros.
   induction H; intros; destruct H0 as [K H0]; subst.
   - exists K.
-    apply deepest_K_var.
+    apply deepest_K_TmNull.
   - apply K_TmNull_rw in r.
     destruct r as [[K' neq [K'' size Keq]] | ].
     exists K'.
     subst.
-    apply deepest_K_var.
+    apply deepest_K_TmNull.
     destruct s.
     exists x.
     subst.
-    apply deepest_K_var.
+    apply deepest_K_TmNull.
   - firstorder.
     specialize (H2 K).
     firstorder.
@@ -1043,15 +1048,23 @@ Proof.
   apply reducts_SN; fold SN.
   intros Z redn.
   apply interface_rw_classification in redn
-    as [[[[[M' redn_a redn_b] | [K'' redn_a redn_b]] | ?] | ?] | ?].
+    as [
+      (* [ *)
+        [
+          [
+            [M' redn_a redn_b]
+             | [K'' redn_a redn_b]]
+              | ?]
+               (* | ?] *)
+                | ?].
   * (* Inside body. *)
     inversion redn_b; subst.
     -- (* Bind_Null_body *) eauto using beta_reduct_under_K_rw_rt, Rw_trans_preserves_SN.
-    -- (* beta *)
+    (* -- (* beta *)
        assert (SN (plug (N */ L) K0)).
        apply Krw_rt_preserves_SN with K; auto.
        apply plug_SN_rw_rt with (N */ L); auto.
-       apply beta_substitution_doubly_preserves_rw_rt; auto.
+       apply beta_substitution_doubly_preserves_rw_rt; auto. *)
     -- (* subject reduces *) inversion H8; sauto.
     -- (* body reduces *) seauto.
   * (* Inside continuation. *)
@@ -1061,6 +1074,7 @@ Proof.
     refute.
     destruct p as [A [K' [M' H6 [N' H7 H8]]]].
     apply NotBind_TmBind in H8; auto.
+    (*
   * (* Cutting with TmNull in the middle of the continuation. *)
     destruct s as [K' Zeq [K'' K0eq]].
     assert (plug (N */ L) K ~>> plug TmNull K').
@@ -1071,6 +1085,7 @@ Proof.
     apply curtailment.
     subst.
     eauto using plug_SN_rw_rt with Norm.
+    *)
   * (* At the interface, and body is a Bind term. *)
     destruct s as [L1 [L1' H8 [K'' [N1 H9 H10]]]].
     inversion H8.
@@ -1133,7 +1148,7 @@ Proof.
  clear X0.
  eapply Bind_Reducible_core; eauto.
 Qed.
-
+(*
 Lemma TmTable_rw:
   forall K t x,
     (plug (TmTable t) K ~> x) ->
@@ -1158,6 +1173,7 @@ Proof.
   - firstorder.
     discriminate.
 Qed. *)
+
 (* 
 Lemma Rw_curtailment_generalizes: forall K t K',
     (plug (TmTable t) K ~> plug TmNull K') ->
@@ -1195,6 +1211,7 @@ Proof.
   auto.
  auto.
 Qed.
+
 (* 
 Lemma SN_K_TmTable:
   forall t K x,
@@ -1300,8 +1317,8 @@ Proof.
  * subst.
    assert (Reducible (subst_env 0 Vs M1) (TyArr a T)) by eauto.
    assert (Reducible (subst_env 0 Vs M2) a) by eauto with Reducible.
-   inversion X2.
-   apply X5.
+   inversion X.
+   apply X1.
    apply Reducible_welltyped_closed.
    auto.
    auto.
@@ -1320,6 +1337,13 @@ Proof.
    assert (Reducible (subst_env 0 Vs M1) (TyList t)) by eauto.
    apply Reducible_Union; sauto.
     *)
+(* Case TmSingle *)
+  * simpl.
+  split.
+  { eauto with Subst. }
+  intros.
+  eauto.
+
  (* Case TmBind *)
  * subst.
    apply Bind_Reducible with s.
@@ -1347,12 +1371,6 @@ Proof.
         simpl.
         auto.
      ** apply env_typing_cons; sauto.
-(* Case TmSingle *)
- * simpl.
-   split.
-   { eauto with Subst. }
-   intros.
-   eauto.
 Qed.
 
 (** Every well-typed term is strongly normalizing. *)

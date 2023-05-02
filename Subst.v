@@ -97,7 +97,7 @@ Proof.
  eapply IHN; efinish.
  (* Case TmBind *)
  eapply IHN2 with (T:=TyList t).
- apply X0.
+ apply H3.
  simpl; lia.
 Qed.
 
@@ -683,6 +683,9 @@ Proof.
     rewrite IHM2 by auto.
     rewrite set_filter_union.
     solve_set_union_inclusion. *)
+ (* TmSingle*)
+   simpl.
+   auto.
 
  (* Case TmBind *)
    simpl.
@@ -715,9 +718,6 @@ Proof.
  (* Case TmTable *)
  simpl.
  solve [auto with Listkit]. *)
- (* TmSingle*)
- simpl.
- auto.
 Qed.
 
 Lemma subst_unused_noop_binder:
@@ -774,8 +774,8 @@ Proof.
  apply all_union in H0; destruct H0.
  auto.
  apply all_union in H0; destruct H0.
- auto. *)
- auto.
+ auto. 
+ auto.*)
 Qed.
 
 Lemma subst_factor_binder:

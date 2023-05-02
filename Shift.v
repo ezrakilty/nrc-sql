@@ -81,7 +81,7 @@ Lemma shift_nonfree_noop :
     Typing env M T -> shift k n M = M.
 Proof.
  induction M; simpl; intros k env T k_big M_tp; intuition;
-   inversion M_tp as [| ? ? T_is_env_x | | | | | | | | | |];
+   inversion M_tp as [| ? ? T_is_env_x | | | | ];
      try (f_equal; eauto).
  (* Case TmVar *)
    unfold shift_var.
@@ -100,7 +100,7 @@ Lemma unshift_nonfree_noop :
     Typing env M T -> unshift k n M = M.
 Proof.
  induction M; simpl; intros k env T k_big M_tp; intuition;
-   inversion M_tp as [| ? ? T_is_env_x | | | | | | | | | |];
+   inversion M_tp as [| ? ? T_is_env_x | | | |];
      try (f_equal; eauto).
    unfold unshift_var.
    break; trivial.
@@ -161,7 +161,7 @@ Lemma shift_preserves_typing:
     Typing env M T -> Typing (env1 ++ env' ++ env2) (shift k n M) T.
 Proof.
  induction M; intros k n env1 env2 env env' T env_split k_def n_def M_tp;
-   inversion M_tp as [| ? ? T_is_env_x| | | | | | | | | |]; simpl.
+   inversion M_tp as [| ? ? T_is_env_x| | | |]; simpl.
  (* TmConst *)
             solve [auto].
  (* TmVar *)
@@ -182,8 +182,9 @@ Proof.
  (* TmApp *)
        eauto.
       auto.
-    (* apply TSingle; eauto.
-   apply TUnion; eauto. *)
+ (* TmSingle *)
+    apply TSingle; eauto.
+   (* apply TUnion; eauto. *)
  (* TmBind *)
   eapply TBind.
    eapply IHM1; seauto.
@@ -193,9 +194,6 @@ Proof.
   eapply IHM2 with (s::env1 ++ env2); auto.
   simpl.
   sauto.
-  (* Case TmSingle *)
- apply TSingle.
- eapply IHM; eauto.
 Qed.
 
 (** Shifting a term by just one preserves typing. *)
@@ -421,6 +419,9 @@ Proof.
  (* Case TmUnion *)
   rewrite IHM1, IHM2; auto with Listkit. *)
 
+ (* Case TmSingle *)
+ rewrite IHM; solve [auto].
+
  (* Case TmBind *)
  rewrite IHM1; auto with Listkit.
  rewrite IHM2; auto with Listkit; try lia.
@@ -437,9 +438,6 @@ Proof.
 
  (* Case TmTable *)
  sauto. *)
-
- (* Case TmSingle *)
- rewrite IHM; solve [auto].
 Qed.
 
 Lemma shift_up_remove_0_pred:
@@ -505,6 +503,9 @@ Proof.
   rewrite map_union.
   solve [trivial with Listkit]. *)
 
+ (* Case TmSingle *)
+ solve [auto with Listkit].
+
  (* Case TmBind *)
  rewrite IHM1, IHM2.
  rewrite map_union.
@@ -516,11 +517,16 @@ Proof.
  rewrite map_union.
  solve [trivial with Listkit].*)
 
- (* Case TmSingle *)
-   solve [auto with Listkit].
-
 (* (* Case TmTable *)
  solve [auto with Listkit]. *)
+Qed.
+
+Lemma pred_shift_var:
+forall x,
+Init.Nat.pred (shift_var 0 1 x) = x.
+Proof.
+  induction x; simpl; auto.
+  lia.
 Qed.
 
 Lemma pred_freevars_shift :
@@ -534,7 +540,7 @@ Proof.
  rewrite set_map_map.
  apply set_map_idy_ext.
  intros.
- apply pred_shift.
+ apply pred_shift_var.
 Qed.
 
 Require Import Listkit.All.

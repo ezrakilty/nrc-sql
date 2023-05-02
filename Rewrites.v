@@ -190,6 +190,7 @@ Inductive RewritesTo : Term -> Term -> Type :=
 | Rw_If_Bind: forall b m n,
     RewritesTo (TmIf b (TmBind m n) TmNull)
                (TmBind m (TmIf (shift 0 1 b) n TmNull))
+*)
 .
 
 #[export]
@@ -290,7 +291,9 @@ Proof.
  induction red;
     intros env T T_tp;
     inversion T_tp as
-        [| | | ? ? S T' H | | ? ? ? H | ? ? ? H | ? ? H | | | ? ? ? ? H H0 |];
+        (* [| | | ? ? S T' H | | ? ? ? H | ? ? ? H | ? ? H | | | ? ? ? ? H H0 |]; *)
+        [| | | | | ];
+
     inversion H; subst; try (solve [eauto using beta_reduct_typing]).
  (* Case TmBind_assoc *)
  - eapply TBind; eauto.
@@ -454,7 +457,7 @@ Proof.
                   (* | b M N1 N2 *)
                   (* | b M N *)
                   (* | b M N *)
-                  | 
+                  (* |  *)
                 ];
    intros n env; simpl; eauto.
 
@@ -598,6 +601,15 @@ Proof.
    eexists; eauto.
    auto. *)
 
+ - (* reduction inside TmSingle. *)
+   subst.
+   apply IHN in H0.
+   firstorder.
+   eexists; eauto.
+   simpl.
+   subst.
+   auto.
+
  - (* Case: Beta for Bind *)
    destruct (TmSingle_shift_inversion x _ _ H); subst.
    exists (N2 */ x0); auto.
@@ -629,15 +641,6 @@ Proof.
    destruct (IHN2 _ _ H2); subst.
    eexists; eauto; simpl; auto.
    
-   - (* reduction inside TmSingle. *)
-     subst.
-     apply IHN in H0.
-     firstorder.
-     eexists; eauto.
-     simpl.
-     subst.
-     auto.
-
 Qed.
 
 (** * Compatibility of rewriting with each of the term forms. *)
@@ -822,8 +825,8 @@ Proof.
    rewrite commute_shift_beta_reduct; auto.
  - rewrite shift_shift_commute by lia.
    auto.
- - rewrite shift_shift_commute by lia.
-   auto.
+ (* - rewrite shift_shift_commute by lia.
+   auto. *)
 Qed.
 
 (* TODO: Need a better place for the below stuff, which is interactions btwn
@@ -866,12 +869,12 @@ Proof.
  induction M; subst;
    try (apply subst_env_compat_rw_rt_var);
    simpl; eauto; intros.
- - eapply Rw_rt_trans; eauto.
+ (* - eapply Rw_rt_trans; eauto. *)
  - eauto using Rw_rt_Abs, IHM, shift_preserves_rw_rt.
  - eapply Rw_rt_trans; eauto.
- - eapply Rw_rt_trans; eauto.
+ (* - eapply Rw_rt_trans; eauto. *)
  - eapply Rw_rt_trans; eauto using IHM2, shift_preserves_rw_rt.
- - evar (X : Term).
+ (* - evar (X : Term).
    evar (Y : Term).
    eapply Rw_rt_trans with X; [ | eapply Rw_rt_trans with Y].
    instantiate (X :=
@@ -886,7 +889,7 @@ Proof.
                         (subst_env n (L :: nil) M3))).
    subst X Y.
    eauto.
-   subst Y. eauto.
+   subst Y. eauto. *)
 Qed.
 
 Lemma subst_env_compat_rw_rt
