@@ -12,6 +12,7 @@ Load "eztactics.v".
 
 Require Import Listkit.NthError.
 
+#[export]
 Hint Rewrite app_comm_cons : list.
 
 (** Weaken a typing derivation by extending its environment

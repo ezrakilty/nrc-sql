@@ -112,6 +112,7 @@ Proof.
  apply union_mor; auto.
 Qed.
 
+#[export]
 Hint Resolve union_eq_mor : Listkit.
 
 Add Parametric Morphism A x : (cons x) with
@@ -813,6 +814,7 @@ Qed.
 
 #[export]
 Hint Resolve set_filter_intro set_union_elim set_filter_elim set_union_intro : filter_union.
+#[export]
 Hint Resolve set_filter_intro set_union_elim set_filter_elim set_union_intro : Listkit.
 Lemma set_filter_union :
   forall A A_eq_dec f X Y,

@@ -40,6 +40,7 @@ Require Import Bool.
 
 (* Set Loose Hint Behavior Strict. *)
 
+#[export]
 Hint Rewrite app_comm_cons : list.
 
 Definition set_remove := Listkit.Sets.set_remove.
@@ -228,99 +229,6 @@ Proof.
     unfold Reducible in *.
     intuition (apply reducts_SN).
     solve [firstorder].
-(* 
- (* Case TyPair *)
-    splitN 3.
-    (* Case: exists a reducible term *)
-     destruct IHT1 as [[[M M_red] Reducible_SN_T1] Neutral_Reducible_T1].
-     destruct IHT2 as [[[N N_red] Reducible_SN_T2] Neutral_Reducible_T2].
-     exists (TmPair M N).
-     simpl.
-     split; [auto with Reducible | ].
-
-     (* Case: When continuation frames (left & right projections) are applied, a
-        reducible term is formed. *)
-     split.
-
-     (* Case: left projection *)
-     (* TODO: double_induction_SN needs us to prove that an arbitrary
-        transitive reduct of the term is reducible; but I think it
-        would be fine to prove just that the term itself is so. *)
-      double_induction_SN_intro M N.
-      (* Because (TmProj _ _) is Neutral, it's sufficient to show that all its
-         reducts are reducible. *)
-      apply Neutral_Reducible_T1; [seauto | solve [eauto with Reducible] | ].
-      intros Z H.
-      inversion H.
-      (* Case: <M', N'> itself reduces *)
-       subst.
-       inversion H3.
-       (* Case: reduction in rhs *)
-        subst m1 n m2.
-        apply IHM; seauto.
-       (* Case: reduction in lhs *)
-       subst m n1 m2.
-       apply IHN; seauto.
-      (* Case: The reduct is at the head; we project. *)
-      subst m n Z.
-      solve [eauto with Reducible].
-
-     (* Case: right projection *)
-     (* TODO: refactor between the TmProj true / TmProj false cases. *)
-     double_induction_SN_intro M N.
-     (* Because (TmProj _ _) is Neutral, it's sufficient to show that all its
-        reducts are reducible. *)
-     apply Neutral_Reducible_T2; [seauto | | ].
-     (* TODO: why does the TProj1 case go with seauto but this needs me
-         to tell is what lemma to use? *)
-      apply TProj2 with T1; solve [eauto with Reducible].
-     intros Z H.
-     inversion H.
-     (* Case: <M', N'> itself reduces *)
-      subst.
-      inversion H3.
-       subst m1 n m2.
-       apply IHM; seauto.
-      subst m n1 m2.
-      apply IHN; seauto.
-     (* Case: The reduct is at the head; we project. *)
-     subst m n Z.
-     solve [eauto with Reducible].
-
-   (* Case: Reducible pair-type terms are strongly normalizing *)
-    simpl.
-    intuition.
-    assert (SN (TmProj false tm)) by auto.
-    eapply SN_context_Proj; seauto.
-
-   (* Case: Neutral terms at pair type whose reducts are reducible are
-      themselves reducible (reducibility "withdraws"). *)
-   intros M M_Neutral M_Typing M_reducts_Reducible.
-   destruct IHT1 as [[? ?] l_withdraws].
-   destruct IHT2 as [[? ?] r_withdraws].
-   simpl. (* this is only true if both destructors (projections) are reducible. *)
-   split; [sauto | ].
-   (* Split into left and right projections. *)
-   split; [apply l_withdraws | apply r_withdraws]; eauto.
-   (* Case: left projection. *)
-    intros M' H. (* Consider all reducts of the projection. *)
-    inversion H.
-    (* Case: The reduction is in the subject term. *)
-     pose (M_reducts_Reducible m2 H3). (* Then the subject's reduct is Reducible. *)
-     simpl in r.
-     solve [intuition]. (* Which by definition entails our goal. *)
-    (* Case: The reduction is at the head; it is the projection. But the subject
-             being neutral, it is not a pair, so contradiction. *)
-    subst m M.
-    solve [inversion M_Neutral].
-   (* Case: right projection. *)
-   intros M' H.
-   inversion H.
-    pose (r := M_reducts_Reducible m2 H3).
-    simpl in r.
-    solve [intuition].
-   subst n M.
-   solve [inversion M_Neutral]. *)
 
   (* Case TyArr *)
   splitN 3.
@@ -446,18 +354,6 @@ Proof.
    apply X1; auto.
    rename x into K.
    apply Krw_preserves_ReducibleK with K; auto.
-(* 
- - subst.
-   assert (Krw_norm K').
-   eapply prefix_Krw_norm.
-   assert (prefix K' (appendK K'' K')).
-   { apply prefix_appendK; auto with Continuation. }
-   apply H1.
-   unfold Krw_norm.
-   constructor.
-   sauto.
-   apply Krw_norm_SN.
-   sauto. *)
 Qed.
 
 (** Now we extract the three lemmas in their separate, useful form. *)
@@ -632,55 +528,6 @@ Proof.
    apply IHP; solve [eauto].
 Qed.
 
-(* Lemma pair_proj_reducible:
-  forall (M N : Term)
-         (S T : Ty)
-         (b : bool),
-  Reducible M S ->
-  Reducible N T ->
-  SN M ->
-  SN N ->
-     Reducible (TmProj b (〈M, N〉)) (if b then T else S).
-Proof.
- intros.
- double_induction_SN N M.
- intros x y X1 X2 H1 H2.
-
- apply Neutral_Reducible_withdraw; auto.
- (* Discharge the typing obligation. *)
- - assert (Typing nil y T) by solve [eauto with Reducible].
-   assert (Typing nil x S) by solve [eauto with Reducible].
-   destruct b; eauto.
- (* All reducts are reducible. *)
- - intros M' H3.
-   (* Take cases on the reduction. *)
-   inversion H3 as [ | | | | | | m n1 n2 H7 | m n | m n | | | | | | | | | | | | | | |]; subst.
-   (* Case: reduction under the operation. *)
-   * inversion H7; subst; eauto.
-   (* Case: beta-reduction on the left *)
-   * eauto with Reducible.
-   (* Case: beta-reduction on the right *)
-   * eauto with Reducible.
-Qed. *)
-
-(* * (Lemma 29, for pairs rather than records)
-Lemma pair_reducible:
-  forall M N S T,
-    Reducible M S -> Reducible N T -> Reducible (TmPair M N) (TyPair S T).
-Proof.
- intros.
- simpl.
- assert (Typing nil M S) by solve [auto with Reducible].
- assert (Typing nil N T) by solve [auto with Reducible].
- assert (SN M) by (eapply Reducible_SN; eauto).
- assert (SN N) by (eapply Reducible_SN; eauto).
- intuition.
- (* Case TmProj false *)
- - apply (pair_proj_reducible M N S T false X X0 H1 H2).
- (* Case TmProj true *)
- - apply (pair_proj_reducible M N S T true X X0 H1 H2).
-Qed. *)
-
 (** * Reducible things at list type *)
 
 Lemma ReducibleK_Empty :
@@ -691,52 +538,6 @@ Proof.
  intros.
  eauto using SN_TmSingle with SN.
 Qed.
-
-(* Hint Resolve ReducibleK_Empty. *)
-(* 
-(** (compare Lemma 26, but not the same) *)
-Lemma Reducible_Null:
-  forall K T,
-    ReducibleK Reducible K T
-    -> SN (plug TmNull K).
-Proof.
- unfold ReducibleK.
- intros.
- assert (Krw_rt K K).
-  apply Krw_rt_refl; sauto.
- revert H.
- pattern K at 2 3.
- apply Ksize_induction with (K := K); intros; auto.
-  destruct K0; simpl in *; try (inversion H).
-  apply reducts_SN.
-  intros m' H'.
-  inversion H'.
- destruct K'.
- inversion H0.
- destruct (Reducible_inhabited T) as [M M_H].
- pose (X M M_H).
- apply SN_K_M_SN_K_Null with (TmSingle M).
- apply Rw_trans_preserves_SN with (plug (TmSingle M) K); auto.
- apply Krw_rt_Rw_rt; auto.
-Qed. *)
-(* 
-(** (Lemma 32; compare Lemmas 30, 31. It seemed a lot harder) *)
-Lemma Reducible_Union:
-  forall T M N,
-    Reducible M (TyList T) -> Reducible N (TyList T) -> Reducible (TmUnion M N) (TyList T).
-Proof.
- simpl.
- intros T M N.
- intros.
- destruct X, X0.
- split.
-  auto.
- intros.
- change (forall K, ReducibleK Reducible K T -> SN (plug M K)) in s.
- change (forall K, ReducibleK Reducible K T -> SN (plug N K)) in s0.
- change (ReducibleK Reducible K T) in X.
- eauto using SN_K_Union.
-Qed. *)
 
 (** * Rewrites Inside Structures That Look Like A Beta-Reduct. *)
 
@@ -767,97 +568,6 @@ Proof.
 Qed.
 
 (** * Bind reducibility. (Lemma 33) *)
-(* 
-Lemma K_TmTable_rw:
-  forall K t M,
-    (plug (TmTable t) K ~> M) ->
-    {K' : Continuation & M = plug (TmTable t) K' & Krw K K'} +
-    {K' : Continuation
-          & M = plug TmNull K'
-          & {K'' : Continuation & K = appendK K'' (Iterate TmNull :: K')}}.
-Proof.
-  induction K using Ksize_induction_strong.
-  intros.
-  apply interface_rw_classification in H0.
-  destruct H0 as [[[[[K'' Zeq rw]| [K'' Zeq rw]]| p] | [K'' Zeq  [K0 K''eq]]]| ?].
-  - inversion rw.
-  - left; eauto.
-  - destruct p.
-    lapply n; easy.
-  - subst.
-    right.
-    exists K''.
-    * auto.
-    * exists K0.
-      auto.
-  - destruct s as [L' [M' eq]].
-    inversion eq.
-(* Qed. *)
-
-Lemma discriminate_K_TmTable_K_TmNull:
-  forall K t K', ~(plug (TmTable t) K = plug TmNull K').
-Proof.
-  intros.
-  intro.
-  assert (deepest_K (plug (TmTable t) K) = deepest_K (plug TmNull K')).
-  { f_equal. auto. }
-  rewrite deepest_K_TmNull in H0.
-  rewrite deepest_K_TmTable in H0.
-  discriminate.
-Qed. *)
-(* 
-Lemma Rw_over_TmTable_generalizes:
-  forall t x K K',
-    (plug (TmTable t) K ~> plug (TmTable t) K') ->
-    (plug x K ~> plug x K').
-Proof.
- intros.
- apply K_TmTable_rw in H.
- destruct H as [? | ?].
- - destruct s as [? H H0].
-   unfold Krw in H0.
-   assert (deepest_K (TmTable t) = (TmTable t, nil)) by auto.
-   pose (deepest_K_TmTable K' t).
-   pose (deepest_K_TmTable x0 t).
-   assert (x0 = K') by congruence.
-   subst x0.
-   auto.
- - destruct s as [? H H0].
-   apply discriminate_K_TmTable_K_TmNull in H.
-   easy.
-Qed. *)
-
-(* To do: Generalize this lemma:
-
-  deepest_K_NotBind:
-    forall (K : Continuation) (M : Term) (K' : Continuation) (M' : Term),
-    (K', M') = deepest_K (plug K M) -> NotBind M -> M = M'
-
-  the next lemma and a couple others would fall out.
-*)
-(* Lemma plug_TmTable_unique: forall K K' t,
-    plug (TmTable t) K = plug (TmTable t) K'
-    -> K = K'.
-Proof.
-  intros.
-  assert (deepest_K (plug (TmTable t) K) = deepest_K (plug (TmTable t) K')).
-  f_equal; auto.
-  rewrite deepest_K_TmTable in H0.
-  rewrite deepest_K_TmTable in H0.
-  congruence.
-Qed. *)
-(* 
-Lemma plug_TmNull_unique: forall K K',
-    plug (TmNull) K = plug (TmNull) K'
-    -> K = K'.
-Proof.
-  intros.
-  assert (deepest_K (plug (TmNull) K) = deepest_K (plug (TmNull) K')).
-  f_equal; auto.
-  rewrite deepest_K_TmNull in H0.
-  rewrite deepest_K_TmNull in H0.
-  congruence.
-Qed. *)
 
 (** This is kind of gross, but it's a means to an end. One lemma seemed
     particularly hard to prove by induction on the RewritesTo_rt type, because
@@ -928,87 +638,6 @@ Proof.
     apply deepest_K_spec in p.
     auto.
 Qed.
-(* 
-Lemma Rw_rt1_intermediate_TmTable_subject':
-  forall t Z m,
-    (RewritesTo_rt_right_linear m Z) -> {K' & Z = plug (TmTable t) K'} ->
-    forall A,
-      (A ~> m) -> {K & A = plug (TmTable t) K} ->
-      {K'' & m = plug (TmTable t) K''}.
-Proof.
-  intros t Z m H.
-  induction H; intros; subst.
-  - eauto.
-  - firstorder.
-    subst.
-    apply K_TmTable_rw in H1.
-    destruct H1 as [[K' leq] | [K' leq [K'' xeq]]].
-    * exists K'; auto.
-    * assert (H5: l ~>> plug (TmTable t) x0).
-      { pose (return_redseq _ _ H).
-        eauto. }
-      lapply (once_TmNull_subject_always l (plug (TmTable t) x0) H5).
-      { intro H6.
-        destruct H6.
-        rewrite deepest_K_TmTable in e.
-        easy. }
-      eauto.
-Qed. *)
-
-(*
-Lemma Rw_rt1_intermediate_TmTable_subject:
-  forall t Z m,
-    (m ~>> Z) -> {K' & Z = plug (TmTable t) K'} ->
-    forall A,
-      (A ~> m) -> {K & A = plug (TmTable t) K} ->
-      {K'' & m = plug (TmTable t) K''}.
-Proof.
- intros.
- pose (normal_redseq _ _ H).
- eapply Rw_rt1_intermediate_TmTable_subject'; eauto.
-Qed. *)
-(* 
-Lemma Rw_rt_intermediate_TmTable_subject:
-  forall t A Z m,
-    (A ~>> m) -> {K & A = plug (TmTable t) K} ->
-    (m ~>> Z) -> {K' & Z = plug (TmTable t) K'} ->
-    {K'' & m = plug (TmTable t) K''}.
-Proof.
-  intros.
-  induction H; intros; subst.
-  - eauto.
-  - destruct H0; destruct H2.
-    subst.
-    eauto using Rw_rt1_intermediate_TmTable_subject.
-  - firstorder.
-    subst.
-    assert (cmon: plug (TmTable t) x0 = plug (TmTable t) x0) by reflexivity.
-    assert (m ~>> plug (TmTable t) x).
-    eauto.
-    destruct (H2 x0 cmon H4).
-    apply H0 with x1; auto.
-Qed. *)
-(* 
-Lemma Rw_rt_over_TmTable_generalizes:
-  forall t x K K',
-    (plug (TmTable t) K ~>> plug (TmTable t) K')
-    -> (plug x K ~>> plug x K').
-Proof.
-  intros t x K K' H.
-  remember (plug (TmTable t) K) as A.
-  remember (plug (TmTable t) K') as Z.
-  revert K HeqA K' HeqZ.
-  induction H; intros; subst.
-  - assert (K = K') by (eauto using plug_TmTable_unique).
-    subst; auto.
-
-  - eauto using Rw_over_TmTable_generalizes.
-
-  - assert (H1 : {K'' & m = plug (TmTable t) K''}).
-    { eauto using Rw_rt_intermediate_TmTable_subject. }
-    destruct H1.
-    eauto.
-Qed. *)
 
 Lemma assoc_result_SN:
   forall (K : Continuation) (L N : Term) (N0 L0 : Term) (K'' : Continuation) (N1 : Term),
@@ -1074,19 +703,7 @@ Proof.
     refute.
     destruct p as [A [K' [M' H6 [N' H7 H8]]]].
     apply NotBind_TmBind in H8; auto.
-    (*
-  * (* Cutting with TmNull in the middle of the continuation. *)
-    destruct s as [K' Zeq [K'' K0eq]].
-    assert (plug (N */ L) K ~>> plug TmNull K').
-    apply Rw_rt_trans with (plug (N */ L) K0).
-    apply plug_rw_rt; auto.
-    subst.
-    apply Rw_rt_step.
-    apply curtailment.
-    subst.
-    eauto using plug_SN_rw_rt with Norm.
-    *)
-  * (* At the interface, and body is a Bind term. *)
+   * (* At the interface, and body is a Bind term. *)
     destruct s as [L1 [L1' H8 [K'' [N1 H9 H10]]]].
     inversion H8.
     subst Z L1 L1' K0.
@@ -1148,48 +765,6 @@ Proof.
  clear X0.
  eapply Bind_Reducible_core; eauto.
 Qed.
-(*
-Lemma TmTable_rw:
-  forall K t x,
-    (plug (TmTable t) K ~> x) ->
-    {K' : Continuation & (x = plug (TmTable t) K') & Krw K K'} +
-    {K' : Continuation & prefix K' K & x = plug TmNull K'}.
-Proof.
-  simpl; intros.
-  apply interface_rw_classification in H.
-  destruct H as [[[[[M' H H1] | H] | H] | H] | ?].
-  - inversion H1.
-  - eauto.
-  - destruct H.
-    lapply n.
-    tauto.
-    auto.
-  - destruct H as [K' xeq [K'' Keq]].
-    subst.
-    right.
-    exists K'; auto.
-    apply prefix_appendK.
-    auto with Continuation.
-  - firstorder.
-    discriminate.
-Qed. *)
-
-(* 
-Lemma Rw_curtailment_generalizes: forall K t K',
-    (plug (TmTable t) K ~> plug TmNull K') ->
-    forall x, plug x K ~> plug TmNull K'.
-Proof.
-  intros.
-  apply K_TmTable_rw in H.
-  destruct H as [[K0 H H0] | [K0 H H0]].
-  - symmetry in H; apply discriminate_K_TmTable_K_TmNull in H.
-    easy.
-  - destruct H0.
-    subst.
-    replace K0 with K'.
-    apply curtailment.
-    apply plug_TmNull_unique; auto.
-Qed. *)
 
 (* TODO: Ugly. Unify all the SN_embedding lemmas--or name them well. *)
 Lemma SN_embedding2'' A f g:
@@ -1211,43 +786,6 @@ Proof.
   auto.
  auto.
 Qed.
-
-(* 
-Lemma SN_K_TmTable:
-  forall t K x,
-    SN (plug x K) -> SN (plug (TmTable t) K).
-Proof.
-  induction K using Ksize_induction_strong.
-  intros.
-  apply SN_embedding2'' with (f:=fun k => plug x k)
-                            (g:=fun k => plug (TmTable t) k);
-    auto.
-  intros K' Z Hdown H1.
-  clone H1 as H2.
-  apply K_TmTable_rw in H1.
-  destruct H1 as [[K'' Zeq rw] | [K'' eq [K''' K'''eq]]].
-  - left.
-    exists K''.
-    intuition.
-  - right.
-    subst Z.
-    assert (Ksize K'' < Ksize K).
-    { assert (Ksize K' <= Ksize K).
-      { apply Rw_rt_conserves_Ksize.
-        eauto using Rw_rt_over_TmTable_generalizes. }
-      assert (Ksize K' > Ksize K'').
-      { subst K'.
-        rewrite Ksize_appendK; simpl.
-        lia. }
-      lia. }
-    apply Rw_trans_preserves_SN with (plug x K); auto.
-    assert (plug x K' ~> plug TmNull K'').
-    { apply Rw_curtailment_generalizes with t; auto. }
-    assert (plug x K ~>> plug x K').
-    { eauto using Rw_rt_over_TmTable_generalizes. }
-    eauto.
-Qed. *)
-
 
 (** Every well-typed term, with a [Reducible] environment that makes it a closed
     term, is [Reducible] at its given type. *)
@@ -1272,31 +810,6 @@ Proof.
     enough (length tyEnv > x) by lia.
     solve [eauto with NthError].
    apply <- nth_error_overflow; sauto.
-(* 
- (* Case TmPair *)
- * assert (Reducible (subst_env 0 Vs M2) t) by eauto.
-   assert (Reducible (subst_env 0 Vs M1) s) by eauto.
-   simpl.
-   assert (Reducible (TmPair (subst_env 0 Vs M1) (subst_env 0 Vs M2)) (TyPair s t)).
-    apply pair_reducible; sauto.
-   simpl in X1.
-   trivial. *)
-(* 
- (* Case TmProj false *)
- * subst.
-   rename M into M, T into S, t into T.
-   assert (x0 : Reducible (subst_env 0 Vs M) (TyPair S T)).
-    seauto.
-   simpl in x0.
-   tauto. *)
-(* 
- (* Case TmProj true *)
- * subst.
-   rename M into M, s into S.
-   assert (X0 : Reducible (subst_env 0 Vs M) (TyPair S T)).
-    seauto.
-   simpl in X0.
-   tauto. *)
 
  (* Case TmAbs *)
  * (* TODO: Should be a simpler way to autorewrite this *)
@@ -1322,21 +835,7 @@ Proof.
    apply Reducible_welltyped_closed.
    auto.
    auto.
-(* 
- (* Case TmNull *)
- * simpl.
-   split.
-   { auto. }
-   intro K.
-   apply Reducible_Null. *)
 
-(* 
- (* Case TmUnion *)
- * subst.
-   assert (Reducible (subst_env 0 Vs M2) (TyList t)) by eauto.
-   assert (Reducible (subst_env 0 Vs M1) (TyList t)) by eauto.
-   apply Reducible_Union; sauto.
-    *)
 (* Case TmSingle *)
   * simpl.
   split.

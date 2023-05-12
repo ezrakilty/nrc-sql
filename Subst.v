@@ -22,6 +22,7 @@ Require Import Shift.
 Require Import Term.
 Require Import Typing.
 
+#[export]
 Hint Rewrite map_length: map.
 
 (*Section Subst.*)

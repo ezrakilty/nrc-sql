@@ -15,25 +15,17 @@ Create HintDb Term.
 (** Definitions *)
 Inductive Ty : Set :=
   TyBase
-(* | TyPair : Ty -> Ty -> Ty *)
 | TyArr : Ty -> Ty -> Ty
-(* | TyAny : Ty *)
 | TyList : Ty -> Ty.
 
 (** Terms *)
 Inductive Term : Set :=
   TmConst
 | TmVar (x : nat) : Term
-(* | TmPair : Term -> Term -> Term
-| TmProj : bool -> Term -> Term *)
 | TmAbs : Term -> Term
 | TmApp : Term -> Term -> Term
-(* | TmNull : Term *)
 | TmSingle : Term -> Term
-(* | TmUnion : Term -> Term -> Term *)
 | TmBind : Term -> Term -> Term
-(* | TmIf : Term -> Term -> Term -> Term
-| TmTable : Ty -> Term *)
 .
 
 Notation "L @ M" := (TmApp L M) (at level 500).
@@ -45,34 +37,19 @@ Inductive Typing env : Term -> Ty -> Set :=
 | TVar : forall (x:nat) ty,
     value ty = nth_error env x ->
     Typing env (TmVar x) ty
-(* | TPair : forall l m s t, Typing env l s -> Typing env m t ->
-    Typing env (TmPair l m) (TyPair s t) *)
 | TApp : forall l m a b,
     Typing env l (TyArr a b) -> Typing env m a ->
     Typing env (TmApp l m) b
 | TAbs : forall n s t,
     Typing (s :: env) n t ->
     Typing env (TmAbs n) (TyArr s t)
-(* | TProj1 : forall m s t, 
-    Typing env m (TyPair s t) ->
-    Typing env (TmProj false m) s
-| TProj2 : forall m s t,
-    Typing env m (TyPair s t) ->
-    Typing env (TmProj true m) t *)
 | TSingle : forall m t,
     Typing env m t ->
     Typing env (TmSingle m) (TyList t)
-(* | TUnion : forall m n t,
-    Typing env m (TyList t) ->
-    Typing env n (TyList t) ->
-    Typing env (TmUnion m n) (TyList t)
-| TNull : forall t,
-    Typing env TmNull (TyList t) *)
 | TBind : forall m s n t,
     Typing env m (TyList s) ->
     Typing (s::env) n (TyList t) ->
     Typing env (TmBind m n) (TyList t)
-(* | TTable : forall r, Typing env (TmTable r) (TyList r) *)
 .
 
 #[export]
@@ -147,20 +124,13 @@ Fixpoint freevars (M:Term) : set nat :=
   match M with
   | TmConst => empty_set nat
   | TmVar x => set_add eq_nat_dec x (empty_set nat)
-  (* | TmPair L M => set_union eq_nat_dec (freevars L) (freevars M) *)
-  (* | TmProj b M => freevars M *)
   | TmAbs N => set_map eq_nat_dec pred
                  (set_remove _ eq_nat_dec 0 (freevars N))
   | TmApp L M => set_union eq_nat_dec (freevars L) (freevars M)
-  (* | TmNull => empty_set nat *)
   | TmSingle x => freevars x
-  (* | TmUnion a b => set_union eq_nat_dec (freevars a) (freevars b) *)
   | TmBind M N => set_union eq_nat_dec (freevars M)
                             (set_map eq_nat_dec pred
                                      (set_remove _ eq_nat_dec 0 (freevars N)))
-  (* | TmIf b M N => set_union eq_nat_dec (freevars b)
-                            (set_union eq_nat_dec (freevars M) (freevars N))
-  | TmTable _ => empty_set nat *)
   end.
 
 Definition free_in x M := set_In x (freevars M).
@@ -193,8 +163,6 @@ Qed.
 Inductive Neutral : Term -> Type :=
   | Neutral_Var : forall x, Neutral (TmVar x)
   | Neutral_App : forall L M, Neutral (TmApp L M)
-  (* | Neutral_Proj : forall b M, Neutral (TmProj b M)
-  | Neutral_Table : forall t, Neutral (TmTable t) *)
   .
 
 #[export]
@@ -202,8 +170,7 @@ Hint Constructors Neutral.
 
 #[export]
 Hint Resolve Neutral_App.
+#[export]
 Hint Resolve Neutral_Var.
 #[export]
 Hint Resolve Neutral_App.
-(* #[export] *)
-(* Hint Resolve Neutral_Proj. *)
